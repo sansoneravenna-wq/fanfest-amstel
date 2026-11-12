@@ -1,0 +1,256 @@
+// API del Fan Fest Amstel · Cloudflare Worker + D1
+// Vinculaciones: D1 como "DB" y un secreto "API_KEY". Opcionales: variable MAX_CERVEZAS (por defecto 3)
+// y secreto CLAVE_ELIMINAR (contraseña para eliminar registros o borrar todo; por defecto amstel2026).
+// Google Wallet (opcional): GW_ISSUER_ID, GW_SA_EMAIL y el secreto GW_PRIVATE_KEY (clave privada de la
+// cuenta de servicio, tal cual viene en su archivo JSON). SITE_URL = dirección pública del sitio, para el logo.
+// La regla de las 3 cervezas se decide acá, en una sola sentencia SQL: aunque dos barras
+// lean el mismo QR al mismo tiempo, nunca se pasa del máximo.
+
+const ESPERA_MS = 5000;        // misma etiqueta leída dos veces seguidas: no descuenta de nuevo
+const DESHACER_MS = 120000;    // la barra puede deshacer una entrega hasta 2 minutos después
+const ALFABETO = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'; // sin 0 O 1 I L
+
+const CORS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, X-Key',
+  'Access-Control-Max-Age': '86400',
+};
+const json = (o, status = 200) =>
+  new Response(JSON.stringify(o), { status, headers: { 'Content-Type': 'application/json', ...CORS } });
+const norm = (t) => String(t == null ? '' : t).toUpperCase().replace(/[^A-Z0-9]/g, '');
+const texto = (t) => { t = String(t == null ? '' : t).trim().slice(0, 40); return t || null; };
+function nuevoCodigo() {
+  const b = crypto.getRandomValues(new Uint8Array(8));
+  let c = ''; for (const x of b) c += ALFABETO[x % ALFABETO.length];
+  return c;
+}
+
+// ------------------------------------------------------------ Google Wallet
+const b64u = (buf) => btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+const b64uTxt = (t) => b64u(new TextEncoder().encode(t));
+async function jwtRS256(claims, pem) {
+  const der = Uint8Array.from(atob(String(pem).replace(/\\n/g, '\n').replace(/-----[^-]+-----/g, '').replace(/\s+/g, '')), (c) => c.charCodeAt(0));
+  const key = await crypto.subtle.importKey('pkcs8', der, { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' }, false, ['sign']);
+  const cuerpo = b64uTxt(JSON.stringify({ alg: 'RS256', typ: 'JWT' })) + '.' + b64uTxt(JSON.stringify(claims));
+  return cuerpo + '.' + b64u(await crypto.subtle.sign('RSASSA-PKCS1-v1_5', key, new TextEncoder().encode(cuerpo)));
+}
+const hayGoogle = (env) => !!(env.GW_ISSUER_ID && env.GW_SA_EMAIL && env.GW_PRIVATE_KEY);
+const loc = (value) => ({ defaultValue: { language: 'es', value } });
+function paseGoogle(env, p, max, sitio) {
+  const classId = `${env.GW_ISSUER_ID}.fanfest_amstel_2026`, q = Math.max(max - p.usadas, 0);
+  const obj = {
+    id: `${env.GW_ISSUER_ID}.ff_${p.codigo}`, classId, state: 'ACTIVE', hexBackgroundColor: '#c8102e',
+    cardTitle: loc('Fan Fest Amstel'), subheader: loc('Final Libertadores 2026 · Montevideo'),
+    header: loc(q > 1 ? `Quedan ${q} cervezas` : q === 1 ? 'Queda 1 cerveza' : 'Ya retiró sus cervezas'),
+    barcode: { type: 'QR_CODE', value: p.codigo, alternateText: p.codigo.slice(0, 4) + '-' + p.codigo.slice(4) },
+    textModulesData: [
+      { id: 'equipo', header: 'Equipo', body: p.equipo || '-' },
+      { id: 'regla', header: 'Regla', body: `${max} cervezas por persona · ${max} cervejas por pessoa` },
+    ],
+  };
+  if (sitio) obj.logo = { sourceUri: { uri: sitio.replace(/\/?$/, '/') + 'assets/amstel.png' }, contentDescription: loc('Amstel') };
+  return { classId, obj };
+}
+// Enlace "Agregar a Google Wallet": un JWT firmado que crea la clase y el pase al guardarlo.
+async function enlaceGoogle(env, db, max, url) {
+  if (!hayGoogle(env)) return { estado: 'no_configurado' };
+  const p = await db.prepare('SELECT * FROM personas WHERE codigo = ?').bind(norm(url.searchParams.get('codigo'))).first();
+  if (!p) return { estado: 'inexistente' };
+  const sitio = env.SITE_URL || (/^https:\/\//.test(url.searchParams.get('sitio') || '') ? url.searchParams.get('sitio') : '');
+  const { classId, obj } = paseGoogle(env, p, max, sitio);
+  const jwt = await jwtRS256({ iss: env.GW_SA_EMAIL, aud: 'google', typ: 'savetowallet', iat: Math.floor(Date.now() / 1000), origins: [],
+    payload: { genericClasses: [{ id: classId }], genericObjects: [obj] } }, env.GW_PRIVATE_KEY);
+  return { estado: 'ok', url: 'https://pay.google.com/gp/v/save/' + jwt };
+}
+// Después de cada cerveza, actualiza el texto del pase ya guardado (si la persona no lo guardó, Google responde 404 y se ignora).
+async function actualizarGoogle(env, db, max, codigo) {
+  if (!hayGoogle(env) || !codigo) return;
+  try {
+    const p = await db.prepare('SELECT * FROM personas WHERE codigo = ?').bind(codigo).first(); if (!p) return;
+    const ahora = Math.floor(Date.now() / 1000);
+    const asercion = await jwtRS256({ iss: env.GW_SA_EMAIL, scope: 'https://www.googleapis.com/auth/wallet_object.issuer', aud: 'https://oauth2.googleapis.com/token', iat: ahora, exp: ahora + 600 }, env.GW_PRIVATE_KEY);
+    const r = await fetch('https://oauth2.googleapis.com/token', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: 'grant_type=' + encodeURIComponent('urn:ietf:params:oauth:grant-type:jwt-bearer') + '&assertion=' + asercion });
+    const tok = (await r.json()).access_token; if (!tok) return;
+    const { obj } = paseGoogle(env, p, max, '');
+    await fetch('https://walletobjects.googleapis.com/walletobjects/v1/genericObject/' + encodeURIComponent(obj.id), { method: 'PATCH',
+      headers: { Authorization: 'Bearer ' + tok, 'Content-Type': 'application/json' }, body: JSON.stringify({ header: obj.header }) });
+  } catch (e) { /* el pase de Wallet es un extra: nunca frena la barra */ }
+}
+
+let listo = false;
+async function preparar(db) {
+  if (listo) return;
+  await db.batch([
+    db.prepare(`CREATE TABLE IF NOT EXISTS personas (
+      id INTEGER PRIMARY KEY AUTOINCREMENT, pais TEXT NOT NULL, documento TEXT NOT NULL, equipo TEXT,
+      codigo TEXT NOT NULL UNIQUE, usadas INTEGER NOT NULL DEFAULT 0, creado INTEGER NOT NULL,
+      creado_por TEXT, ultima INTEGER, UNIQUE (pais, documento))`),
+    db.prepare(`CREATE TABLE IF NOT EXISTS entregas (
+      id INTEGER PRIMARY KEY AUTOINCREMENT, persona_id INTEGER NOT NULL, numero INTEGER NOT NULL,
+      hecho INTEGER NOT NULL, puesto TEXT, anulada INTEGER NOT NULL DEFAULT 0)`),
+    db.prepare(`CREATE INDEX IF NOT EXISTS entregas_persona ON entregas (persona_id)`),
+  ]);
+  listo = true;
+}
+const persona = (p, max) => ({
+  id: p.id, pais: p.pais, documento: p.documento, equipo: p.equipo, codigo: p.codigo, usadas: p.usadas, max,
+  creado: p.creado, creado_por: p.creado_por, ultima_entrega: p.ultima,
+});
+
+async function registrar(db, max, b) {
+  const doc = norm(b.documento), pais = norm(b.pais).slice(0, 3);
+  if (doc.length < 5 || doc.length > 20 || !pais) return { estado: 'documento_invalido' };
+  const equipo = texto(b.equipo);
+  if (!equipo) return { estado: 'falta_equipo' };
+  const buscar = () => db.prepare('SELECT * FROM personas WHERE pais = ? AND documento = ?').bind(pais, doc).first();
+  let p = await buscar(), nueva = false;
+  for (let i = 0; !p && i < 6; i++) {
+    try {
+      p = await db.prepare('INSERT INTO personas (pais, documento, equipo, codigo, creado, creado_por) VALUES (?, ?, ?, ?, ?, ?) RETURNING *')
+        .bind(pais, doc, equipo, nuevoCodigo(), Date.now(), texto(b.puesto)).first();
+      nueva = !!p;
+    } catch (e) { p = await buscar(); } // otro puesto la registró a la vez, o el código salió repetido
+  }
+  if (!p) throw new Error('no se pudo registrar');
+  return { estado: 'ok', nueva, persona: persona(p, max) };
+}
+
+async function editar(db, max, b) {
+  const id = Number(b.id) || 0, doc = norm(b.documento), pais = norm(b.pais).slice(0, 3), equipo = texto(b.equipo);
+  if (doc.length < 5 || doc.length > 20 || !pais) return { estado: 'documento_invalido' };
+  if (!equipo) return { estado: 'falta_equipo' };
+  const otro = await db.prepare('SELECT id FROM personas WHERE pais = ? AND documento = ? AND id <> ?').bind(pais, doc, id).first();
+  if (otro) return { estado: 'duplicado' };
+  const p = await db.prepare('UPDATE personas SET pais = ?, documento = ?, equipo = ? WHERE id = ? RETURNING *').bind(pais, doc, equipo, id).first();
+  if (!p) return { estado: 'inexistente' };
+  return { estado: 'ok', persona: persona(p, max) };
+}
+
+// Elimina a la persona y sus entregas. Pide la contraseña.
+async function eliminar(db, b, clave) {
+  if (String(b.clave || '') !== clave) return { estado: 'clave_incorrecta' };
+  const id = Number(b.id) || 0;
+  const p = await db.prepare('DELETE FROM personas WHERE id = ? RETURNING id').bind(id).first();
+  if (!p) return { estado: 'inexistente' };
+  await db.prepare('DELETE FROM entregas WHERE persona_id = ?').bind(id).run();
+  return { estado: 'ok' };
+}
+
+async function canjear(db, max, b) {
+  const codigo = norm(b.codigo), ahora = Date.now(), seguido = b.seguido ? 1 : 0;
+  // Valida y descuenta en un solo paso.
+  const p = await db.prepare(
+    `UPDATE personas SET usadas = usadas + 1, ultima = ?1
+     WHERE codigo = ?2 AND usadas < ?3 AND (?4 = 1 OR ultima IS NULL OR ultima <= ?5)
+     RETURNING *`).bind(ahora, codigo, max, seguido, ahora - ESPERA_MS).first();
+  if (p) {
+    const e = await db.prepare('INSERT INTO entregas (persona_id, numero, hecho, puesto) VALUES (?, ?, ?, ?) RETURNING id')
+      .bind(p.id, p.usadas, ahora, texto(b.puesto)).first();
+    return { estado: 'ok', numero: p.usadas, max, restantes: max - p.usadas, entrega_id: e.id };
+  }
+  const q = await db.prepare('SELECT * FROM personas WHERE codigo = ?').bind(codigo).first();
+  if (!q) return { estado: 'inexistente' };
+  if (q.usadas >= max) return { estado: 'agotado', usadas: q.usadas, max, ultima_entrega: q.ultima };
+  return { estado: 'repetido', usadas: q.usadas, max };
+}
+
+async function deshacer(db, max, b) {
+  const id = Number(b.entrega_id) || 0, forzar = b.forzar ? 1 : 0;
+  const e = await db.prepare(
+    'UPDATE entregas SET anulada = 1 WHERE id = ?1 AND anulada = 0 AND (?2 = 1 OR hecho >= ?3) RETURNING persona_id')
+    .bind(id, forzar, Date.now() - DESHACER_MS).first();
+  if (!e) return { estado: 'no_se_pudo' };
+  const p = await db.prepare(
+    `UPDATE personas SET usadas = MAX(usadas - 1, 0),
+       ultima = (SELECT MAX(hecho) FROM entregas WHERE persona_id = ?1 AND anulada = 0)
+     WHERE id = ?1 RETURNING usadas, codigo`).bind(e.persona_id).first();
+  return { estado: 'ok', usadas: p.usadas, max, codigo: p.codigo };
+}
+
+async function resumen(db, max) {
+  const t = await db.prepare('SELECT COUNT(*) AS personas, COALESCE(SUM(usadas), 0) AS entregadas FROM personas').first();
+  const c = (await db.prepare('SELECT usadas, COUNT(*) AS personas FROM personas GROUP BY usadas').all()).results;
+  const por_cantidad = [];
+  for (let g = 0; g <= max; g++) por_cantidad.push({ usadas: g, personas: (c.find((x) => x.usadas === g) || {}).personas || 0 });
+  const por_equipo = (await db.prepare(
+    `SELECT COALESCE(equipo, 'Sin equipo') AS equipo, COUNT(*) AS personas, COALESCE(SUM(usadas), 0) AS cervezas
+     FROM personas GROUP BY 1 ORDER BY 2 DESC`).all()).results;
+  const por_puesto = (await db.prepare(
+    `SELECT COALESCE(puesto, 'Sin nombre') AS puesto, COUNT(*) AS entregas FROM entregas
+     WHERE anulada = 0 GROUP BY 1 ORDER BY 2 DESC`).all()).results;
+  const por_hora = (await db.prepare(
+    `SELECT (hecho / 3600000) * 3600000 AS hora, COUNT(*) AS entregas FROM entregas
+     WHERE anulada = 0 GROUP BY 1 ORDER BY 1`).all()).results;
+  const acreditadas_por_hora = (await db.prepare(
+    `SELECT (creado / 3600000) * 3600000 AS hora, COUNT(*) AS personas FROM personas GROUP BY 1 ORDER BY 1`).all()).results;
+  return { max, personas: t.personas, entregadas: t.entregadas, por_cantidad, por_equipo, por_puesto, por_hora, acreditadas_por_hora };
+}
+
+async function personas(db, max, url) {
+  const q = norm(url.searchParams.get('q'));
+  const limite = Math.min(Math.max(Number(url.searchParams.get('limite')) || 100, 1), 50000);
+  const filas = (await db.prepare(
+    `SELECT * FROM personas WHERE (?1 = '' OR documento LIKE '%' || ?1 || '%' OR codigo LIKE ?1 || '%')
+     ORDER BY COALESCE(ultima, creado) DESC LIMIT ?2`).bind(q, limite).all()).results;
+  let ents = [];
+  if (filas.length > 300) {
+    ents = (await db.prepare('SELECT id, persona_id, numero, hecho, puesto FROM entregas WHERE anulada = 0 ORDER BY hecho').all()).results;
+  } else {
+    for (let i = 0; i < filas.length; i += 80) {
+      const ids = filas.slice(i, i + 80).map((p) => p.id);
+      const r = await db.prepare(
+        `SELECT id, persona_id, numero, hecho, puesto FROM entregas
+         WHERE anulada = 0 AND persona_id IN (${ids.map(() => '?').join(',')}) ORDER BY hecho`).bind(...ids).all();
+      ents = ents.concat(r.results);
+    }
+  }
+  const porPersona = new Map();
+  for (const e of ents) {
+    if (!porPersona.has(e.persona_id)) porPersona.set(e.persona_id, []);
+    porPersona.get(e.persona_id).push({ id: e.id, numero: e.numero, hecho: e.hecho, puesto: e.puesto });
+  }
+  return filas.map((p) => ({ ...persona(p, max), entregas: porPersona.get(p.id) || [] }));
+}
+
+export default {
+  async fetch(request, env, ctx) {
+    const despues = (pr) => { if (ctx && ctx.waitUntil) ctx.waitUntil(pr); };
+    if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS });
+    if (!env.API_KEY || request.headers.get('X-Key') !== env.API_KEY) return json({ error: 'unauthorized' }, 401);
+    const url = new URL(request.url), ruta = url.pathname.replace(/\/+$/, '') || '/';
+    const max = Math.max(parseInt(env.MAX_CERVEZAS, 10) || 3, 1);
+    const claveEliminar = env.CLAVE_ELIMINAR || 'amstel2026';
+    try {
+      await preparar(env.DB);
+      if (request.method === 'GET') {
+        if (ruta === '/estado') return json({ ok: true, max, now: Date.now(), wallet: { google: hayGoogle(env), apple: false } });
+        if (ruta === '/wallet/google') return json(await enlaceGoogle(env, env.DB, max, url));
+        if (ruta === '/resumen') return json(await resumen(env.DB, max));
+        if (ruta === '/personas') return json(await personas(env.DB, max, url));
+        if (ruta === '/pase') {   // lo consulta el celular del fan: solo cuántas lleva, sin descontar nada
+          const p = await env.DB.prepare('SELECT usadas, equipo FROM personas WHERE codigo = ?').bind(norm(url.searchParams.get('codigo'))).first();
+          return json(p ? { estado: 'ok', usadas: p.usadas, max, equipo: p.equipo } : { estado: 'inexistente' });
+        }
+      }
+      if (request.method === 'POST') {
+        const b = await request.json().catch(() => ({}));
+        if (ruta === '/registrar') return json(await registrar(env.DB, max, b));
+        if (ruta === '/canjear') { const r = await canjear(env.DB, max, b); if (r.estado === 'ok') despues(actualizarGoogle(env, env.DB, max, norm(b.codigo))); return json(r); }
+        if (ruta === '/deshacer') { const r = await deshacer(env.DB, max, b); if (r.estado === 'ok') despues(actualizarGoogle(env, env.DB, max, r.codigo)); return json(r); }
+        if (ruta === '/editar') return json(await editar(env.DB, max, b));
+        if (ruta === '/eliminar') return json(await eliminar(env.DB, b, claveEliminar));
+        if (ruta === '/vaciar') {
+          if (String(b.clave || '') !== claveEliminar) return json({ estado: 'clave_incorrecta' });
+          if (b.confirmacion !== 'BORRAR') return json({ estado: 'sin_confirmar' });
+          await env.DB.batch([env.DB.prepare('DELETE FROM entregas'), env.DB.prepare('DELETE FROM personas')]);
+          return json({ estado: 'ok' });
+        }
+      }
+      return json({ error: 'not found' }, 404);
+    } catch (e) {
+      return json({ error: String(e && e.message || e) }, 500);
+    }
+  },
+};
