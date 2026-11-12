@@ -1,0 +1,61 @@
+FAN FEST AMSTEL · Final Libertadores 2026 (Estudiantes vs Palmeiras) · 3 cervezas por persona
+=============================================================================================
+
+Se abre el link en Chrome y se usa directo, sin usuario ni clave (igual que la de Ceibal).
+
+  Acreditar  -> elegir país, escribir el documento, elegir equipo (Estudiantes, Palmeiras o Neutral) y
+                "Registrar e imprimir". Sale la etiqueta con el QR. Abajo están todos los documentos
+                acreditados, con buscador: muestra cuántas lleva cada uno y permite reimprimir.
+                Cada registro tiene Reimprimir, Editar (documento, país, equipo; el QR no cambia) y
+                Eliminar (pregunta si está seguro y pide contraseña; borra también sus entregas).
+                Si el documento ya estaba, avisa y reimprime la misma etiqueta (el contador no se reinicia).
+  Barra      -> abre el lector a pantalla completa. Verde: entregar (1, 2 o 3 de 3). Rojo: ya retiró sus 3.
+                "Otra cerveza a la misma persona", "Deshacer" (2 minutos), "Escribir código", linterna.
+  Consumo    -> gráficos por día y por hora (cervezas entregadas y personas acreditadas), totales por
+                equipo y por barra, consumo de cada persona y descarga a Excel.
+
+Links directos: .../#acreditar   .../#barra   .../#consumo
+En cada dispositivo: botón de persona (arriba a la derecha) -> tu nombre (ej. "Ana · Barra 2"). Sin contraseña.
+Engranaje (barra de abajo) -> Configuración: conexión a la base y "Borrar todo".
+
+ARCHIVOS
+  index.html          toda la plataforma
+  assets/             logos (amstel-negro.png es la versión de un color para la etiqueta)
+  vendor/             generador y lector de QR
+  worker/worker.js    API para Cloudflare (Worker + D1): ahí se decide el límite de 3
+  worker/PROMPT-CLOUDFLARE.txt   texto para pegar en el asistente de Cloudflare
+
+BASE COMPARTIDA (para que ingreso y barras vean los mismos datos)
+  1. Crear el Worker con worker/PROMPT-CLOUDFLARE.txt (o pegando worker/worker.js a mano).
+  2. Pasar la URL del Worker y la clave API_KEY: se ponen en SYNC_DEFAULT dentro de index.html.
+     Contraseña para eliminar registros: la del secreto CLAVE_ELIMINAR del Worker (por defecto amstel2026).
+     La URL y la clave también se pueden cargar en Configuración (engranaje), pero eso
+     vale solo para ese dispositivo.
+  Sin esto la plataforma funciona, pero cada dispositivo guarda sus propios datos (sirve para probar).
+
+IMPRESORA
+  Brother QL-800, rollo continuo de 62 mm, etiqueta 62 x 80 mm, solo negro.
+  La primera vez, en el diálogo de Chrome: Brother, papel 62 x 80, Márgenes "Ninguno",
+  destildar "Encabezados y pies de página". En el driver: Longitud 80 mm, cortar cada 1 etiqueta.
+
+ANTES DEL EVENTO
+  Configuración (engranaje) -> "Borrar todo" para limpiar las pruebas (pide la contraseña de eliminar).
+
+PASE EN EL CELULAR
+  Al acreditar aparece un QR "Pase para el celular" (y hay un botón "Pase" en cada documento acreditado).
+  El fan lo escanea con la cámara y se le abre su pase: el mismo QR de la etiqueta, cuántas cervezas le
+  quedan (se actualiza solo) y el botón "Guardar como imagen". Necesita el sitio publicado; el contador
+  en vivo necesita además la base compartida.
+
+GOOGLE WALLET (opcional)
+  El botón "Agregar a Google Wallet" aparece en el pase cuando el Worker tiene estas tres variables:
+    GW_ISSUER_ID     número de emisor (Google Pay & Wallet Console -> Google Wallet API)
+    GW_SA_EMAIL      correo de la cuenta de servicio de Google Cloud autorizada en esa consola
+    GW_PRIVATE_KEY   (secreto) el valor "private_key" del archivo JSON de esa cuenta de servicio
+  Opcional: SITE_URL con la dirección pública del sitio (para el logo del pase).
+  Mientras el emisor esté en modo demo, solo pueden guardar el pase las cuentas de prueba cargadas en
+  la consola; para el público hay que pedir el acceso de publicación a Google.
+  Después de cada cerveza el pase guardado se actualiza ("Quedan 2 cervezas").
+
+APPLE WALLET
+  Todavía no está: requiere cuenta de Apple Developer, un Pass Type ID y su certificado.
