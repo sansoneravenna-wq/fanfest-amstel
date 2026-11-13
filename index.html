@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-ver="20261112-17">
+<html lang="es" data-ver="20261113-1">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -32,6 +32,9 @@
   .saludo{flex:1;min-width:0}
   .saludo b{display:block;font-size:18px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .saludo span{font-size:12.5px;opacity:.8}
+  .rt{height:24px;width:auto;display:block;flex:none;opacity:.96}
+  .por{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:22px;font-size:12.5px;font-weight:600;opacity:.9}
+  .por img{height:18px;width:auto;display:block}
   .marca img{height:50px;width:50px;display:block;border-radius:50%;box-shadow:0 6px 16px -6px rgba(0,0,0,.5)}
   .partido{display:flex;justify-content:center;margin-top:20px}
   .partido div{display:inline-flex;align-items:center;gap:12px;background:#fff;color:var(--tinta);border-radius:999px;padding:8px 18px;font-weight:700;font-size:14.5px;box-shadow:0 10px 22px -12px rgba(0,0,0,.5)}
@@ -263,6 +266,7 @@
 
   @media (min-width:761px){ .nav{left:auto;right:22px;transform:none} }
   @media (max-width:760px){
+    .rt{height:18px}
     .grid,.grid.dos,.grid.tres{grid-template-columns:1fr}
     #rec .it{flex-wrap:wrap}
     #rec .acc{width:100%;padding-left:64px;margin-top:-2px}
@@ -313,6 +317,7 @@
     <div class="bar">
       <div class="marca" id="marca"></div>
       <div class="saludo"><b id="tit">Fan Fest Amstel</b><span id="sub">Final Libertadores 2026 · Montevideo</span></div>
+      <img class="rt" src="assets/redtickets-blanco.png" alt="RedTickets">
       <button class="rond" data-act="ajustes" title="Tu nombre"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></button>
     </div>
     <div class="partido" id="partido"></div>
@@ -1012,7 +1017,8 @@ function vPase(cod) {
     '<div class="tarj"><div class="qr">' + qrSvg(pase.cod) + '</div><div class="cod">' + esc(fmtCodigo(pase.cod)) + '</div><div class="eq" id="p-eq"></div>' +
     '<div class="est" id="p-est"><small>Mostrá este QR en la barra · Mostre este QR no bar</small></div></div>' +
     '<div class="pb"><button class="btn" data-act="gwallet" id="b-gw" hidden style="background:#17181c;color:#fff">Agregar a Google Wallet</button><button class="btn" data-act="guardar-img">Guardar como imagen</button></div>' +
-    '<div class="pie">' + max + ' cervezas por persona<small>' + max + ' cervejas por pessoa</small></div>';
+    '<div class="pie">' + max + ' cervezas por persona<small>' + max + ' cervejas por pessoa</small></div>' +
+    '<div class="por">Una plataforma de <img src="assets/redtickets-blanco.png" alt="RedTickets"></div>';
   api.estado().then(function (e) { var b = $('#b-gw'); if (b && e && e.wallet && e.wallet.google) b.hidden = false; }).catch(function () {});
   estadoPase(); clearInterval(pase.timer); pase.timer = setInterval(function () { if (!document.hidden && actual === 'pase') estadoPase(); }, 8000);
 }
