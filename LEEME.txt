@@ -29,17 +29,28 @@ ARCHIVOS
   index.html          toda la plataforma
   assets/             logos (amstel-negro.png es la versión de un color para la etiqueta)
   vendor/             generador y lector de QR
-  worker/worker.js    API para Cloudflare (Worker + D1): ahí se deciden el límite de 3, el precio y los retiros.
-                      Variables opcionales: MAX_CERVEZAS (3), PRECIO (5), MONEDA (USD)
-  worker/PROMPT-CLOUDFLARE.txt   texto para pegar en el asistente de Cloudflare
+  worker/worker.js    la API: ahí se deciden el límite de 3, el precio y los retiros
+  functions/api/      la misma API, generada con armar-api.sh, que Cloudflare Pages publica en /api
+  _headers            hace que el navegador siempre consulte si hay versión nueva
 
-BASE COMPARTIDA (para que ingreso y barras vean los mismos datos)
-  1. Crear el Worker con worker/PROMPT-CLOUDFLARE.txt (o pegando worker/worker.js a mano).
-  2. Pasar la URL del Worker y la clave API_KEY: se ponen en SYNC_DEFAULT dentro de index.html.
-     Contraseña para eliminar registros: la del secreto CLAVE_ELIMINAR del Worker (por defecto amstel2026).
-     La URL y la clave también se pueden cargar en Configuración (engranaje), pero eso
-     vale solo para ese dispositivo.
-  Sin esto la plataforma funciona, pero cada dispositivo guarda sus propios datos (sirve para probar).
+BASE COMPARTIDA (para que cajas, barras y celulares vean los mismos datos)
+  La base se publica sola junto con el sitio, dentro del mismo proyecto de Cloudflare Pages (carpeta
+  functions/). Cada cambio que se sube al repositorio actualiza sitio y base a la vez, y cada dispositivo
+  abierto se recarga solo con la versión nueva cuando no está en medio de una operación.
+
+  Paso único en Cloudflare (se hace una sola vez):
+    1. Storage & Databases -> D1 -> Create database. Nombre: fanfest-amstel-db.
+    2. Workers & Pages -> proyecto fanfest-amstel -> Settings -> Bindings -> Add -> D1 database.
+       Variable name: DB (en mayúsculas). Database: fanfest-amstel-db. Guardar.
+    3. Deployments -> en el último despliegue, "Retry deployment" (para que tome la base).
+  Listo: al abrir el sitio desaparece el cartel "los datos quedan solo en este dispositivo".
+  En Configuración (engranaje) dice si está conectado o qué falta.
+
+  Opcionales, en Settings -> Variables and Secrets del mismo proyecto:
+    CLAVE_ELIMINAR (contraseña para eliminar registros y borrar todo; por defecto amstel2026),
+    PRECIO (5), MONEDA (USD), MAX_CERVEZAS (3).
+  Para cambiar la API: editar worker/worker.js y correr armar-api.sh antes de subir.
+  (worker/worker.js también sirve como Worker independiente, con el secreto API_KEY; no hace falta.)
 
 IMPRESORA
   Brother QL-800, rollo continuo de 62 mm, etiqueta 62 x 80 mm, solo negro.
@@ -56,7 +67,7 @@ PASE EN EL CELULAR
   en vivo necesita además la base compartida.
 
 GOOGLE WALLET (opcional)
-  El botón "Agregar a Google Wallet" aparece en el pase cuando el Worker tiene estas tres variables:
+  El botón "Agregar a Google Wallet" aparece en el pase cuando el proyecto de Pages tiene estas tres variables:
     GW_ISSUER_ID     número de emisor (Google Pay & Wallet Console -> Google Wallet API)
     GW_SA_EMAIL      correo de la cuenta de servicio de Google Cloud autorizada en esa consola
     GW_PRIVATE_KEY   (secreto) el valor "private_key" del archivo JSON de esa cuenta de servicio

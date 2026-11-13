@@ -1,0 +1,7 @@
+# El navegador siempre consulta si hay una versión nueva del sitio antes de usar la guardada.
+/
+  Cache-Control: no-cache
+/index.html
+  Cache-Control: no-cache
+/api/*
+  Cache-Control: no-store

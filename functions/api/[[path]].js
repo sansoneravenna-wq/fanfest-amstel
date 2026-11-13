@@ -1,12 +1,10 @@
-Creá un Cloudflare Worker llamado "fanfest-amstel" con una base de datos D1 nueva llamada "fanfest-amstel-db" vinculada como "DB", una variable secreta "API_KEY" con una clave larga al azar (20 letras y números) y otra variable secreta "CLAVE_ELIMINAR" con la contraseña que te indique (es la que se pide para eliminar registros).
-
-Usá EXACTAMENTE el código de abajo, sin cambiarlo (formato módulo ES, sin dependencias). El propio código crea las tablas la primera vez. Desplegalo y mostrame la URL pública (https://fanfest-amstel.....workers.dev) y el valor de API_KEY.
-
-Para verificar: abrir la URL + /estado sin clave debe responder {"error":"unauthorized"}.
-
------ worker.js -----
-// API del Fan Fest Amstel · Cloudflare Worker + D1
-// Vinculaciones: D1 como "DB" y un secreto "API_KEY".
+// GENERADO por armar-api.sh a partir de worker/worker.js. No editar a mano.
+// API del Fan Fest Amstel · Cloudflare + D1
+// Este código es la única fuente. Se publica solo, junto con el sitio, como función de Cloudflare Pages
+// (functions/api/[[path]].js se genera a partir de este archivo con armar-api.sh). También sirve como
+// Worker independiente.
+// Vinculaciones: D1 como "DB". En Pages no hace falta clave (el sitio y la API están en la misma dirección);
+// como Worker independiente hay que definir el secreto "API_KEY".
 // Opcionales: MAX_CERVEZAS (por defecto 3), PRECIO (por defecto 5), MONEDA (por defecto USD) y el secreto
 // CLAVE_ELIMINAR (contraseña para eliminar registros o borrar todo; por defecto amstel2026).
 // Google Wallet (opcional): GW_ISSUER_ID, GW_SA_EMAIL y el secreto GW_PRIVATE_KEY (clave privada de la
@@ -292,12 +290,16 @@ async function ventas(db) {
      FROM ventas v ORDER BY v.hecho DESC LIMIT 50000`).all()).results;
 }
 
-export default {
-  async fetch(request, env, ctx) {
+const api = {
+  async fetch(request, env, ctx, opc) {
     const despues = (pr) => { if (ctx && ctx.waitUntil) ctx.waitUntil(pr); };
     if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS });
-    if (!env.API_KEY || request.headers.get('X-Key') !== env.API_KEY) return json({ error: 'unauthorized' }, 401);
-    const url = new URL(request.url), ruta = url.pathname.replace(/\/+$/, '') || '/';
+    const abierto = !!(opc && opc.abierto);   // publicado dentro de Pages sin API_KEY: mismo origen que el sitio
+    if (!abierto && (!env.API_KEY || request.headers.get('X-Key') !== env.API_KEY)) return json({ error: 'unauthorized' }, 401);
+    const url = new URL(request.url);
+    let ruta = url.pathname.replace(/\/+$/, '') || '/';
+    if (opc && opc.prefijo && ruta.indexOf(opc.prefijo) === 0) ruta = ruta.slice(opc.prefijo.length) || '/';
+    if (!env.DB) return json({ ok: false, error: 'falta_db' }, 503);   // falta vincular la base D1 como "DB"
     const max = Math.max(parseInt(env.MAX_CERVEZAS, 10) || 3, 1);
     const precio = Number(env.PRECIO) > 0 ? Number(env.PRECIO) : 5, moneda = env.MONEDA || 'USD';
     const claveEliminar = env.CLAVE_ELIMINAR || 'amstel2026';
@@ -335,3 +337,8 @@ export default {
     }
   },
 };
+
+// Cloudflare Pages publica esto en /api/* cada vez que se actualiza el sitio.
+export async function onRequest(context) {
+  return api.fetch(context.request, context.env, context, { abierto: !context.env.API_KEY, prefijo: '/api' });
+}

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-ver="20261112-16">
+<html lang="es" data-ver="20261112-17">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -444,7 +444,7 @@ function syncCfg() {
 function apiRemota(sync) {
   function call(method, path, body) {
     return fetch(sync.url.replace(/\/$/, '') + path, {
-      method: method, headers: { 'Content-Type': 'application/json', 'X-Key': sync.key },
+      method: method, cache: 'no-store', headers: sync.key ? { 'Content-Type': 'application/json', 'X-Key': sync.key } : { 'Content-Type': 'application/json' },
       body: body ? JSON.stringify(body) : undefined
     }).then(function (r) {
       if (!r.ok) throw new Error('API ' + r.status + (r.status === 401 ? ' (clave incorrecta)' : ''));
@@ -591,7 +591,21 @@ function apiLocal() {
   };
 }
 var api;
-function iniciarApi() { var s = syncCfg(); api = s ? apiRemota(s) : apiLocal(); $('#aviso-local').hidden = !api.local; }
+var conexion = { modo: 'local', falta: '' };
+// Orden: 1) un Worker cargado a mano en Configuración; 2) la base publicada junto al sitio (/api); 3) solo este dispositivo.
+function iniciarApi() {
+  var s = syncCfg(), fin = function () { $('#aviso-local').hidden = !api.local; };
+  conexion = { modo: 'local', falta: '' };
+  if (s) { api = apiRemota(s); conexion.modo = 'worker'; fin(); return Promise.resolve(); }
+  api = apiLocal();
+  if (!/^https?:$/.test(location.protocol)) { fin(); return Promise.resolve(); }
+  var cand = apiRemota({ url: location.href.split('#')[0].split('?')[0].replace(/[^/]*$/, '') + 'api', key: '' });
+  var prueba = fetch(location.href.split('#')[0].split('?')[0].replace(/[^/]*$/, '') + 'api/estado', { cache: 'no-store' })
+    .then(function (r) { return r.json().catch(function () { return {}; }); })
+    .then(function (e) { if (e && e.ok && e.version >= 2) { api = cand; conexion.modo = 'sitio'; } else if (e && e.error) conexion.falta = e.error; })
+    .catch(function () {});
+  return Promise.race([prueba, new Promise(function (ok) { setTimeout(ok, 4000); })]).then(fin);
+}
 function errTxt(e) { return 'No se pudo conectar con la base. Revisá internet y probá de nuevo.' + (e && /401/.test(e.message) ? ' (clave incorrecta)' : ''); }
 
 // ============================================================ etiqueta
@@ -1112,7 +1126,7 @@ function abrirAjustes(conf) {
   $('#a-user').hidden = !!conf; $('#a-conf').hidden = !conf;
   $('#a-puesto').value = puesto();
   var s = syncCfg(); $('#a-url').value = s ? s.url : ''; $('#a-key').value = s ? s.key : '';
-  $('#a-estado').textContent = api.local ? 'Sin base compartida: los datos se guardan solo en este dispositivo.' : 'Conectado: todos los puestos ven los mismos datos.';
+  $('#a-estado').textContent = conexion.modo === 'sitio' ? 'Conectado a la base del sitio: todos los dispositivos ven los mismos datos. No hace falta cargar nada acá.' : conexion.modo === 'worker' ? 'Conectado al Worker cargado abajo: todos los puestos ven los mismos datos.' : conexion.falta === 'falta_db' ? 'Falta un paso en Cloudflare: vincular la base de datos D1 con el nombre DB en el proyecto de Pages. Hasta entonces los datos se guardan solo en este dispositivo.' : 'Sin base compartida: los datos se guardan solo en este dispositivo.';
   $('#ov').classList.add('open'); if (!conf) $('#a-puesto').focus();
 }
 $('#f-nombre').onsubmit = function (ev) {
@@ -1176,7 +1190,7 @@ document.addEventListener('click', function (ev) {
   else if (a === 'cobrar') cobrar();
   else if (a === 'conectar') {
     var url = $('#a-url').value.trim(), key = $('#a-key').value.trim(), m = $('#a-msg');
-    if (!url) { store.del('amstel-sync'); iniciarApi(); abrirAjustes(true); refrescar(); return; }
+    if (!url) { store.del('amstel-sync'); iniciarApi().then(function () { abrirAjustes(true); refrescar(); ir(actual); }); return; }
     m.textContent = 'Probando…';
     apiRemota({ url: url, key: key }).estado().then(function () { store.set('amstel-sync', JSON.stringify({ url: url, key: key })); iniciarApi(); m.textContent = ''; abrirAjustes(true); refrescar(); toast('Conectado a la base compartida'); })
       .catch(function (e) { m.textContent = 'No conecta: ' + e.message; });
@@ -1221,10 +1235,24 @@ function ir(v) {
 }
 window.addEventListener('hashchange', function () { var v = location.hash.slice(1); if (/^pase=/.test(v)) vPase(v.slice(5)); else if (v && v !== actual) ir(v); });
 
-iniciarApi(); pintarCabecera();
+api = apiLocal(); pintarCabecera();
 [CFG.logoEtiqueta, CFG.local.escudoEtiqueta, CFG.visita.escudoEtiqueta].forEach(function (u) { if (u) { var i = new Image(); i.src = u; } });
-if (/^#pase=/.test(location.hash)) vPase(location.hash.slice(6));
-else { ir(location.hash.slice(1) || store.get('amstel-vista') || 'acreditar'); refrescar(); }
+iniciarApi().then(function () {
+  if (/^#pase=/.test(location.hash)) vPase(location.hash.slice(6));
+  else { ir(location.hash.slice(1) || store.get('amstel-vista') || 'acreditar'); refrescar(); }
+});
+// Versión nueva publicada: cada dispositivo se actualiza solo cuando no está en medio de una compra o una lectura.
+var verNueva = '';
+function hayVersion() {
+  if (!/^https?:$/.test(location.protocol)) return;
+  fetch(location.href.split('#')[0].split('?')[0] + '?v=' + Date.now(), { cache: 'no-store' }).then(function (r) { return r.ok ? r.text() : ''; }).then(function (t) {
+    var m = /data-ver="([0-9-]+)"/.exec(t); if (!m || 'v' + m[1] === VER) return;
+    verNueva = m[1];
+    var libre = !caja.ocupado && caja.fans.length === 1 && caja.fans[0].est === 'vacio' && !caja.fans[0].doc && $('#res').hidden && !$('#ov').classList.contains('open') && !$('#ov2').classList.contains('open') && !$('#pimg').classList.contains('open');
+    if (libre) location.reload(); else toast('Hay una versión nueva: se actualiza sola al terminar esta operación.');
+  }).catch(function () {});
+}
+setInterval(hayVersion, 60000); document.addEventListener('visibilitychange', function () { if (!document.hidden) hayVersion(); });
 setInterval(function () { if (document.hidden || actual === 'pase') return; refrescar(); if (actual === 'consumo' && !con.abierta && document.activeElement !== $('#buscar')) cargarPersonas();
   if (actual === 'acreditar' && document.activeElement !== $('#q-acr') && !$('#ov2').classList.contains('open')) pintarRec(); }, 8000);
 })();

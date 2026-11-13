@@ -1,5 +1,9 @@
-// API del Fan Fest Amstel · Cloudflare Worker + D1
-// Vinculaciones: D1 como "DB" y un secreto "API_KEY".
+// API del Fan Fest Amstel · Cloudflare + D1
+// Este código es la única fuente. Se publica solo, junto con el sitio, como función de Cloudflare Pages
+// (functions/api/[[path]].js se genera a partir de este archivo con armar-api.sh). También sirve como
+// Worker independiente.
+// Vinculaciones: D1 como "DB". En Pages no hace falta clave (el sitio y la API están en la misma dirección);
+// como Worker independiente hay que definir el secreto "API_KEY".
 // Opcionales: MAX_CERVEZAS (por defecto 3), PRECIO (por defecto 5), MONEDA (por defecto USD) y el secreto
 // CLAVE_ELIMINAR (contraseña para eliminar registros o borrar todo; por defecto amstel2026).
 // Google Wallet (opcional): GW_ISSUER_ID, GW_SA_EMAIL y el secreto GW_PRIVATE_KEY (clave privada de la
@@ -286,11 +290,15 @@ async function ventas(db) {
 }
 
 export default {
-  async fetch(request, env, ctx) {
+  async fetch(request, env, ctx, opc) {
     const despues = (pr) => { if (ctx && ctx.waitUntil) ctx.waitUntil(pr); };
     if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS });
-    if (!env.API_KEY || request.headers.get('X-Key') !== env.API_KEY) return json({ error: 'unauthorized' }, 401);
-    const url = new URL(request.url), ruta = url.pathname.replace(/\/+$/, '') || '/';
+    const abierto = !!(opc && opc.abierto);   // publicado dentro de Pages sin API_KEY: mismo origen que el sitio
+    if (!abierto && (!env.API_KEY || request.headers.get('X-Key') !== env.API_KEY)) return json({ error: 'unauthorized' }, 401);
+    const url = new URL(request.url);
+    let ruta = url.pathname.replace(/\/+$/, '') || '/';
+    if (opc && opc.prefijo && ruta.indexOf(opc.prefijo) === 0) ruta = ruta.slice(opc.prefijo.length) || '/';
+    if (!env.DB) return json({ ok: false, error: 'falta_db' }, 503);   // falta vincular la base D1 como "DB"
     const max = Math.max(parseInt(env.MAX_CERVEZAS, 10) || 3, 1);
     const precio = Number(env.PRECIO) > 0 ? Number(env.PRECIO) : 5, moneda = env.MONEDA || 'USD';
     const claveEliminar = env.CLAVE_ELIMINAR || 'amstel2026';
