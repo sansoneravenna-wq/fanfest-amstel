@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-ver="20261112-15">
+<html lang="es" data-ver="20261112-16">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -61,8 +61,9 @@
   .anillo .f{stroke:#ecebe8}.anillo .v{stroke:var(--rojo);stroke-linecap:round;transition:stroke-dashoffset .5s}
   .anillo b{position:absolute;inset:0;display:grid;place-items:center;font-size:12.5px;font-weight:700}
   .vasos{display:inline-flex;gap:4px;vertical-align:middle}
-  .vasos i{width:11px;height:16px;border:1.6px solid var(--oro);border-radius:2px 2px 5px 5px;display:block}
-  .vasos i.on{background:var(--oro)}
+  .vasos i{width:11px;height:16px;border:1.6px solid #cfd0d6;border-radius:2px 2px 5px 5px;display:block}
+  .vasos i.paga{border-color:var(--oro);background:rgba(243,217,160,.6)}
+  .vasos i.on{border-color:var(--oro);background:var(--oro)}
 
   .grid{display:grid;grid-template-columns:1.15fr .85fr;gap:20px;align-items:start}
   .grid.dos{grid-template-columns:1fr 1fr}
@@ -131,6 +132,34 @@
   .tip{position:fixed;z-index:80;pointer-events:none;background:var(--tinta);color:#fff;font-size:13px;font-weight:600;padding:7px 11px;border-radius:10px;transform:translate(-50%,-135%);white-space:nowrap;opacity:0;transition:opacity .12s}
   .tip.show{opacity:1}
 
+  /* caja */
+  .fan{background:var(--fondo);border-radius:22px;padding:16px 16px 14px;margin-bottom:12px}
+  .fan-h{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+  .fan-h b{font-size:15px}
+  .chipi{font-size:12.5px;font-weight:700;padding:5px 11px;border-radius:999px;background:#fff}
+  .chipi.nu{background:#e4f4ea;color:#0d6b31}.chipi.ya{background:#fff1d6;color:#8a5a00}.chipi.no{background:#fde4e8;color:var(--rojo)}
+  .fan .chip{background:#fff}.fan .chip.on{background:var(--tinta)}
+  .fan label.f input{background:#fff}
+  .docfila{display:flex;gap:8px;margin-top:7px}
+  .docfila input.doc{margin-top:0;font-size:24px !important;padding:12px 16px !important;border-radius:18px !important;min-width:0}
+  .docfila .btn{flex:none;padding:0 22px;font-size:15.5px}
+  .fdoc{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+  .fdoc b{font-size:22px;font-weight:800;font-variant-numeric:tabular-nums}
+  .fdoc .btn{margin-left:auto}
+  .cant{display:flex;gap:8px;align-items:center}
+  .cant button{width:66px;height:56px;border-radius:18px;border:0;background:#fff;font-size:24px;font-weight:800;color:var(--tinta)}
+  .cant button.on{background:var(--tinta);color:#fff}
+  .cant span{margin-left:auto;font-weight:800;font-size:18px}
+  .tot{display:flex;justify-content:space-between;align-items:baseline;margin:18px 4px 12px;font-weight:700;color:var(--gris)}
+  .tot b{font-size:36px;font-weight:800;color:var(--tinta);letter-spacing:-.02em}
+  .medios{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+  .medios button{display:flex;align-items:center;justify-content:center;gap:10px;border:0;background:var(--fondo);border-radius:18px;padding:16px;font-weight:800;font-size:16.5px;color:var(--tinta)}
+  .medios button svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  .medios button.on{background:var(--tinta);color:#fff}
+  .hf{display:flex;align-items:center;gap:12px;padding:9px 0;border-top:1px solid var(--linea);flex-wrap:wrap}
+  .hf .c{width:44px;height:44px;border-radius:50%;background:var(--rojo);color:#fff;display:grid;place-items:center;font-weight:800;flex:none}
+  .hf .m{flex:1;min-width:0}.hf .m b{display:block}.hf .m span{display:block;font-size:13px;color:var(--gris)}
+
   /* barras del consumo */
   .br{display:grid;grid-template-columns:132px 1fr 70px;gap:10px;align-items:center;padding:7px 0;font-size:14px}
   .br .p{background:var(--fondo);border-radius:99px;height:10px;overflow:hidden}
@@ -172,7 +201,9 @@
   .res .s small{color:rgba(255,255,255,.8);font-size:16px}
   .res .vasos{gap:10px}
   .res .vasos i{width:30px;height:42px;border:3px solid #fff;border-radius:4px 4px 10px 10px}
-  .res .vasos i.on{background:#fff}
+  .res .vasos i{border-color:rgba(255,255,255,.4)}
+  .res .vasos i.paga{border-color:#fff;background:rgba(255,255,255,.3)}
+  .res .vasos i.on{border-color:#fff;background:#fff}
   .res .b{display:flex;flex-direction:column;gap:10px;margin-top:18px;width:100%;max-width:340px}
   .res .btn{font-size:16px;padding:15px}
   .res .btn.claro{background:#fff;color:var(--tinta)}
@@ -197,7 +228,7 @@
   #pase .est b{display:block;font-size:24px;font-weight:800;margin-top:10px}
   #pase .est small{display:block;margin-top:2px;font-size:13px}
   #pase .vasos{gap:10px}
-  #pase .vasos i{width:30px;height:42px;border:3px solid var(--oro);border-radius:4px 4px 10px 10px}
+  #pase .vasos i{width:30px;height:42px;border-width:3px;border-radius:4px 4px 10px 10px}
   #pase .pb{max-width:380px;margin:18px auto 0;display:flex;flex-direction:column;gap:10px}
   #pase .pb .btn{background:#fff;color:var(--tinta);font-size:17px;padding:17px;width:100%}
   #pase .pie{margin-top:18px;font-size:18px;font-weight:800}
@@ -230,6 +261,7 @@
   .toast.show{opacity:1;transform:translateX(-50%)} .toast.err{background:var(--rojo)}
   .local{background:#2a2523;color:var(--oro-claro);font-size:12.5px;text-align:center;padding:6px 12px}
 
+  @media (min-width:761px){ .nav{left:auto;right:22px;transform:none} }
   @media (max-width:760px){
     .grid,.grid.dos,.grid.tres{grid-template-columns:1fr}
     #rec .it{flex-wrap:wrap}
@@ -263,9 +295,11 @@
   @media print{
     html,body{background:#fff;margin:0;padding:0;min-height:0;height:auto}
     body > *:not(#print){display:none !important}
-    /* La etiqueta se adapta a la hoja que entregue la impresora (tamaño, márgenes o escala del diálogo):
-       siempre entra completa, centrada y en una sola página. */
-    #print{display:flex;align-items:center;justify-content:center;width:100vw;height:calc(100vh - 1mm);overflow:hidden}
+    /* Cada etiqueta ocupa una hoja y se adapta a la que entregue la impresora (tamaño, márgenes o escala):
+       siempre entra completa y centrada. */
+    #print{display:block}
+    #print .pg{display:flex;align-items:center;justify-content:center;width:100vw;height:calc(100vh - 1mm);overflow:hidden;break-after:page;page-break-after:always}
+    #print .pg:last-child{break-after:auto;page-break-after:auto}
     #print .label{--u:min(calc(100vw / var(--lw)), calc((100vh - 1mm) / var(--lh)));box-shadow:none;break-inside:avoid;page-break-inside:avoid}
   }
 </style>
@@ -288,7 +322,7 @@
       <div class="sub" id="k-sub">3 cervezas por persona</div>
     </div>
     <div class="acts">
-      <button class="act" data-ir="acreditar"><i><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></i>Acreditar</button>
+      <button class="act" data-ir="acreditar"><i><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></i>Caja</button>
       <button class="act" data-ir="barra"><i><svg viewBox="0 0 24 24"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M8 12h8"/></svg></i>Barra</button>
       <button class="act" data-ir="consumo"><i><svg viewBox="0 0 24 24"><path d="M5 20V10M12 20V4M19 20v-7"/></svg></i>Consumo</button>
     </div>
@@ -298,7 +332,7 @@
 <main class="hoja"><div class="wrap" id="vista"></div></main>
 
 <nav class="nav">
-  <button data-ir="acreditar"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><span>Acreditar</span></button>
+  <button data-ir="acreditar"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><span>Caja</span></button>
   <button data-ir="barra"><svg viewBox="0 0 24 24"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M8 12h8"/></svg><span>Barra</span></button>
   <button data-ir="consumo"><svg viewBox="0 0 24 24"><path d="M5 20V10M12 20V4M19 20v-7"/></svg><span>Consumo</span></button>
   <button data-act="config"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3v2.5M12 18.5V21M3 12h2.5M18.5 12H21M5.6 5.6l1.8 1.8M16.6 16.6l1.8 1.8M5.6 18.4l1.8-1.8M16.6 7.4l1.8-1.8"/></svg><span>Configuración</span></button>
@@ -355,7 +389,8 @@ var CFG = {
   local: { nombre: 'Estudiantes', escudo: 'assets/estudiantes.png', escudoEtiqueta: 'assets/estudiantes-negro.png' },
   visita: { nombre: 'Palmeiras', escudo: 'assets/palmeiras.png', escudoEtiqueta: 'assets/palmeiras-negro.png' },
   equipos: [{ n: 'Estudiantes', escudo: 'assets/estudiantes.png' }, { n: 'Palmeiras', escudo: 'assets/palmeiras.png' }, { n: 'Neutral' }],
-  maxCervezas: 3,           // el límite real lo decide la API; esto es para el modo sin conexión
+  maxCervezas: 3,           // el límite, el precio y la moneda reales los decide la API; esto es para el modo sin conexión
+  precio: 5, moneda: 'USD',
   etiqueta: { ancho: 62, alto: 80, qr: 30 },   // Brother QL-800, rollo continuo de 62 mm
   clave: 'amstel2026'       // contraseña para eliminar registros (modo sin conexión; con la base compartida la decide el Worker)
 };
@@ -394,7 +429,11 @@ var store = {
 };
 var toastT;
 function toast(t, err) { var el = $('#toast'); el.textContent = t; el.className = 'toast show' + (err ? ' err' : ''); clearTimeout(toastT); toastT = setTimeout(function () { el.className = 'toast'; }, 3200); }
-function vasos(u, max) { var s = '<span class="vasos">'; for (var i = 0; i < max; i++) s += '<i class="' + (i < u ? 'on' : '') + '"></i>'; return s + '</span>'; }
+// vasos: lleno = retirada, marcado = paga sin retirar, gris = todavía no comprada
+function vasos(u, max, comp) { if (comp == null) comp = max; var s = '<span class="vasos">'; for (var i = 0; i < max; i++) s += '<i class="' + (i < u ? 'on' : i < comp ? 'paga' : '') + '"></i>'; return s + '</span>'; }
+function precio() { return (R && R.precio) || CFG.precio; }
+function plata(n) { return ((R && R.moneda) || CFG.moneda) + ' ' + miles(Math.round(n)); }
+function nCerv(n) { return n + (n === 1 ? ' cerveza' : ' cervezas'); }
 function puesto() { return store.get('amstel-puesto') || ''; }
 
 // ============================================================ API compartida (Cloudflare Worker + D1)
@@ -414,11 +453,13 @@ function apiRemota(sync) {
   }
   return {
     local: false,
-    registrar: function (pais, doc, equipo) { return call('POST', '/registrar', { pais: pais, documento: doc, equipo: equipo, puesto: puesto() }); },
+    consultar: function (pais, doc) { return call('POST', '/consultar', { pais: pais, documento: doc }); },
+    vender: function (items, medio) { return call('POST', '/vender', { items: items, medio: medio, puesto: puesto() }); },
     canjear: function (cod, seguido) { return call('POST', '/canjear', { codigo: cod, puesto: puesto(), seguido: !!seguido }); },
     deshacer: function (id, forzar) { return call('POST', '/deshacer', { entrega_id: id, forzar: !!forzar }); },
     resumen: function () { return call('GET', '/resumen'); },
     personas: function (q, lim) { return call('GET', '/personas?q=' + encodeURIComponent(q || '') + '&limite=' + (lim || 100)); },
+    ventas: function () { return call('GET', '/ventas'); },
     editar: function (id, pais, doc, equipo) { return call('POST', '/editar', { id: id, pais: pais, documento: doc, equipo: equipo }); },
     eliminar: function (id, clave) { return call('POST', '/eliminar', { id: id, clave: clave }); },
     vaciar: function (clave) { return call('POST', '/vaciar', { confirmacion: 'BORRAR', clave: clave }); },
@@ -429,31 +470,59 @@ function apiRemota(sync) {
 }
 // Misma lógica guardada en este dispositivo: para probar sin la base compartida.
 function apiLocal() {
-  var KEY = 'amstel-local-db', MAX = CFG.maxCervezas || 3;
-  function load() { try { return JSON.parse(store.get(KEY)) || { personas: [], entregas: [], seq: 1 }; } catch (e) { return { personas: [], entregas: [], seq: 1 }; } }
+  var KEY = 'amstel-local-db', MAX = CFG.maxCervezas || 3, PRECIO = CFG.precio || 5;
+  function load() {
+    var db; try { db = JSON.parse(store.get(KEY)); } catch (e) {}
+    db = db || {}; db.personas = db.personas || []; db.entregas = db.entregas || []; db.ventas = db.ventas || []; db.items = db.items || []; db.seq = db.seq || 1;
+    db.personas.forEach(function (p) { if (p.compradas == null) p.compradas = p.usadas || 0; });   // datos de la versión anterior
+    return db;
+  }
   function save(db) { store.set(KEY, JSON.stringify(db)); }
   function cod() { var a = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789', c = ''; for (var i = 0; i < 8; i++) c += a[Math.floor(Math.random() * a.length)]; return c; }
-  function pj(p) { return { id: p.id, pais: p.pais, documento: p.documento, equipo: p.equipo, codigo: p.codigo, usadas: p.usadas, max: MAX, creado: p.creado, creado_por: p.creado_por, ultima_entrega: p.ultima }; }
+  function saldo(p) { return { compradas: p.compradas, usadas: p.usadas, pendientes: p.compradas - p.usadas, cupo: Math.max(MAX - p.compradas, 0), max: MAX }; }
+  function pj(p) { var j = saldo(p); j.id = p.id; j.pais = p.pais; j.documento = p.documento; j.equipo = p.equipo; j.codigo = p.codigo; j.creado = p.creado; j.creado_por = p.creado_por; j.ultima_entrega = p.ultima; return j; }
   function w(fn) { return function () { var a = arguments; return new Promise(function (ok, no) { setTimeout(function () { try { ok(fn.apply(null, a)); } catch (e) { no(e); } }, 80); }); }; }
+  function busca(db, pais, doc) { return db.personas.filter(function (x) { return x.pais === pais && x.documento === doc; })[0]; }
   return {
     local: true,
-    registrar: w(function (pais, doc, equipo) {
+    consultar: w(function (pais, doc) {
       var d = norm(doc), pa = norm(pais).slice(0, 3);
       if (d.length < 5 || d.length > 20 || !pa) return { estado: 'documento_invalido' };
-      if (!equipo) return { estado: 'falta_equipo' };
-      var db = load(), p = db.personas.filter(function (x) { return x.pais === pa && x.documento === d; })[0], nueva = false;
-      if (!p) { p = { id: db.seq++, pais: pa, documento: d, equipo: equipo, codigo: cod(), usadas: 0, creado: Date.now(), creado_por: puesto() || null, ultima: null }; db.personas.push(p); save(db); nueva = true; }
-      return { estado: 'ok', nueva: nueva, persona: pj(p) };
+      var p = busca(load(), pa, d);
+      return p ? { estado: 'ok', existe: true, persona: pj(p) } : { estado: 'ok', existe: false, cupo: MAX, max: MAX };
+    }),
+    vender: w(function (items, medio) {
+      if (medio !== 'tarjeta' && medio !== 'efectivo') return { estado: 'falta_medio' };
+      if (!items || !items.length) return { estado: 'sin_items' };
+      var db = load(), fans = [], vistos = {}, i, f;
+      for (i = 0; i < items.length; i++) {
+        var d = norm(items[i].documento), pa = norm(items[i].pais).slice(0, 3), c = Math.floor(+items[i].cantidad || 0);
+        if (d.length < 5 || d.length > 20 || !pa) return { estado: 'documento_invalido', documento: d };
+        if (c < 1 || c > MAX) return { estado: 'cantidad_invalida', documento: d };
+        if (vistos[pa + d]) return { estado: 'documento_repetido', documento: d };
+        vistos[pa + d] = 1; f = { doc: d, pais: pa, cant: c, equipo: (items[i].equipo || '').trim() || null, p: busca(db, pa, d) };
+        if (!f.p && !f.equipo) return { estado: 'falta_equipo', documento: d };
+        if (f.p && f.p.compradas + c > MAX) return { estado: 'sin_cupo', documento: d, cupo: Math.max(MAX - f.p.compradas, 0) };
+        fans.push(f);
+      }
+      var ahora = Date.now(), cervezas = 0, v = { id: db.seq++, hecho: ahora, puesto: puesto() || null, medio: medio };
+      fans.forEach(function (f) {
+        if (!f.p) { f.p = { id: db.seq++, pais: f.pais, documento: f.doc, equipo: f.equipo, codigo: cod(), compradas: 0, usadas: 0, creado: ahora, creado_por: puesto() || null, ultima: null }; db.personas.push(f.p); f.nueva = true; }
+        f.p.compradas += f.cant; cervezas += f.cant;
+        db.items.push({ venta_id: v.id, persona_id: f.p.id, cantidad: f.cant, precio: PRECIO });
+      });
+      v.cervezas = cervezas; v.total = cervezas * PRECIO; db.ventas.push(v); save(db);
+      return { estado: 'ok', venta_id: v.id, cervezas: cervezas, total: v.total, medio: medio, fans: fans.map(function (f) { return { nueva: !!f.nueva, cantidad: f.cant, persona: pj(f.p) }; }) };
     }),
     canjear: w(function (c, seguido) {
-      var db = load(), p = db.personas.filter(function (x) { return x.codigo === norm(c); })[0];
+      var db = load(), p = db.personas.filter(function (x) { return x.codigo === norm(c); })[0], r;
       if (!p) return { estado: 'inexistente' };
-      if (p.usadas >= MAX) return { estado: 'agotado', usadas: p.usadas, max: MAX, ultima_entrega: p.ultima };
-      if (!seguido && p.ultima && Date.now() - p.ultima < 5000) return { estado: 'repetido', usadas: p.usadas, max: MAX };
+      if (p.usadas >= p.compradas) { r = saldo(p); r.estado = 'sin_saldo'; r.ultima_entrega = p.ultima; return r; }
+      if (!seguido && p.ultima && Date.now() - p.ultima < 5000) { r = saldo(p); r.estado = 'repetido'; return r; }
       p.usadas++; p.ultima = Date.now();
       var e = { id: db.seq++, persona_id: p.id, numero: p.usadas, hecho: p.ultima, puesto: puesto() || null, anulada: 0 };
       db.entregas.push(e); save(db);
-      return { estado: 'ok', numero: p.usadas, max: MAX, restantes: MAX - p.usadas, entrega_id: e.id };
+      r = saldo(p); r.estado = 'ok'; r.numero = p.usadas; r.entrega_id = e.id; return r;
     }),
     deshacer: w(function (id, forzar) {
       var db = load(), e = db.entregas.filter(function (x) { return x.id === id; })[0];
@@ -463,25 +532,42 @@ function apiLocal() {
       p.usadas = Math.max(p.usadas - 1, 0);
       var v = db.entregas.filter(function (x) { return x.persona_id === p.id && !x.anulada; });
       p.ultima = v.length ? v[v.length - 1].hecho : null; save(db);
-      return { estado: 'ok', usadas: p.usadas, max: MAX };
+      var r = saldo(p); r.estado = 'ok'; return r;
     }),
     resumen: w(function () {
-      var db = load(), pc = [], pp = {}, ph = {}, pe = {}, pa = {};
-      db.personas.forEach(function (p) { var h = Math.floor(p.creado / 3600000) * 3600000; pa[h] = (pa[h] || 0) + 1; });
-      db.personas.forEach(function (p) { var k = p.equipo || 'Sin equipo'; pe[k] = pe[k] || { equipo: k, personas: 0, cervezas: 0 }; pe[k].personas++; pe[k].cervezas += p.usadas; });
+      var db = load(), pc = [], pp = {}, ph = {}, pe = {}, vh = {}, pm = {}, pk = {};
       for (var g = 0; g <= MAX; g++) pc.push({ usadas: g, personas: db.personas.filter(function (p) { return p.usadas === g; }).length });
+      db.personas.forEach(function (p) { var k = p.equipo || 'Sin equipo'; pe[k] = pe[k] || { equipo: k, personas: 0, compradas: 0, cervezas: 0 }; pe[k].personas++; pe[k].compradas += p.compradas; pe[k].cervezas += p.usadas; });
       db.entregas.forEach(function (e) { if (e.anulada) return; var k = e.puesto || 'Sin nombre'; pp[k] = (pp[k] || 0) + 1; var h = Math.floor(e.hecho / 3600000) * 3600000; ph[h] = (ph[h] || 0) + 1; });
-      return { max: MAX, personas: db.personas.length, entregadas: db.personas.reduce(function (a, p) { return a + p.usadas; }, 0), por_cantidad: pc,
-        por_equipo: Object.keys(pe).map(function (k) { return pe[k]; }).sort(function (a, b) { return b.personas - a.personas; }),
+      db.ventas.forEach(function (v) {
+        var h = Math.floor(v.hecho / 3600000) * 3600000; vh[h] = (vh[h] || 0) + v.cervezas;
+        pm[v.medio] = pm[v.medio] || { medio: v.medio, ventas: 0, cervezas: 0, total: 0 }; pm[v.medio].ventas++; pm[v.medio].cervezas += v.cervezas; pm[v.medio].total += v.total;
+        var k = v.puesto || 'Sin nombre'; pk[k] = pk[k] || { puesto: k, ventas: 0, cervezas: 0, total: 0 }; pk[k].ventas++; pk[k].cervezas += v.cervezas; pk[k].total += v.total;
+      });
+      var vend = db.personas.reduce(function (a, p) { return a + p.compradas; }, 0), ent = db.personas.reduce(function (a, p) { return a + p.usadas; }, 0);
+      var lista = function (o) { return Object.keys(o).map(function (k) { return o[k]; }); };
+      return { max: MAX, precio: PRECIO, moneda: CFG.moneda, personas: db.personas.length, entregadas: ent, vendidas: vend, pendientes: vend - ent,
+        recaudado: db.ventas.reduce(function (a, v) { return a + v.total; }, 0), ventas: db.ventas.length, por_medio: lista(pm), por_cantidad: pc,
+        por_equipo: lista(pe).sort(function (a, b) { return b.personas - a.personas; }),
         por_puesto: Object.keys(pp).map(function (k) { return { puesto: k, entregas: pp[k] }; }).sort(function (a, b) { return b.entregas - a.entregas; }),
+        por_caja: lista(pk).sort(function (a, b) { return b.total - a.total; }),
         por_hora: Object.keys(ph).sort().map(function (k) { return { hora: +k, entregas: ph[k] }; }),
-        acreditadas_por_hora: Object.keys(pa).sort().map(function (k) { return { hora: +k, personas: pa[k] }; }) };
+        vendidas_por_hora: Object.keys(vh).sort().map(function (k) { return { hora: +k, cervezas: vh[k] }; }) };
     }),
     personas: w(function (q, lim) {
       var db = load(); q = norm(q);
+      var ult = function (p) { var t = Math.max(p.ultima || 0, p.creado); db.items.forEach(function (i) { if (i.persona_id === p.id) { var v = db.ventas.filter(function (x) { return x.id === i.venta_id; })[0]; if (v) t = Math.max(t, v.hecho); } }); return t; };
       return db.personas.filter(function (p) { return !q || p.documento.indexOf(q) >= 0 || p.codigo.indexOf(q) === 0; })
-        .sort(function (a, b) { return (b.ultima || b.creado) - (a.ultima || a.creado); }).slice(0, lim || 100)
-        .map(function (p) { var j = pj(p); j.entregas = db.entregas.filter(function (e) { return e.persona_id === p.id && !e.anulada; }).map(function (e) { return { id: e.id, numero: e.numero, hecho: e.hecho, puesto: e.puesto }; }); return j; });
+        .map(function (p) { return [ult(p), p]; }).sort(function (a, b) { return b[0] - a[0]; }).slice(0, lim || 100)
+        .map(function (x) { var p = x[1], j = pj(p);
+          j.entregas = db.entregas.filter(function (e) { return e.persona_id === p.id && !e.anulada; }).map(function (e) { return { id: e.id, numero: e.numero, hecho: e.hecho, puesto: e.puesto }; });
+          j.compras = db.items.filter(function (i) { return i.persona_id === p.id; }).map(function (i) { var v = db.ventas.filter(function (x) { return x.id === i.venta_id; })[0] || {}; return { venta_id: i.venta_id, cantidad: i.cantidad, total: i.cantidad * i.precio, hecho: v.hecho, medio: v.medio, puesto: v.puesto }; });
+          return j; });
+    }),
+    ventas: w(function () {
+      var db = load();
+      return db.ventas.slice().reverse().map(function (v) { return { id: v.id, hecho: v.hecho, puesto: v.puesto, medio: v.medio, cervezas: v.cervezas, total: v.total,
+        detalle: db.items.filter(function (i) { return i.venta_id === v.id; }).map(function (i) { var p = db.personas.filter(function (x) { return x.id === i.persona_id; })[0] || {}; return (p.pais || '') + ' ' + (p.documento || '') + ' x' + i.cantidad; }).join(' | ') }; });
     }),
     editar: w(function (id, pais, doc, equipo) {
       var d = norm(doc), pa = norm(pais).slice(0, 3), db = load();
@@ -495,11 +581,13 @@ function apiLocal() {
       if (clave !== CFG.clave) return { estado: 'clave_incorrecta' };
       var db = load(), n = db.personas.length;
       db.personas = db.personas.filter(function (x) { return x.id !== id; }); if (db.personas.length === n) return { estado: 'inexistente' };
+      db.items.forEach(function (i) { if (i.persona_id !== id) return; var v = db.ventas.filter(function (x) { return x.id === i.venta_id; })[0]; if (v) { v.cervezas -= i.cantidad; v.total -= i.cantidad * i.precio; } });
+      db.items = db.items.filter(function (i) { return i.persona_id !== id; }); db.ventas = db.ventas.filter(function (v) { return v.cervezas > 0; });
       db.entregas = db.entregas.filter(function (e) { return e.persona_id !== id; }); save(db); return { estado: 'ok' };
     }),
-    vaciar: w(function (clave) { if (clave !== CFG.clave) return { estado: 'clave_incorrecta' }; save({ personas: [], entregas: [], seq: 1 }); return { estado: 'ok' }; }),
+    vaciar: w(function (clave) { if (clave !== CFG.clave) return { estado: 'clave_incorrecta' }; save({ personas: [], entregas: [], ventas: [], items: [], seq: 1 }); return { estado: 'ok' }; }),
     estado: w(function () { return { ok: true, max: MAX }; }),
-    pase: w(function (c) { var p = load().personas.filter(function (x) { return x.codigo === norm(c); })[0]; return p ? { estado: 'ok', usadas: p.usadas, max: MAX, equipo: p.equipo } : { estado: 'inexistente' }; })
+    pase: w(function (c) { var p = load().personas.filter(function (x) { return x.codigo === norm(c); })[0], r; if (!p) return { estado: 'inexistente' }; r = saldo(p); r.estado = 'ok'; r.equipo = p.equipo; return r; })
   };
 }
 var api;
@@ -520,10 +608,11 @@ function etiquetaHtml(p) {
     '<div class="l-pie"><div><b>' + max + ' cervezas por persona</b><i>' + max + ' cervejas por pessoa</i></div><span>' + esc(fmtCodigo(p.codigo)) + '</span></div></div>';
 }
 function imprimir(p) {
+  var lista = (Array.isArray(p) ? p : [p]).filter(Boolean); if (!lista.length) return;
   var E = CFG.etiqueta, st = document.getElementById('page-size');
   if (!st) { st = document.createElement('style'); st.id = 'page-size'; document.head.appendChild(st); }
   st.textContent = '@page{size:' + E.ancho + 'mm ' + E.alto + 'mm;margin:0}';
-  printBox.innerHTML = etiquetaHtml(p);
+  printBox.innerHTML = lista.map(function (x) { return '<div class="pg">' + etiquetaHtml(x) + '</div>'; }).join('');   // una etiqueta por hoja
   var imgs = [].slice.call(printBox.querySelectorAll('img')), falta = imgs.filter(function (i) { return !i.complete; }).length, hecho = false;
   function ya() { if (hecho) return; hecho = true; setTimeout(function () { window.print(); }, 60); }
   if (!falta) return ya();
@@ -536,55 +625,145 @@ var R = null;
 function pintarTotal() {
   if (!R) return;
   $('#k-total').textContent = miles(R.entregadas);
-  $('#k-sub').textContent = miles(R.personas) + (R.personas === 1 ? ' persona acreditada' : ' personas acreditadas') + ' · ' + R.max + ' por persona';
+  $('#k-sub').textContent = miles(R.vendidas) + ' vendidas · ' + miles(R.pendientes) + ' pagas para retirar · ' + plata(R.recaudado);
 }
 function refrescar() {
   return api.resumen().then(function (r) { var igual = JSON.stringify(r) === JSON.stringify(R); R = r; pintarTotal(); if (actual === 'consumo' && !igual) pintarConsumoResumen(); return r; }).catch(function () {});
 }
 
-// ============================================================ ACREDITAR
-var ing = { pais: 'UY', equipo: '', rec: [], q: '', aviso: false, ultima: null };
+// ============================================================ CAJA (venta de cervezas)
+var ing = { rec: [], q: '', ultima: null };
+function nuevoFan() { return { pais: 'UY', doc: '', est: 'vacio', aviso: false, existe: false, p: null, equipo: '', cant: 0, cupo: 0, msg: '', mc: 'mal' }; }
+var caja = { fans: [nuevoFan()], medio: '', ocupado: false, msg: '', hecho: null };
+function escudoDe(n) { var e = CFG.equipos.filter(function (x) { return x.n === n; })[0]; return e && e.escudo ? '<img class="esc" src="' + esc(e.escudo) + '" alt="">' : ''; }
 function vAcreditar() {
   vista.innerHTML =
     '<div class="pill"><div class="ico"><svg viewBox="0 0 24 24"><path d="M7 4h10l-1 15a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1L7 4zM7.4 9h9.2"/></svg></div>' +
-    '<div class="tx"><b>3 cervezas por persona</b><span>Tomá el documento e imprimí la etiqueta con el QR</span></div>' + vasos(3, 3) + '</div>' +
-    '<div class="grid"><section class="card"><h2>Acreditar persona</h2><div class="chips" id="paises"></div>' +
-    '<form id="f-reg" autocomplete="off"><label class="f"><span id="lbl-doc">Documento</span><input id="doc" class="doc" maxlength="24" autocapitalize="characters" spellcheck="false"></label>' +
-    '<label class="f" style="margin-bottom:8px">Equipo</label><div class="chips equipos" id="equipos"></div>' +
-    '<div class="msg" id="m-reg"></div><button class="btn rojo grande" id="b-reg">Registrar e imprimir</button></form></section>' +
-    '<section class="card"><h2>Etiqueta</h2><div id="et"><p class="vacio" style="padding:0">Acá aparece la etiqueta de la última persona acreditada.</p></div></section></div>' +
-    '<div class="sec"><span>Documentos acreditados</span><span style="color:var(--gris);font-weight:600" id="n-acr"></span></div>' +
+    '<div class="tx"><b>' + plata(precio()) + ' cada cerveza · hasta ' + CFG.maxCervezas + ' por persona</b><span>Cada fan compra con su documento, en una o varias veces. La etiqueta se imprime una sola vez.</span></div>' + vasos(3, 3) + '</div>' +
+    '<div class="grid"><section class="card"><h2>Nueva compra</h2><div id="fans"></div>' +
+    '<button class="btn borde" id="b-otro" data-act="otro-fan" style="width:100%"></button>' +
+    '<div class="tot" id="tot"></div><div class="medios" id="medios"></div>' +
+    '<div class="msg mal" id="m-caja"></div><button class="btn rojo grande" id="b-cobrar" data-act="cobrar"></button></section>' +
+    '<section class="card"><h2>Última compra</h2><div id="et"></div></section></div>' +
+    '<div class="sec"><span>Compradores</span><span style="color:var(--gris);font-weight:600" id="n-acr"></span></div>' +
     '<div class="buscar"><input id="q-acr" type="search" placeholder="Buscar documento o código" value="' + esc(ing.q) + '" autocomplete="off"></div>' +
     '<div class="lista" id="rec"><p class="vacio">Cargando…</p></div>';
   var tq; $('#q-acr').oninput = function () { ing.q = this.value; clearTimeout(tq); tq = setTimeout(pintarRec, 250); };
-  pintarPaises(); pintarEquipos(); pintarRec();
-  var doc = $('#doc'); doc.focus();
-  doc.oninput = function () { ing.aviso = false; $('#b-reg').textContent = 'Registrar e imprimir'; $('#m-reg').textContent = ''; };
-  $('#f-reg').onsubmit = function (ev) { ev.preventDefault(); registrar(); };
-  if (ing.ultima) mostrarEtiqueta(ing.ultima, '');
+  pintarCaja(true); pintarHecho(); pintarRec();
 }
-function pintarPaises() {
-  $('#paises').innerHTML = PAISES.map(function (p) { return '<button type="button" class="chip' + (p.id === ing.pais ? ' on' : '') + '" data-pais="' + p.id + '">' + p.n + '</button>'; }).join('');
-  var p = PAISES.filter(function (x) { return x.id === ing.pais; })[0];
-  $('#lbl-doc').textContent = p.d + (p.id === 'UY' ? ' (con dígito verificador)' : '');
-  $('#doc').inputMode = (p.id === 'UY' || p.id === 'AR') ? 'numeric' : 'text';
+function fanHtml(f, i) {
+  var h = '<div class="fan"><div class="fan-h"><b>Fan ' + (i + 1) + '</b>';
+  if (f.est === 'ok') h += '<span class="chipi ' + (f.existe ? (f.cupo > 0 ? 'ya' : 'no') : 'nu') + '">' + (!f.existe ? 'Primera compra' : f.cupo > 0 ? 'Ya compró ' + f.p.compradas + ' · puede comprar ' + f.cupo + ' más' : 'Ya compró sus ' + f.p.max) + '</span>';
+  if (caja.fans.length > 1) h += '<button type="button" class="btn mini" data-cquitar="' + i + '" style="margin-left:auto">Quitar</button>';
+  h += '</div>';
+  if (f.est !== 'ok') {
+    var pd = PAISES.filter(function (x) { return x.id === f.pais; })[0];
+    h += '<div class="chips">' + PAISES.map(function (p) { return '<button type="button" class="chip' + (p.id === f.pais ? ' on' : '') + '" data-cpais="' + i + ':' + p.id + '">' + p.n + '</button>'; }).join('') + '</div>' +
+      '<label class="f">' + pd.d + (pd.id === 'UY' ? ' (con dígito verificador)' : '') +
+      '<span class="docfila"><input class="doc" data-cdoc="' + i + '" id="doc-' + i + '" maxlength="24" autocapitalize="characters" spellcheck="false" autocomplete="off" inputmode="' + (pd.id === 'UY' || pd.id === 'AR' ? 'numeric' : 'text') + '" value="' + esc(f.doc) + '"><button type="button" class="btn rojo" data-cbuscar="' + i + '">Buscar</button></span></label>' +
+      '<div class="msg ' + f.mc + '" id="fm-' + i + '">' + esc(f.msg) + '</div>';
+  } else {
+    h += '<div class="fdoc"><b>' + esc(fmtDoc(f.pais, norm(f.doc))) + '</b><small>' + esc(f.pais) + (f.existe && f.equipo ? ' · ' + escudoDe(f.equipo) + esc(f.equipo) : '') + '</small><button type="button" class="btn mini" data-ccambiar="' + i + '">Cambiar</button></div>';
+    if (f.existe && f.p.pendientes > 0) h += '<p class="nota" style="margin:0 0 10px">Tiene ' + nCerv(f.p.pendientes) + (f.p.pendientes === 1 ? ' paga' : ' pagas') + ' sin retirar.</p>';
+    if (!f.existe) h += '<label class="f" style="margin-bottom:8px">Equipo</label><div class="chips equipos">' + CFG.equipos.map(function (e) { return '<button type="button" class="chip' + (e.n === f.equipo ? ' on' : '') + '" data-cequipo="' + i + ':' + esc(e.n) + '">' + (e.escudo ? '<img src="' + esc(e.escudo) + '" alt="">' : '') + esc(e.n) + '</button>'; }).join('') + '</div>';
+    if (f.cupo > 0) {
+      h += '<label class="f" style="margin-bottom:8px">¿Cuántas cervezas compra?</label><div class="cant">';
+      for (var n = 1; n <= f.cupo; n++) h += '<button type="button" class="' + (f.cant === n ? 'on' : '') + '" data-ccant="' + i + ':' + n + '">' + n + '</button>';
+      h += '<span>' + (f.cant ? plata(f.cant * precio()) : '') + '</span></div>';
+    } else h += '<p class="msg mal" style="margin:0 0 10px">No puede comprar más: llegó al máximo de ' + f.p.max + '.</p><button type="button" class="btn mini borde" data-creimp="' + i + '">Reimprimir su etiqueta</button>';
+  }
+  return h + '</div>';
 }
-function pintarEquipos() {
-  $('#equipos').innerHTML = CFG.equipos.map(function (e) {
-    return '<button type="button" class="chip' + (e.n === ing.equipo ? ' on' : '') + '" data-equipo="' + esc(e.n) + '">' + (e.escudo ? '<img src="' + esc(e.escudo) + '" alt="">' : '') + esc(e.n) + '</button>';
-  }).join('');
+function pintarCaja(foco) {
+  if (!$('#fans')) return;
+  $('#fans').innerHTML = caja.fans.map(fanHtml).join('');
+  $('#b-otro').textContent = caja.fans.length === 1 ? 'Añadir cervezas para segundo fan' : 'Añadir cervezas para otro fan';
+  var n = caja.fans.reduce(function (a, f) { return a + (f.est === 'ok' ? f.cant : 0); }, 0);
+  $('#tot').innerHTML = '<span>' + (n ? nCerv(n) + (caja.fans.length > 1 ? ' · ' + caja.fans.length + ' fans' : '') : 'Total') + '</span><b>' + plata(n * precio()) + '</b>';
+  $('#medios').innerHTML = [['tarjeta', 'Tarjeta', '<path d="M3 7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM3 10h18M7 15h3"/>'], ['efectivo', 'Efectivo', '<path d="M3 7h18v10H3zM12 9.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM6 10v4M18 10v4"/>']].map(function (m) {
+    return '<button type="button" class="' + (caja.medio === m[0] ? 'on' : '') + '" data-cmedio="' + m[0] + '"><svg viewBox="0 0 24 24">' + m[2] + '</svg>' + m[1] + '</button>'; }).join('');
+  $('#b-cobrar').textContent = caja.ocupado ? 'Registrando…' : n ? 'Cobrar ' + plata(n * precio()) + ' y registrar' : 'Cobrar y registrar';
+  $('#m-caja').textContent = caja.msg;
+  if (foco) { var k = -1; caja.fans.forEach(function (f, i) { if (k < 0 && f.est !== 'ok') k = i; }); var el = k >= 0 && $('#doc-' + k); if (el) { el.focus(); el.setSelectionRange(el.value.length, el.value.length); } }
 }
-function escudoDe(n) { var e = CFG.equipos.filter(function (x) { return x.n === n; })[0]; return e && e.escudo ? '<img class="esc" src="' + esc(e.escudo) + '" alt="">' : ''; }
+function buscarFan(i) {
+  var f = caja.fans[i], d = norm(f.doc); f.mc = 'mal';
+  if (d.length < 5) { f.msg = 'Escribí el número de documento completo.'; return pintarCaja(true); }
+  if (caja.fans.some(function (x, k) { return k !== i && x.est === 'ok' && x.pais === f.pais && norm(x.doc) === d; })) { f.msg = 'Ese documento ya está en esta compra.'; return pintarCaja(true); }
+  if (f.pais === 'UY' && !f.aviso && !ciValida(d)) { f.aviso = true; f.mc = 'aviso'; f.msg = 'El dígito verificador no coincide. Revisá el número; si está bien, tocá Buscar de nuevo.'; return pintarCaja(true); }
+  f.mc = ''; f.msg = 'Buscando…'; pintarCaja();
+  api.consultar(f.pais, d).then(function (r) {
+    if (caja.fans[i] !== f) return;
+    if (r.estado !== 'ok') { f.mc = 'mal'; f.msg = 'Documento no válido.'; return pintarCaja(true); }
+    f.est = 'ok'; f.msg = ''; f.existe = r.existe; f.p = r.persona || null; f.cupo = r.existe ? r.persona.cupo : r.cupo; f.equipo = r.existe ? (r.persona.equipo || '') : ''; f.cant = f.cupo > 0 ? 1 : 0;
+    caja.msg = ''; pintarCaja(true);
+  }).catch(function (e) { f.mc = 'mal'; f.msg = errTxt(e); pintarCaja(true); });
+}
+function cobrar() {
+  if (caja.ocupado) return;
+  var fs = caja.fans, falta = '';
+  fs.forEach(function (f, i) {
+    if (falta) return; var n = 'Fan ' + (i + 1) + ': ';
+    if (f.est !== 'ok') falta = n + 'ingresá el documento y tocá Buscar.';
+    else if (f.cupo <= 0) falta = n + 'ya compró el máximo. Quitalo de la compra.';
+    else if (!f.existe && !f.equipo) falta = n + 'elegí el equipo.';
+    else if (!f.cant) falta = n + 'elegí cuántas cervezas compra.';
+  });
+  if (!falta && !caja.medio) falta = 'Elegí cómo paga: tarjeta o efectivo.';
+  if (falta) { caja.msg = falta; return pintarCaja(); }
+  caja.ocupado = true; caja.msg = ''; pintarCaja();
+  api.vender(fs.map(function (f) { return { pais: f.pais, documento: norm(f.doc), equipo: f.equipo, cantidad: f.cant }; }), caja.medio).then(function (r) {
+    caja.ocupado = false;
+    if (r.estado === 'ok') {
+      var nuevas = r.fans.filter(function (x) { return x.nueva; }).map(function (x) { return x.persona; });
+      ing.ultima = r.fans[0].persona;
+      caja = { fans: [nuevoFan()], medio: '', ocupado: false, msg: '', hecho: r };
+      pintarCaja(true); pintarHecho(); if (nuevas.length) imprimir(nuevas);
+      refrescar().then(pintarRec); return;
+    }
+    if (r.estado === 'sin_cupo') {     // otra caja le vendió mientras tanto: se vuelve a consultar ese documento
+      caja.msg = 'El documento ' + r.documento + ' ya no tiene ese cupo: puede comprar ' + r.cupo + ' más. Revisá la cantidad.';
+      fs.forEach(function (f) { if (norm(f.doc) === r.documento) { f.cupo = r.cupo; f.cant = Math.min(f.cant, r.cupo); if (f.p) { f.p.compradas = f.p.max - r.cupo; } } });
+    } else caja.msg = 'No se pudo registrar la compra (' + r.estado + ').';
+    pintarCaja();
+  }).catch(function (e) { caja.ocupado = false; caja.msg = errTxt(e); pintarCaja(); });
+}
+function urlPase(c) { return location.href.split('#')[0] + '#pase=' + norm(c); }
+function bloquePase(p) {
+  return '<div class="paseqr"><div class="q">' + qrSvg(urlPase(p.codigo)) + '</div><div><b>Pase para el celular</b><span>Que lo escanee con la cámara: ve cuántas tiene para retirar y puede guardarlo como imagen.</span></div></div>';
+}
+function pintarHecho() {
+  var el = $('#et'); if (!el) return; var r = caja.hecho;
+  if (!r) { el.innerHTML = '<p class="vacio" style="padding:0">Acá aparece la compra recién registrada, con la etiqueta de cada fan.</p>'; return; }
+  var p0 = r.fans[0].persona;
+  el.innerHTML = '<p class="okmsg">Compra registrada · ' + nCerv(r.cervezas) + ' · ' + plata(r.total) + ' · ' + (r.medio === 'tarjeta' ? 'Tarjeta' : 'Efectivo') + '</p>' +
+    r.fans.map(function (x, i) { var p = x.persona;
+      return '<div class="hf"><div class="c">' + p.pendientes + '</div><div class="m"><b>' + esc(fmtDoc(p.pais, p.documento)) + '</b><span>+' + nCerv(x.cantidad) + ' · tiene ' + p.pendientes + ' para retirar</span><span>' + (x.nueva ? 'Etiqueta nueva impresa' : 'Usa la etiqueta que ya tiene') + '</span></div>' +
+        '<div class="acc"><button class="btn mini borde" data-hreimp="' + i + '">Reimprimir</button><button class="btn mini borde" data-hpase="' + i + '">Pase</button></div></div>'; }).join('') +
+    '<div class="prev" style="margin-top:14px">' + etiquetaHtml(p0) + '</div>' + (r.fans.length === 1 ? bloquePase(p0) : '');
+}
+function mostrarEtiqueta(p) {     // después de editar un registro: refresca la compra que está en pantalla
+  if (caja.hecho) caja.hecho.fans.forEach(function (x) { if (x.persona.id === p.id) { x.persona.pais = p.pais; x.persona.documento = p.documento; x.persona.equipo = p.equipo; } });
+  pintarHecho();
+}
+function quitarDeHecho(id) { if (caja.hecho && caja.hecho.fans.some(function (x) { return x.persona.id === id; })) caja.hecho = null; if (ing.ultima && ing.ultima.id === id) ing.ultima = null; pintarHecho(); }
+function abrirPase(pp) {
+  ed = { p: pp };
+  $('#m2').innerHTML = '<h2>Pase para el celular</h2><p>Que la persona escanee este QR con la cámara de su celular. Se le abre su pase con las cervezas que tiene para retirar y puede guardarlo como imagen.</p>' +
+    '<div style="max-width:300px;margin:0 auto 16px;background:#fff;border-radius:16px;padding:12px;box-shadow:inset 0 0 0 1.5px var(--linea)">' + qrSvg(urlPase(pp.codigo)).replace('<svg', '<svg style="width:100%;height:auto;display:block"') + '</div>' +
+    '<p style="text-align:center"><b>' + esc(fmtDoc(pp.pais, pp.documento)) + '</b> · ' + esc(pp.equipo || '') + '</p><div class="fila" style="margin:0"><button class="btn" data-act="cerrar2">Cerrar</button></div>';
+  $('#ov2').classList.add('open');
+}
 function pintarRec() {
   if (!$('#rec')) return;
   api.personas(ing.q, 60).then(function (ps) {
     var el = $('#rec'); if (!el) return;
     ing.rec = ps;
     $('#n-acr').textContent = R ? miles(R.personas) + ' en total' : '';
-    el.innerHTML = !ps.length ? '<p class="vacio">' + (ing.q ? 'No hay ningún documento acreditado que coincida.' : 'Todavía no hay documentos acreditados.') + '</p>' : ps.map(function (p, i) {
-      return '<div class="it"><div class="c' + (p.usadas >= p.max ? ' lleno' : '') + '">' + p.usadas + '</div>' +
-        '<div class="m"><b>' + esc(fmtDoc(p.pais, p.documento)) + '</b><span>' + escudoDe(p.equipo) + esc(p.equipo || 'Sin equipo') + ' · ' + esc(p.pais) + ' · ' + hora(p.creado) + '</span></div>' +
-        '<div class="d"><b>' + p.usadas + ' de ' + p.max + '</b><span>' + (p.ultima_entrega ? 'Última ' + hora(p.ultima_entrega) : 'Sin retirar') + '</span>' +
+    el.innerHTML = !ps.length ? '<p class="vacio">' + (ing.q ? 'No hay ningún comprador que coincida.' : 'Todavía no hay compras.') + '</p>' : ps.map(function (p, i) {
+      return '<div class="it"><div class="c' + (p.pendientes > 0 ? ' lleno' : '') + '">' + p.pendientes + '</div>' +
+        '<div class="m"><b>' + esc(fmtDoc(p.pais, p.documento)) + '</b><span>' + escudoDe(p.equipo) + esc(p.equipo || 'Sin equipo') + ' · ' + esc(p.pais) + ' · ' + (p.pendientes > 0 ? nCerv(p.pendientes) + ' para retirar' : 'nada para retirar') + '</span></div>' +
+        '<div class="d"><b>Compró ' + p.compradas + ' · retiró ' + p.usadas + '</b><span>' + (p.cupo > 0 ? 'Puede comprar ' + p.cupo + ' más' : 'Llegó al máximo de ' + p.max) + '</span>' +
         '</div><div class="acc"><button class="btn mini borde" data-reimp="' + i + '">Reimprimir</button>' +
         '<button class="btn mini borde" data-pase="' + i + '">Pase</button>' +
         '<button class="btn mini borde" data-editar="' + i + '">Editar</button>' +
@@ -592,38 +771,8 @@ function pintarRec() {
     }).join('') + (ps.length >= 60 ? '<p class="nota">Se muestran los 60 más recientes. Usá el buscador para encontrar cualquier otro.</p>' : '');
   }).catch(function (e) { var el = $('#rec'); if (el) el.innerHTML = '<p class="msg mal">' + errTxt(e) + '</p>'; });
 }
-function urlPase(c) { return location.href.split('#')[0] + '#pase=' + norm(c); }
-function bloquePase(p) {
-  return '<div class="paseqr"><div class="q">' + qrSvg(urlPase(p.codigo)) + '</div><div><b>Pase para el celular</b><span>Que lo escanee con la cámara: ve cuántas le quedan y puede guardarlo como imagen.</span></div></div>';
-}
-function mostrarEtiqueta(p, msg) {
-  $('#et').innerHTML = '<div class="prev">' + etiquetaHtml(p) + '</div>' + (msg ? '<p class="msg bien">' + msg + '</p>' : '') + '<button class="btn" data-act="reimp-ult">Reimprimir</button>' + bloquePase(p);
-}
-function registrar() {
-  var doc = $('#doc'), m = $('#m-reg'), d = norm(doc.value);
-  if (d.length < 5) { m.textContent = 'Escribí el número de documento completo.'; m.className = 'msg mal'; return; }
-  if (ing.pais === 'UY' && !ing.aviso && !ciValida(d)) {
-    ing.aviso = true; $('#b-reg').textContent = 'Registrar igual e imprimir';
-    m.textContent = 'El dígito verificador no coincide. Revisá el número; si está bien, tocá de nuevo.'; m.className = 'msg aviso'; return;
-  }
-  if (!ing.equipo) { m.textContent = 'Elegí el equipo: Estudiantes, Palmeiras o Neutral.'; m.className = 'msg mal'; return; }
-  m.textContent = 'Registrando…'; m.className = 'msg';
-  api.registrar(ing.pais, d, ing.equipo).then(function (r) {
-    ing.aviso = false; $('#b-reg').textContent = 'Registrar e imprimir';
-    if (r.estado !== 'ok') { m.textContent = 'Documento no válido.'; m.className = 'msg mal'; return; }
-    var p = r.persona; ing.ultima = p; m.textContent = '';
-    if (r.nueva) {
-      doc.value = ''; ing.equipo = ''; pintarEquipos();
-      mostrarEtiqueta(p, 'Acreditada. Etiqueta enviada a imprimir.'); imprimir(p); refrescar().then(pintarRec);
-    } else {
-      $('#et').innerHTML = '<div class="ya"><b>Este documento ya estaba acreditado</b><span>' + escudoDe(p.equipo) + esc(p.equipo || 'Sin equipo') + '</span><span>Lleva ' + p.usadas + ' de ' + p.max + ' cervezas ' + vasos(p.usadas, p.max) + '</span>' +
-        '<span>Acreditado a las ' + hora(p.creado) + (p.creado_por ? ' en ' + esc(p.creado_por) : '') + '</span>' +
-        '<small>Si reimprimís, sale la misma etiqueta: el contador no se reinicia.</small></div>' +
-        '<button class="btn rojo" data-act="reimp-ult">Reimprimir la misma etiqueta</button>' + bloquePase(p);
-    }
-    doc.focus();
-  }).catch(function (e) { m.textContent = errTxt(e); m.className = 'msg mal'; });
-}
+document.addEventListener('input', function (ev) { var t = ev.target; if (!t.matches || !t.matches('[data-cdoc]')) return; var f = caja.fans[+t.getAttribute('data-cdoc')]; if (!f) return; f.doc = t.value; f.aviso = false; f.msg = ''; var m = $('#fm-' + t.getAttribute('data-cdoc')); if (m) m.textContent = ''; });
+document.addEventListener('keydown', function (ev) { var t = ev.target; if (ev.key === 'Enter' && t.matches && t.matches('[data-cdoc]')) { ev.preventDefault(); buscarFan(+t.getAttribute('data-cdoc')); } });
 
 // ============================================================ BARRA
 var bar = { stream: null, raf: 0, ocupado: false, ult: '', ultT: 0, timer: 0, det: null, audio: null, hechas: [] };
@@ -644,7 +793,7 @@ function pintarHechas() {
   var el = $('#lec-ult'); if (!el) return;
   var h = bar.hechas[0];
   el.innerHTML = '<span>Entregadas en este puesto: <b>' + bar.hechas.length + '</b></span>' +
-    (h ? '<span>Última: cerveza ' + h.numero + ' de ' + h.max + ' · ' + hora(h.t) + '</span>' : '');
+    (h ? '<span>Última entrega: ' + hora(h.t) + ' · le quedaban ' + h.pend + ' para retirar</span>' : '');
 }
 function abrirCamara() {
   var msg = $('#cam-msg');
@@ -695,33 +844,35 @@ function canjear(c, seguido) {
   bar.ocupado = true; clearTimeout(bar.timer);
   api.canjear(c, seguido).then(function (r) {
     bar.ult = c; bar.ultT = Date.now();
-    if (r.estado === 'ok') { bar.hechas.unshift({ id: r.entrega_id, codigo: c, numero: r.numero, max: r.max, t: Date.now() }); pintarHechas(); sonido(true); refrescar(); }
+    if (r.estado === 'ok') { bar.hechas.unshift({ id: r.entrega_id, codigo: c, numero: r.numero, max: r.max, pend: r.pendientes, t: Date.now() }); pintarHechas(); sonido(true); refrescar(); }
     else if (r.estado !== 'repetido') sonido(false);
     resultado(c, r);
   }).catch(function (e) { sonido(false); resultado(c, { estado: 'error', texto: errTxt(e) }); });
 }
 var ICO_OK = '<svg class="ri" viewBox="0 0 96 96"><circle cx="48" cy="48" r="42"/><path d="M28 50l14 14 27-30"/></svg>';
 var ICO_NO = '<svg class="ri" viewBox="0 0 96 96"><circle cx="48" cy="48" r="42"/><path d="M32 32l32 32M64 32L32 64"/></svg>';
-function quedan(n) { return n === 1 ? 'Queda 1 cerveza' : 'Quedan ' + n + ' cervezas'; }
+function paraRetirar(n) { return n > 1 ? 'Le quedan ' + n + ' para retirar' : n === 1 ? 'Le queda 1 para retirar' : 'No le quedan pagas'; }
+function cupoTxt(r) { return r.cupo > 0 ? 'Puede comprar ' + r.cupo + ' más en caja' : 'Ya compró sus ' + r.max; }
 function resultado(c, r) {
   var el = $('#res'), h = '', cl = 'mal', espera = 6000;
   if (r.estado === 'ok') {
     cl = 'bien'; espera = 4500;
-    h = ICO_OK + '<div class="t">' + (r.restantes > 0 ? quedan(r.restantes) : 'Última cerveza') + '</div>' + vasos(r.numero, r.max) +
-      '<div class="s">Entregá la cerveza ' + r.numero + ' de ' + r.max + (r.restantes > 0 ? '' : '<br><small>No le quedan más</small>') + '</div><div class="b">' +
-      (r.restantes > 0 ? '<button class="btn claro" data-otra="' + c + '">Otra cerveza a la misma persona</button>' : '') +
+    h = ICO_OK + '<div class="t">' + (r.pendientes > 0 ? paraRetirar(r.pendientes) : 'Era su última paga') + '</div>' + vasos(r.usadas, r.max, r.compradas) +
+      '<div class="s">Entregá 1 cerveza<br><small>' + cupoTxt(r) + '</small></div><div class="b">' +
+      (r.pendientes > 0 ? '<button class="btn claro" data-otra="' + c + '">Otra cerveza a la misma persona</button>' : '') +
       '<button class="btn fant" data-deshacer="' + r.entrega_id + '">Deshacer</button></div>';
-  } else if (r.estado === 'agotado') {
-    h = ICO_NO + '<div class="t">No puede canjear más cervezas</div>' + vasos(r.usadas, r.max) +
-      '<div class="s">Ya retiró sus ' + r.max + (r.ultima_entrega ? '<br><small>Última a las ' + hora(r.ultima_entrega) + '</small>' : '') + '</div>';
+  } else if (r.estado === 'sin_saldo') {
+    h = ICO_NO + '<div class="t">' + (r.cupo > 0 ? 'No tiene cervezas pagas' : 'No puede canjear más cervezas') + '</div>' + vasos(r.usadas, r.max, r.compradas) +
+      '<div class="s">' + (r.compradas === 0 ? 'Todavía no compró ninguna' : r.cupo > 0 ? 'Ya retiró las ' + r.compradas + ' que compró' : 'Ya compró y retiró sus ' + r.max) +
+      (r.cupo > 0 ? '<br><small>' + cupoTxt(r) + '</small>' : r.ultima_entrega ? '<br><small>Última a las ' + hora(r.ultima_entrega) + '</small>' : '') + '</div>';
   } else if (r.estado === 'repetido') {
     cl = 'aviso'; espera = 3500;
-    h = '<div class="t">Recién validada</div><div class="s">No se descontó otra. ' + (r.usadas < r.max ? quedan(r.max - r.usadas) + '.' : 'No le quedan más.') + '</div>' +
-      (r.usadas < r.max ? '<div class="b"><button class="btn claro" data-otra="' + c + '">Entregar otra cerveza</button></div>' : '');
+    h = '<div class="t">Recién validada</div><div class="s">No se descontó otra. ' + paraRetirar(r.pendientes) + '.</div>' +
+      (r.pendientes > 0 ? '<div class="b"><button class="btn claro" data-otra="' + c + '">Entregar otra cerveza</button></div>' : '');
   } else if (r.estado === 'inexistente') {
     h = ICO_NO + '<div class="t">Código no válido</div><div class="s">No entregar<br><small>' + esc(fmtCodigo(c)) + '</small></div>';
   } else if (r.estado === 'deshecho') {
-    cl = 'aviso'; espera = 3000; h = '<div class="t">Entrega deshecha</div><div class="s">' + quedan(r.max - r.usadas) + '</div>';
+    cl = 'aviso'; espera = 3000; h = '<div class="t">Entrega deshecha</div><div class="s">' + paraRetirar(r.pendientes) + '</div>';
   } else { h = ICO_NO + '<div class="t">No se pudo validar</div><div class="s">' + esc(r.texto || 'Probá de nuevo.') + '</div>'; }
   el.className = 'res ' + cl; el.hidden = false;
   el.innerHTML = '<div class="in">' + h + '</div><button class="btn sig" data-act="sig">Siguiente</button>';
@@ -733,7 +884,7 @@ function cerrarRes() { clearTimeout(bar.timer); $('#res').hidden = true; bar.ult
 var con = { q: '', abierta: null, ps: [], timer: 0, dia: '' };
 function vConsumo() {
   vista.innerHTML = '<div id="c-res"></div>' +
-    '<div class="sec"><span>Consumo por persona</span><button data-act="csv">Descargar Excel</button></div>' +
+    '<div class="sec"><span>Compras y retiros por persona</span><span><button data-act="csv-ventas" style="margin-right:18px">Descargar ventas</button><button data-act="csv">Descargar personas</button></span></div>' +
     '<div class="buscar"><input id="buscar" type="search" placeholder="Buscar documento o código" value="' + esc(con.q) + '"></div>' +
     '<div class="lista" id="c-lista"><p class="vacio">Cargando…</p></div>';
   var t; $('#buscar').oninput = function () { con.q = this.value; clearTimeout(t); t = setTimeout(cargarPersonas, 250); };
@@ -768,32 +919,34 @@ function columnas(filas, unidad) {
 }
 function pintarConsumoResumen() {
   var el = $('#c-res'); if (!el || !R) return;
-  var cupo = R.personas * R.max, pct = cupo ? Math.round(R.entregadas / cupo * 100) : 0, circ = 2 * Math.PI * 22;
+  var pct = R.vendidas ? Math.round(R.entregadas / R.vendidas * 100) : 0, circ = 2 * Math.PI * 22;
   // días con datos (hora local) y serie por hora del día elegido
   var dias = {}, hoy = diaKey(Date.now());
   (R.por_hora || []).forEach(function (h) { var k = diaKey(h.hora); dias[k] = dias[k] || { c: 0, p: 0 }; dias[k].c += h.entregas; });
-  (R.acreditadas_por_hora || []).forEach(function (h) { var k = diaKey(h.hora); dias[k] = dias[k] || { c: 0, p: 0 }; dias[k].p += h.personas; });
+  (R.vendidas_por_hora || []).forEach(function (h) { var k = diaKey(h.hora); dias[k] = dias[k] || { c: 0, p: 0 }; dias[k].p += h.cervezas; });
   var ks = Object.keys(dias).sort();
   if (!con.dia || !dias[con.dia]) con.dia = dias[hoy] ? hoy : (ks[ks.length - 1] || hoy);
   var hc = {}, hp = {}, hmin = 24, hmax = -1;
   (R.por_hora || []).forEach(function (h) { if (diaKey(h.hora) !== con.dia) return; var x = new Date(h.hora).getHours(); hc[x] = (hc[x] || 0) + h.entregas; hmin = Math.min(hmin, x); hmax = Math.max(hmax, x); });
-  (R.acreditadas_por_hora || []).forEach(function (h) { if (diaKey(h.hora) !== con.dia) return; var x = new Date(h.hora).getHours(); hp[x] = (hp[x] || 0) + h.personas; hmin = Math.min(hmin, x); hmax = Math.max(hmax, x); });
+  (R.vendidas_por_hora || []).forEach(function (h) { if (diaKey(h.hora) !== con.dia) return; var x = new Date(h.hora).getHours(); hp[x] = (hp[x] || 0) + h.cervezas; hmin = Math.min(hmin, x); hmax = Math.max(hmax, x); });
   var fc = [], fp = [];
   if (hmax >= 0) { hmin = Math.max(0, Math.min(hmin, hmax - 5)); hmax = Math.min(23, Math.max(hmax, hmin + 5)); }
   for (var x = hmin; x <= hmax; x++) { var l = (x < 10 ? '0' : '') + x + ':00 a ' + (x < 10 ? '0' : '') + x + ':59'; fc.push({ l: l, c: x + ' h', n: hc[x] || 0 }); fp.push({ l: l, c: x + ' h', n: hp[x] || 0 }); }
   var d = dias[con.dia] || { c: 0, p: 0 };
   el.innerHTML =
     '<div class="pill"><div class="ico"><svg viewBox="0 0 24 24"><path d="M7 4h10l-1 15a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1L7 4zM7.4 9h9.2"/></svg></div>' +
-    '<div class="tx"><b>' + miles(R.entregadas) + ' de ' + miles(cupo) + ' cervezas retiradas</b><span>Quedan ' + miles(cupo - R.entregadas) + ' sin retirar · promedio ' + (R.personas ? (R.entregadas / R.personas).toFixed(1).replace('.', ',') : '0') + ' por persona</span></div>' +
+    '<div class="tx"><b>' + miles(R.entregadas) + ' retiradas de ' + miles(R.vendidas) + ' vendidas</b><span>' + miles(R.pendientes) + ' pagas sin retirar · ' + miles(R.personas) + (R.personas === 1 ? ' comprador' : ' compradores') + ' · ' + plata(R.recaudado) + ' recaudados</span></div>' +
     '<div class="anillo"><svg viewBox="0 0 54 54"><circle class="f" cx="27" cy="27" r="22"/><circle class="v" cx="27" cy="27" r="22" stroke-dasharray="' + circ + '" stroke-dashoffset="' + (circ * (1 - pct / 100)) + '"/></svg><b>' + pct + '%</b></div></div>' +
     (ks.length ? '<div class="chips dias">' + ks.map(function (k) { return '<button class="chip' + (k === con.dia ? ' on' : '') + '" data-dia="' + k + '">' + diaTxt(k) + (k === hoy ? ' (hoy)' : '') + '</button>'; }).join('') + '</div>' : '') +
     '<div class="grid dos"><section class="card"><h2>Cervezas entregadas por hora</h2><p class="kp"><b>' + miles(d.c) + '</b> en el día</p>' + columnas(fc, 'cervezas') + '</section>' +
-    '<section class="card"><h2>Personas acreditadas por hora</h2><p class="kp"><b>' + miles(d.p) + '</b> en el día</p>' + columnas(fp, 'personas') + '</section></div>' +
+    '<section class="card"><h2>Cervezas vendidas por hora</h2><p class="kp"><b>' + miles(d.p) + '</b> en el día · ' + plata(d.p * R.precio) + '</p>' + columnas(fp, 'cervezas vendidas') + '</section></div>' +
     '<div class="sec"><span>Totales del evento</span></div>' +
-    '<div class="grid tres"><section class="card"><h2>Cuánto consumió cada persona</h2>' +
-    barras(R.por_cantidad.map(function (g) { return { l: vasos(g.usadas, R.max) + ' ' + g.usadas + (g.usadas === 1 ? ' cerveza' : ' cervezas'), n: g.personas }; }), R.personas) + '</section>' +
+    '<div class="grid tres"><section class="card"><h2>Ventas y recaudación</h2>' +
+    '<p class="kp" style="margin:0 0 10px"><b>' + plata(R.recaudado) + '</b> en ' + miles(R.ventas) + (R.ventas === 1 ? ' venta' : ' ventas') + '</p>' +
+    (R.por_medio.length ? R.por_medio.map(function (m) { return '<div class="it" style="padding:7px 0"><div class="m"><b>' + (m.medio === 'tarjeta' ? 'Tarjeta' : 'Efectivo') + '</b><span>' + miles(m.ventas) + (m.ventas === 1 ? ' venta' : ' ventas') + ' · ' + nCerv(m.cervezas) + '</span></div><div class="d"><b>' + plata(m.total) + '</b></div></div>'; }).join('') : '<p class="vacio" style="padding:0">Sin ventas todavía.</p>') +
+    (R.por_caja.length ? '<h2 style="margin:14px 0 6px">Por caja</h2>' + R.por_caja.map(function (k) { return '<div class="it" style="padding:7px 0"><div class="m"><b>' + esc(k.puesto) + '</b><span>' + miles(k.ventas) + (k.ventas === 1 ? ' venta' : ' ventas') + ' · ' + nCerv(k.cervezas) + '</span></div><div class="d"><b>' + plata(k.total) + '</b></div></div>'; }).join('') : '') + '</section>' +
     '<section class="card"><h2>Por equipo</h2>' + (R.por_equipo.length ? R.por_equipo.map(function (e) {
-      return '<div class="it" style="padding:8px 0"><div class="c" style="background:var(--fondo);box-shadow:none">' + (escudoDe(e.equipo).replace('class="esc"', 'style="height:28px"') || '–') + '</div><div class="m"><b>' + esc(e.equipo) + '</b><span>' + miles(e.personas) + (e.personas === 1 ? ' persona' : ' personas') + '</span></div><div class="d"><b>' + miles(e.cervezas) + '</b><span>cervezas</span></div></div>';
+      return '<div class="it" style="padding:8px 0"><div class="c" style="background:var(--fondo);box-shadow:none">' + (escudoDe(e.equipo).replace('class="esc"', 'style="height:28px"') || '–') + '</div><div class="m"><b>' + esc(e.equipo) + '</b><span>' + miles(e.personas) + (e.personas === 1 ? ' persona' : ' personas') + '</span></div><div class="d"><b>' + miles(e.cervezas) + ' de ' + miles(e.compradas) + '</b><span>retiradas</span></div></div>';
     }).join('') : '<p class="vacio" style="padding:0">Sin personas todavía.</p>') + '</section>' +
     '<section class="card"><h2>Entregas por barra</h2>' +
     (R.por_puesto.length ? barras(R.por_puesto.map(function (p) { return { l: esc(p.puesto), n: p.entregas }; })) : '<p class="vacio" style="padding:0">Sin entregas todavía.</p>') + '</section></div>';
@@ -801,27 +954,37 @@ function pintarConsumoResumen() {
 function cargarPersonas() {
   api.personas(con.q, 200).then(function (ps) {
     con.ps = ps; var el = $('#c-lista'); if (!el) return;
-    el.innerHTML = !ps.length ? '<p class="vacio">' + (con.q ? 'Sin resultados.' : 'Todavía no hay personas acreditadas.') + '</p>' : ps.map(function (p, i) {
+    el.innerHTML = !ps.length ? '<p class="vacio">' + (con.q ? 'Sin resultados.' : 'Todavía no hay compras.') + '</p>' : ps.map(function (p, i) {
       var ab = con.abierta === p.id;
-      return '<button class="it" data-det="' + p.id + '"><div class="c' + (p.usadas >= p.max ? ' lleno' : '') + '">' + p.usadas + '</div>' +
-        '<div class="m"><b>' + esc(fmtDoc(p.pais, p.documento)) + '</b><span>' + escudoDe(p.equipo) + esc(p.equipo || 'Sin equipo') + ' · ' + esc(p.pais) + ' · acreditado ' + hora(p.creado) + (p.creado_por ? ' · ' + esc(p.creado_por) : '') + '</span></div>' +
-        '<div class="d"><b>' + p.usadas + ' de ' + p.max + '</b><span>' + (p.ultima_entrega ? 'Última ' + hora(p.ultima_entrega) : 'Sin retirar') + '</span></div></button>' +
-        (ab ? '<div class="det">' + (p.entregas.length ? p.entregas.map(function (e) {
-          return '<div class="e"><span>Cerveza ' + e.numero + ' · ' + hora(e.hecho) + ' · ' + esc(e.puesto || 'Sin nombre') + '</span><button class="btn mini" data-anular="' + e.id + '">Deshacer</button></div>';
+      return '<button class="it" data-det="' + p.id + '"><div class="c' + (p.pendientes > 0 ? ' lleno' : '') + '">' + p.pendientes + '</div>' +
+        '<div class="m"><b>' + esc(fmtDoc(p.pais, p.documento)) + '</b><span>' + escudoDe(p.equipo) + esc(p.equipo || 'Sin equipo') + ' · ' + esc(p.pais) + ' · ' + (p.pendientes > 0 ? nCerv(p.pendientes) + ' para retirar' : 'nada para retirar') + '</span></div>' +
+        '<div class="d"><b>Compró ' + p.compradas + ' · retiró ' + p.usadas + '</b><span>' + (p.ultima_entrega ? 'Última entrega ' + hora(p.ultima_entrega) : 'Sin retirar') + '</span></div></button>' +
+        (ab ? '<div class="det">' + (p.compras || []).map(function (c) { return '<div class="e"><span>Compró ' + c.cantidad + ' · ' + plata(c.total) + ' · ' + (c.medio === 'tarjeta' ? 'tarjeta' : 'efectivo') + ' · ' + hora(c.hecho) + (c.puesto ? ' · ' + esc(c.puesto) : '') + '</span></div>'; }).join('') + (p.entregas.length ? p.entregas.map(function (e) {
+          return '<div class="e"><span>Retiró la ' + e.numero + '.ª · ' + hora(e.hecho) + ' · ' + esc(e.puesto || 'Sin nombre') + '</span><button class="btn mini" data-anular="' + e.id + '">Deshacer</button></div>';
         }).join('') : '<div class="e">Todavía no retiró ninguna.</div>') +
           '<div class="e"><span><small>Código ' + esc(fmtCodigo(p.codigo)) + '</small></span><button class="btn mini" data-reimp-p="' + i + '">Reimprimir etiqueta</button></div></div>' : '');
     }).join('') + (ps.length >= 200 ? '<p class="nota">Se muestran las 200 más recientes. Usá el buscador o descargá el Excel para ver todas.</p>' : '');
   }).catch(function (e) { var el = $('#c-lista'); if (el) el.innerHTML = '<p class="msg mal">' + errTxt(e) + '</p>'; });
 }
+function bajarCsv(nombre, filas) {
+  var csv = '﻿' + filas.map(function (r) { return r.map(function (c) { return '"' + String(c == null ? '' : c).replace(/"/g, '""') + '"'; }).join(';'); }).join('\r\n');
+  var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+  a.download = nombre; document.body.appendChild(a); a.click(); a.remove();
+}
+var fechaHora = function (t) { return t ? new Date(t).toLocaleString('es-UY', { hour12: false }) : ''; };
 function descargarCsv() {
   api.personas('', 50000).then(function (ps) {
-    var max = (R && R.max) || CFG.maxCervezas, cab = ['Pais', 'Documento', 'Equipo', 'Codigo', 'Cervezas', 'Acreditado', 'Puesto de ingreso'];
-    for (var i = 1; i <= max; i++) cab.push('Cerveza ' + i + ' hora', 'Cerveza ' + i + ' puesto');
-    var f = function (t) { return t ? new Date(t).toLocaleString('es-UY', { hour12: false }) : ''; };
-    var filas = ps.map(function (p) { var r = [p.pais, p.documento, p.equipo || '', p.codigo, p.usadas, f(p.creado), p.creado_por || '']; for (var i = 0; i < max; i++) { var e = p.entregas[i]; r.push(e ? f(e.hecho) : '', e ? (e.puesto || '') : ''); } return r; });
-    var csv = '﻿' + [cab].concat(filas).map(function (r) { return r.map(function (c) { return '"' + String(c).replace(/"/g, '""') + '"'; }).join(';'); }).join('\r\n');
-    var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
-    a.download = 'consumo-fan-fest-amstel.csv'; document.body.appendChild(a); a.click(); a.remove();
+    var max = (R && R.max) || CFG.maxCervezas, cab = ['Pais', 'Documento', 'Equipo', 'Codigo', 'Compradas', 'Retiradas', 'Para retirar', 'Pagado', 'Primera compra', 'Caja'];
+    for (var i = 1; i <= max; i++) cab.push('Retiro ' + i + ' hora', 'Retiro ' + i + ' barra');
+    bajarCsv('personas-fan-fest-amstel.csv', [cab].concat(ps.map(function (p) {
+      var r = [p.pais, p.documento, p.equipo || '', p.codigo, p.compradas, p.usadas, p.pendientes, (p.compras || []).reduce(function (a, c) { return a + c.total; }, 0), fechaHora(p.creado), p.creado_por || ''];
+      for (var i = 0; i < max; i++) { var e = p.entregas[i]; r.push(e ? fechaHora(e.hecho) : '', e ? (e.puesto || '') : ''); } return r; })));
+  }).catch(function (e) { toast(errTxt(e), true); });
+}
+function descargarVentas() {
+  api.ventas().then(function (vs) {
+    bajarCsv('ventas-fan-fest-amstel.csv', [['Venta', 'Fecha y hora', 'Caja', 'Medio de pago', 'Cervezas', 'Total', 'Detalle (documento x cantidad)']].concat(vs.map(function (v) {
+      return [v.id, fechaHora(v.hecho), v.puesto || '', v.medio === 'tarjeta' ? 'Tarjeta' : 'Efectivo', v.cervezas, v.total, v.detalle || '']; })));
   }).catch(function (e) { toast(errTxt(e), true); });
 }
 
@@ -843,10 +1006,11 @@ function estadoPase() {
   api.pase(pase.cod).then(function (r) {
     var el = $('#p-est'); if (!el) return;
     if (r.estado !== 'ok') { pase.info = null; return; }       // sin datos: queda el pase solo con el QR
-    pase.info = r; var q = r.max - r.usadas;
+    pase.info = r; var q = r.pendientes;
     $('#p-eq').innerHTML = r.equipo ? escudoDe(r.equipo) + esc(r.equipo) : '';
-    el.innerHTML = vasos(r.usadas, r.max) + '<b>' + (q > 1 ? 'Te quedan ' + q + ' cervezas' : q === 1 ? 'Te queda 1 cerveza' : 'Ya retiraste tus ' + r.max + ' cervezas') + '</b>' +
-      '<small>' + (q > 0 ? 'Mostrá este QR en la barra · Mostre este QR no bar' : 'Gracias por venir · Obrigado por vir') + '</small>';
+    el.innerHTML = vasos(r.usadas, r.max, r.compradas) + '<b>' + (q > 1 ? 'Tenés ' + q + ' cervezas para retirar' : q === 1 ? 'Tenés 1 cerveza para retirar' : r.cupo > 0 ? 'No tenés cervezas pagas' : 'Ya retiraste tus ' + r.max + ' cervezas') + '</b>' +
+      '<small>' + (q > 0 ? 'Mostrá este QR en la barra · Mostre este QR no bar' : r.cupo > 0 ? 'Podés comprar ' + r.cupo + ' más en caja · Você pode comprar mais ' + r.cupo : 'Gracias por venir · Obrigado por vir') + '</small>' +
+      (q > 0 && r.cupo > 0 ? '<small>Podés comprar ' + r.cupo + ' más en caja</small>' : '');
   }).catch(function () {});
 }
 function cargarImg(src) { return new Promise(function (ok) { if (!src) return ok(null); var i = new Image(); i.onload = function () { ok(i); }; i.onerror = function () { ok(null); }; i.src = src; }); }
@@ -899,7 +1063,7 @@ var ed = null;
 function cerrarM2() { $('#ov2').classList.remove('open'); ed = null; }
 function abrirEditar(p) {
   ed = { p: p, pais: p.pais, equipo: p.equipo || '' };
-  $('#m2').innerHTML = '<h2>Editar registro</h2><p>El QR de la etiqueta sigue siendo el mismo y conserva las cervezas que ya retiró (' + p.usadas + ' de ' + p.max + ').</p>' +
+  $('#m2').innerHTML = '<h2>Editar registro</h2><p>El QR de la etiqueta sigue siendo el mismo y conserva sus compras y retiros (compró ' + p.compradas + ', retiró ' + p.usadas + ').</p>' +
     '<form id="f-ed" autocomplete="off"><div class="chips" id="ed-paises"></div>' +
     '<label class="f">Documento<input id="ed-doc" maxlength="24" autocapitalize="characters" spellcheck="false" value="' + esc(p.documento) + '"></label>' +
     '<label class="f" style="margin-bottom:8px">Equipo</label><div class="chips equipos" id="ed-equipos"></div>' +
@@ -914,7 +1078,7 @@ function abrirEditar(p) {
       if (r.estado === 'duplicado') { m.textContent = 'Ya hay otra persona acreditada con ese documento.'; m.className = 'msg mal'; return; }
       if (r.estado !== 'ok') { m.textContent = r.estado === 'inexistente' ? 'Ese registro ya no existe.' : 'Documento no válido.'; m.className = 'msg mal'; return; }
       var cambio = r.persona.documento !== p0.documento || r.persona.pais !== p0.pais || r.persona.equipo !== p0.equipo;
-      if (ing.ultima && ing.ultima.id === p0.id) { ing.ultima = r.persona; if ($('#et')) mostrarEtiqueta(r.persona, ''); }
+      if (ing.ultima && ing.ultima.id === p0.id) ing.ultima = r.persona; mostrarEtiqueta(r.persona);
       cerrarM2(); pintarRec(); refrescar();
       toast(cambio ? 'Registro actualizado. Reimprimí la etiqueta para que salga con los datos nuevos.' : 'Sin cambios.');
     }).catch(function (e) { m.textContent = errTxt(e); m.className = 'msg mal'; });
@@ -927,8 +1091,8 @@ function pintarEd() {
 function abrirEliminar(p) {
   ed = { p: p };
   $('#m2').innerHTML = '<h2>¿Seguro que desea eliminar este registro?</h2>' +
-    '<p><b>' + esc(fmtDoc(p.pais, p.documento)) + '</b> · ' + esc(p.equipo || 'Sin equipo') + ' · lleva ' + p.usadas + ' de ' + p.max + ' cervezas.</p>' +
-    '<p>Se borra la persona y sus entregas, y su etiqueta deja de funcionar en la barra. No se puede deshacer.</p>' +
+    '<p><b>' + esc(fmtDoc(p.pais, p.documento)) + '</b> · ' + esc(p.equipo || 'Sin equipo') + ' · compró ' + p.compradas + ' y retiró ' + p.usadas + '.</p>' +
+    '<p>Se borra la persona con sus compras y sus entregas (baja la recaudación), y su etiqueta deja de funcionar en la barra. No se puede deshacer.</p>' +
     '<form id="f-el" autocomplete="off"><label class="f">Contraseña<input type="password" id="el-pw" autocomplete="new-password"></label>' +
     '<div class="msg mal" id="el-msg"></div><div class="fila" style="justify-content:flex-start;margin:0"><button class="btn rojo">Eliminar registro</button><button type="button" class="btn" data-act="cerrar2">Cancelar</button></div></form>';
   $('#ov2').classList.add('open'); $('#el-pw').focus();
@@ -937,7 +1101,7 @@ function abrirEliminar(p) {
     if (!pw) { m.textContent = 'Ingresá la contraseña para eliminar.'; return; }
     api.eliminar(p0.id, pw).then(function (r) {
       if (r.estado === 'clave_incorrecta') { m.textContent = 'Contraseña incorrecta. No se eliminó nada.'; $('#el-pw').select(); return; }
-      if (ing.ultima && ing.ultima.id === p0.id) { ing.ultima = null; if ($('#et')) $('#et').innerHTML = '<p class="vacio" style="padding:0">Acá aparece la etiqueta de la última persona acreditada.</p>'; }
+      quitarDeHecho(p0.id);
       cerrarM2(); pintarRec(); refrescar(); toast(r.estado === 'ok' ? 'Registro eliminado' : 'Ese registro ya no existía');
     }).catch(function (e) { m.textContent = errTxt(e); });
   };
@@ -959,16 +1123,18 @@ $('#f-nombre').onsubmit = function (ev) {
 document.addEventListener('click', function (ev) {
   var t = ev.target, b;
   if ((b = t.closest('[data-ir]'))) { ir(b.getAttribute('data-ir')); return; }
-  if ((b = t.closest('[data-pais]'))) { ing.pais = b.getAttribute('data-pais'); ing.aviso = false; pintarPaises(); $('#doc').focus(); return; }
+  if ((b = t.closest('[data-cpais]'))) { var x1 = b.getAttribute('data-cpais').split(':'), f1 = caja.fans[+x1[0]]; f1.pais = x1[1]; f1.aviso = false; f1.msg = ''; pintarCaja(true); return; }
+  if ((b = t.closest('[data-cbuscar]'))) { buscarFan(+b.getAttribute('data-cbuscar')); return; }
+  if ((b = t.closest('[data-ccambiar]'))) { var f2 = caja.fans[+b.getAttribute('data-ccambiar')]; f2.est = 'vacio'; f2.cant = 0; f2.p = null; f2.existe = false; f2.equipo = ''; pintarCaja(true); return; }
+  if ((b = t.closest('[data-cquitar]'))) { caja.fans.splice(+b.getAttribute('data-cquitar'), 1); caja.msg = ''; pintarCaja(true); return; }
+  if ((b = t.closest('[data-cequipo]'))) { var x3 = b.getAttribute('data-cequipo'), k3 = x3.indexOf(':'); caja.fans[+x3.slice(0, k3)].equipo = x3.slice(k3 + 1); caja.msg = ''; pintarCaja(); return; }
+  if ((b = t.closest('[data-ccant]'))) { var x4 = b.getAttribute('data-ccant').split(':'); caja.fans[+x4[0]].cant = +x4[1]; caja.msg = ''; pintarCaja(); return; }
+  if ((b = t.closest('[data-cmedio]'))) { caja.medio = b.getAttribute('data-cmedio'); caja.msg = ''; pintarCaja(); return; }
+  if ((b = t.closest('[data-creimp]'))) { var f5 = caja.fans[+b.getAttribute('data-creimp')]; if (f5 && f5.p) imprimir(f5.p); return; }
+  if ((b = t.closest('[data-hreimp]'))) { if (caja.hecho) imprimir(caja.hecho.fans[+b.getAttribute('data-hreimp')].persona); return; }
+  if ((b = t.closest('[data-hpase]'))) { if (caja.hecho) abrirPase(caja.hecho.fans[+b.getAttribute('data-hpase')].persona); return; }
   if ((b = t.closest('[data-dia]'))) { con.dia = b.getAttribute('data-dia'); pintarConsumoResumen(); return; }
-  if ((b = t.closest('[data-equipo]'))) { ing.equipo = b.getAttribute('data-equipo'); pintarEquipos(); var m0 = $('#m-reg'); if (/equipo/.test(m0.textContent)) m0.textContent = ''; return; }
-  if ((b = t.closest('[data-pase]'))) {
-    var pp = ing.rec[+b.getAttribute('data-pase')]; ed = { p: pp };
-    $('#m2').innerHTML = '<h2>Pase para el celular</h2><p>Que la persona escanee este QR con la cámara de su celular. Se le abre su pase con las cervezas que le quedan y puede guardarlo como imagen.</p>' +
-      '<div style="max-width:300px;margin:0 auto 16px;background:#fff;border-radius:16px;padding:12px;box-shadow:inset 0 0 0 1.5px var(--linea)">' + qrSvg(urlPase(pp.codigo)).replace('<svg', '<svg style="width:100%;height:auto;display:block"') + '</div>' +
-      '<p style="text-align:center"><b>' + esc(fmtDoc(pp.pais, pp.documento)) + '</b> · ' + esc(pp.equipo || '') + '</p><div class="fila" style="margin:0"><button class="btn" data-act="cerrar2">Cerrar</button></div>';
-    $('#ov2').classList.add('open'); return;
-  }
+  if ((b = t.closest('[data-pase]'))) { abrirPase(ing.rec[+b.getAttribute('data-pase')]); return; }
   if ((b = t.closest('[data-editar]'))) { abrirEditar(ing.rec[+b.getAttribute('data-editar')]); return; }
   if ((b = t.closest('[data-eliminar]'))) { abrirEliminar(ing.rec[+b.getAttribute('data-eliminar')]); return; }
   if ((b = t.closest('[data-ed-pais]'))) { ed.pais = b.getAttribute('data-ed-pais'); pintarEd(); return; }
@@ -1005,6 +1171,9 @@ document.addEventListener('click', function (ev) {
   else if (a === 'manual') { var f = $('#f-man'); f.hidden = !f.hidden; if (!f.hidden) $('#man').focus(); }
   else if (a === 'luz') { var tr = bar.stream && bar.stream.getVideoTracks()[0]; if (tr) { bar.luz = !bar.luz; tr.applyConstraints({ advanced: [{ torch: bar.luz }] }).catch(function () {}); } }
   else if (a === 'csv') descargarCsv();
+  else if (a === 'csv-ventas') descargarVentas();
+  else if (a === 'otro-fan') { if (caja.fans.length < 10) caja.fans.push(nuevoFan()); caja.msg = ''; pintarCaja(true); }
+  else if (a === 'cobrar') cobrar();
   else if (a === 'conectar') {
     var url = $('#a-url').value.trim(), key = $('#a-key').value.trim(), m = $('#a-msg');
     if (!url) { store.del('amstel-sync'); iniciarApi(); abrirAjustes(true); refrescar(); return; }
@@ -1018,7 +1187,7 @@ document.addEventListener('click', function (ev) {
     var pw = window.prompt('Contraseña para borrar:'); if (pw === null) return;
     api.vaciar(pw).then(function (r) {
       if (r.estado !== 'ok') { toast(r.estado === 'clave_incorrecta' ? 'Contraseña incorrecta. No se borró nada.' : 'No se borró nada', true); return; }
-      ing.ultima = null; bar.hechas = []; toast('Datos borrados'); refrescar(); ir(actual);
+      ing.ultima = null; caja = { fans: [nuevoFan()], medio: '', ocupado: false, msg: '', hecho: null }; bar.hechas = []; toast('Datos borrados'); refrescar(); ir(actual);
     }).catch(function (e) { toast(errTxt(e), true); });
   }
 });
@@ -1041,6 +1210,7 @@ function pintarCabecera() {
   $('#marca').innerHTML = CFG.logo ? '<img src="' + esc(CFG.logo) + '" alt="' + esc(CFG.marca) + '">' : '';
 }
 function ir(v) {
+  if (v === 'caja') v = 'acreditar';
   if (['acreditar', 'barra', 'consumo'].indexOf(v) < 0) v = 'acreditar';
   cerrarCamara(); bar.ocupado = false; $('#res').hidden = true;
   actual = v; store.set('amstel-vista', v); document.body.setAttribute('data-v', v);

@@ -3,18 +3,25 @@ FAN FEST AMSTEL · Final Libertadores 2026 (Estudiantes vs Palmeiras) · 3 cerve
 
 Se abre el link en Chrome y se usa directo, sin usuario ni clave (igual que la de Ceibal).
 
-  Acreditar  -> elegir país, escribir el documento, elegir equipo (Estudiantes, Palmeiras o Neutral) y
-                "Registrar e imprimir". Sale la etiqueta con el QR. Abajo están todos los documentos
-                acreditados, con buscador: muestra cuántas lleva cada uno y permite reimprimir.
-                Cada registro tiene Reimprimir, Editar (documento, país, equipo; el QR no cambia) y
-                Eliminar (pregunta si está seguro y pide contraseña; borra también sus entregas).
-                Si el documento ya estaba, avisa y reimprime la misma etiqueta (el contador no se reinicia).
-  Barra      -> abre el lector a pantalla completa. Verde: entregar (1, 2 o 3 de 3). Rojo: ya retiró sus 3.
-                "Otra cerveza a la misma persona", "Deshacer" (2 minutos), "Escribir código", linterna.
-  Consumo    -> gráficos por día y por hora (cervezas entregadas y personas acreditadas), totales por
-                equipo y por barra, consumo de cada persona y descarga a Excel.
+  Caja       -> venta de cervezas. Cada documento puede comprar hasta 3 en total, en una o varias veces.
+                1) Ingresar el documento y "Buscar": el sistema dice si es la primera compra o cuántas
+                   ya compró y cuántas puede comprar todavía.
+                2) Elegir cuántas compra (solo deja hasta su cupo). Si es su primera compra, elegir equipo.
+                3) "Añadir cervezas para segundo fan": suma a otra persona, con su documento, a la misma
+                   compra. Se pueden sumar varios. Cada uno tiene su cupo y su etiqueta.
+                4) Se ve el total (USD 5 por cerveza), se elige Tarjeta o Efectivo y "Cobrar y registrar".
+                La etiqueta se imprime una sola vez por persona, en su primera compra; si vuelve a comprar
+                usa la misma. El cobro se hace aparte (posnet o efectivo): el sistema solo lo registra.
+                Abajo está la lista de compradores con buscador: Reimprimir, Pase, Editar y Eliminar
+                (Eliminar pide contraseña y borra a la persona con sus compras y entregas).
+  Barra      -> abre el lector a pantalla completa. Lo principal es cuántas cervezas PAGAS tiene para
+                retirar. Verde: entregar ("Le quedan 2 para retirar"). Rojo: no tiene pagas (y dice si
+                puede comprar más en caja) o ya compró y retiró sus 3.
+  Consumo    -> vendidas, retiradas y pagas sin retirar; recaudación por medio de pago y por caja;
+                gráficos por día y hora de entregas y de ventas; por equipo y por barra; detalle de cada
+                persona; descarga a Excel de personas y de ventas.
 
-Links directos: .../#acreditar   .../#barra   .../#consumo
+Links directos: .../#caja   .../#barra   .../#consumo
 En cada dispositivo: botón de persona (arriba a la derecha) -> tu nombre (ej. "Ana · Barra 2"). Sin contraseña.
 Engranaje (barra de abajo) -> Configuración: conexión a la base y "Borrar todo".
 
@@ -22,7 +29,8 @@ ARCHIVOS
   index.html          toda la plataforma
   assets/             logos (amstel-negro.png es la versión de un color para la etiqueta)
   vendor/             generador y lector de QR
-  worker/worker.js    API para Cloudflare (Worker + D1): ahí se decide el límite de 3
+  worker/worker.js    API para Cloudflare (Worker + D1): ahí se deciden el límite de 3, el precio y los retiros.
+                      Variables opcionales: MAX_CERVEZAS (3), PRECIO (5), MONEDA (USD)
   worker/PROMPT-CLOUDFLARE.txt   texto para pegar en el asistente de Cloudflare
 
 BASE COMPARTIDA (para que ingreso y barras vean los mismos datos)

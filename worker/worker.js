@@ -1,10 +1,16 @@
 // API del Fan Fest Amstel · Cloudflare Worker + D1
-// Vinculaciones: D1 como "DB" y un secreto "API_KEY". Opcionales: variable MAX_CERVEZAS (por defecto 3)
-// y secreto CLAVE_ELIMINAR (contraseña para eliminar registros o borrar todo; por defecto amstel2026).
+// Vinculaciones: D1 como "DB" y un secreto "API_KEY".
+// Opcionales: MAX_CERVEZAS (por defecto 3), PRECIO (por defecto 5), MONEDA (por defecto USD) y el secreto
+// CLAVE_ELIMINAR (contraseña para eliminar registros o borrar todo; por defecto amstel2026).
 // Google Wallet (opcional): GW_ISSUER_ID, GW_SA_EMAIL y el secreto GW_PRIVATE_KEY (clave privada de la
 // cuenta de servicio, tal cual viene en su archivo JSON). SITE_URL = dirección pública del sitio, para el logo.
-// La regla de las 3 cervezas se decide acá, en una sola sentencia SQL: aunque dos barras
-// lean el mismo QR al mismo tiempo, nunca se pasa del máximo.
+//
+// Reglas, todas decididas acá:
+//  - Cada documento puede COMPRAR hasta MAX_CERVEZAS en total, en una o varias compras.
+//  - En la barra solo se RETIRA lo que ya está comprado.
+//  - Una compra puede incluir a varios fans; cada uno con su documento, su cupo y su etiqueta.
+// Las dos reglas se aplican con sentencias SQL condicionadas, así dos cajas o dos barras a la vez
+// nunca pueden pasarse del límite.
 
 const ESPERA_MS = 5000;        // misma etiqueta leída dos veces seguidas: no descuenta de nuevo
 const DESHACER_MS = 120000;    // la barra puede deshacer una entrega hasta 2 minutos después
@@ -38,11 +44,11 @@ async function jwtRS256(claims, pem) {
 const hayGoogle = (env) => !!(env.GW_ISSUER_ID && env.GW_SA_EMAIL && env.GW_PRIVATE_KEY);
 const loc = (value) => ({ defaultValue: { language: 'es', value } });
 function paseGoogle(env, p, max, sitio) {
-  const classId = `${env.GW_ISSUER_ID}.fanfest_amstel_2026`, q = Math.max(max - p.usadas, 0);
+  const classId = `${env.GW_ISSUER_ID}.fanfest_amstel_2026`, q = Math.max(p.compradas - p.usadas, 0);
   const obj = {
     id: `${env.GW_ISSUER_ID}.ff_${p.codigo}`, classId, state: 'ACTIVE', hexBackgroundColor: '#c8102e',
     cardTitle: loc('Fan Fest Amstel'), subheader: loc('Final Libertadores 2026 · Montevideo'),
-    header: loc(q > 1 ? `Quedan ${q} cervezas` : q === 1 ? 'Queda 1 cerveza' : 'Ya retiró sus cervezas'),
+    header: loc(q > 1 ? `${q} cervezas para retirar` : q === 1 ? '1 cerveza para retirar' : 'Sin cervezas para retirar'),
     barcode: { type: 'QR_CODE', value: p.codigo, alternateText: p.codigo.slice(0, 4) + '-' + p.codigo.slice(4) },
     textModulesData: [
       { id: 'equipo', header: 'Equipo', body: p.equipo || '-' },
@@ -85,41 +91,93 @@ async function preparar(db) {
   await db.batch([
     db.prepare(`CREATE TABLE IF NOT EXISTS personas (
       id INTEGER PRIMARY KEY AUTOINCREMENT, pais TEXT NOT NULL, documento TEXT NOT NULL, equipo TEXT,
-      codigo TEXT NOT NULL UNIQUE, usadas INTEGER NOT NULL DEFAULT 0, creado INTEGER NOT NULL,
-      creado_por TEXT, ultima INTEGER, UNIQUE (pais, documento))`),
+      codigo TEXT NOT NULL UNIQUE, compradas INTEGER NOT NULL DEFAULT 0, usadas INTEGER NOT NULL DEFAULT 0,
+      creado INTEGER NOT NULL, creado_por TEXT, ultima INTEGER, UNIQUE (pais, documento))`),
     db.prepare(`CREATE TABLE IF NOT EXISTS entregas (
       id INTEGER PRIMARY KEY AUTOINCREMENT, persona_id INTEGER NOT NULL, numero INTEGER NOT NULL,
       hecho INTEGER NOT NULL, puesto TEXT, anulada INTEGER NOT NULL DEFAULT 0)`),
     db.prepare(`CREATE INDEX IF NOT EXISTS entregas_persona ON entregas (persona_id)`),
+    db.prepare(`CREATE TABLE IF NOT EXISTS ventas (
+      id INTEGER PRIMARY KEY AUTOINCREMENT, hecho INTEGER NOT NULL, puesto TEXT, medio TEXT NOT NULL,
+      cervezas INTEGER NOT NULL, total REAL NOT NULL)`),
+    db.prepare(`CREATE TABLE IF NOT EXISTS venta_items (
+      id INTEGER PRIMARY KEY AUTOINCREMENT, venta_id INTEGER NOT NULL, persona_id INTEGER NOT NULL,
+      cantidad INTEGER NOT NULL, precio REAL NOT NULL)`),
+    db.prepare(`CREATE INDEX IF NOT EXISTS items_persona ON venta_items (persona_id)`),
   ]);
+  // base creada con la versión anterior (sin compras): se agrega la columna y lo ya retirado cuenta como comprado
+  try { await db.prepare('ALTER TABLE personas ADD COLUMN compradas INTEGER NOT NULL DEFAULT 0').run(); await db.prepare('UPDATE personas SET compradas = usadas WHERE compradas < usadas').run(); } catch (e) { /* ya existía */ }
   listo = true;
 }
 const persona = (p, max) => ({
-  id: p.id, pais: p.pais, documento: p.documento, equipo: p.equipo, codigo: p.codigo, usadas: p.usadas, max,
+  id: p.id, pais: p.pais, documento: p.documento, equipo: p.equipo, codigo: p.codigo,
+  compradas: p.compradas, usadas: p.usadas, pendientes: p.compradas - p.usadas, cupo: Math.max(max - p.compradas, 0), max,
   creado: p.creado, creado_por: p.creado_por, ultima_entrega: p.ultima,
 });
+const docOk = (doc, pais) => doc.length >= 5 && doc.length <= 20 && !!pais;
 
-async function registrar(db, max, b) {
+// CAJA: busca un documento sin crear nada. Dice si ya compró y cuánto cupo le queda.
+async function consultar(db, max, b) {
   const doc = norm(b.documento), pais = norm(b.pais).slice(0, 3);
-  if (doc.length < 5 || doc.length > 20 || !pais) return { estado: 'documento_invalido' };
-  const equipo = texto(b.equipo);
-  if (!equipo) return { estado: 'falta_equipo' };
-  const buscar = () => db.prepare('SELECT * FROM personas WHERE pais = ? AND documento = ?').bind(pais, doc).first();
-  let p = await buscar(), nueva = false;
-  for (let i = 0; !p && i < 6; i++) {
-    try {
-      p = await db.prepare('INSERT INTO personas (pais, documento, equipo, codigo, creado, creado_por) VALUES (?, ?, ?, ?, ?, ?) RETURNING *')
-        .bind(pais, doc, equipo, nuevoCodigo(), Date.now(), texto(b.puesto)).first();
-      nueva = !!p;
-    } catch (e) { p = await buscar(); } // otro puesto la registró a la vez, o el código salió repetido
+  if (!docOk(doc, pais)) return { estado: 'documento_invalido' };
+  const p = await db.prepare('SELECT * FROM personas WHERE pais = ? AND documento = ?').bind(pais, doc).first();
+  return p ? { estado: 'ok', existe: true, persona: persona(p, max) } : { estado: 'ok', existe: false, cupo: max, max };
+}
+
+// CAJA: una compra para uno o varios fans. O entra completa o no entra nada.
+async function vender(db, max, precio, b) {
+  const medio = b.medio === 'tarjeta' || b.medio === 'efectivo' ? b.medio : null;
+  if (!medio) return { estado: 'falta_medio' };
+  const items = Array.isArray(b.items) ? b.items.slice(0, 20) : [];
+  if (!items.length) return { estado: 'sin_items' };
+  const fans = [], vistos = new Set();
+  for (const it of items) {
+    const doc = norm(it.documento), pais = norm(it.pais).slice(0, 3), cant = Math.floor(Number(it.cantidad) || 0);
+    if (!docOk(doc, pais)) return { estado: 'documento_invalido', documento: doc };
+    if (cant < 1 || cant > max) return { estado: 'cantidad_invalida', documento: doc };
+    if (vistos.has(pais + doc)) return { estado: 'documento_repetido', documento: doc };
+    vistos.add(pais + doc); fans.push({ doc, pais, cant, equipo: texto(it.equipo) });
   }
-  if (!p) throw new Error('no se pudo registrar');
-  return { estado: 'ok', nueva, persona: persona(p, max) };
+  const buscar = (f) => db.prepare('SELECT * FROM personas WHERE pais = ? AND documento = ?').bind(f.pais, f.doc).first();
+  // 1) todos tienen que tener cupo antes de tocar nada
+  for (const f of fans) {
+    f.p = await buscar(f);
+    if (!f.p && !f.equipo) return { estado: 'falta_equipo', documento: f.doc };
+    if (f.p && f.p.compradas + f.cant > max) return { estado: 'sin_cupo', documento: f.doc, cupo: Math.max(max - f.p.compradas, 0) };
+  }
+  // 2) crear a los que compran por primera vez
+  const ahora = Date.now(), puesto = texto(b.puesto);
+  for (const f of fans) {
+    for (let i = 0; !f.p && i < 6; i++) {
+      try {
+        f.p = await db.prepare('INSERT INTO personas (pais, documento, equipo, codigo, creado, creado_por) VALUES (?, ?, ?, ?, ?, ?) RETURNING *')
+          .bind(f.pais, f.doc, f.equipo, nuevoCodigo(), ahora, puesto).first();
+        f.nueva = !!f.p;
+      } catch (e) { f.p = await buscar(f); }
+    }
+    if (!f.p) throw new Error('no se pudo registrar ' + f.doc);
+  }
+  // 3) sumar las compras, cada una condicionada al cupo; si otra caja se adelantó, se deshace lo hecho
+  const hechos = [];
+  for (const f of fans) {
+    const r = await db.prepare('UPDATE personas SET compradas = compradas + ?1 WHERE id = ?2 AND compradas + ?1 <= ?3 RETURNING *').bind(f.cant, f.p.id, max).first();
+    if (!r) {
+      for (const h of hechos) await db.prepare('UPDATE personas SET compradas = MAX(compradas - ?1, usadas) WHERE id = ?2').bind(h.cant, h.p.id).run();
+      const q = await buscar(f);
+      return { estado: 'sin_cupo', documento: f.doc, cupo: q ? Math.max(max - q.compradas, 0) : 0 };
+    }
+    f.p = r; hechos.push(f);
+  }
+  const cervezas = fans.reduce((a, f) => a + f.cant, 0), total = cervezas * precio;
+  const v = await db.prepare('INSERT INTO ventas (hecho, puesto, medio, cervezas, total) VALUES (?, ?, ?, ?, ?) RETURNING id').bind(ahora, puesto, medio, cervezas, total).first();
+  await db.batch(fans.map((f) => db.prepare('INSERT INTO venta_items (venta_id, persona_id, cantidad, precio) VALUES (?, ?, ?, ?)').bind(v.id, f.p.id, f.cant, precio)));
+  return { estado: 'ok', venta_id: v.id, cervezas, total, medio,
+    fans: fans.map((f) => ({ nueva: !!f.nueva, cantidad: f.cant, persona: persona(f.p, max) })) };
 }
 
 async function editar(db, max, b) {
   const id = Number(b.id) || 0, doc = norm(b.documento), pais = norm(b.pais).slice(0, 3), equipo = texto(b.equipo);
-  if (doc.length < 5 || doc.length > 20 || !pais) return { estado: 'documento_invalido' };
+  if (!docOk(doc, pais)) return { estado: 'documento_invalido' };
   if (!equipo) return { estado: 'falta_equipo' };
   const otro = await db.prepare('SELECT id FROM personas WHERE pais = ? AND documento = ? AND id <> ?').bind(pais, doc, id).first();
   if (otro) return { estado: 'duplicado' };
@@ -128,33 +186,40 @@ async function editar(db, max, b) {
   return { estado: 'ok', persona: persona(p, max) };
 }
 
-// Elimina a la persona y sus entregas. Pide la contraseña.
+// Elimina a la persona con sus compras y entregas (corrige un error de caja). Pide la contraseña.
 async function eliminar(db, b, clave) {
   if (String(b.clave || '') !== clave) return { estado: 'clave_incorrecta' };
   const id = Number(b.id) || 0;
   const p = await db.prepare('DELETE FROM personas WHERE id = ? RETURNING id').bind(id).first();
   if (!p) return { estado: 'inexistente' };
-  await db.prepare('DELETE FROM entregas WHERE persona_id = ?').bind(id).run();
+  const its = (await db.prepare('SELECT venta_id, cantidad, precio FROM venta_items WHERE persona_id = ?').bind(id).all()).results;
+  for (const it of its) await db.prepare('UPDATE ventas SET cervezas = cervezas - ?1, total = total - ?2 WHERE id = ?3').bind(it.cantidad, it.cantidad * it.precio, it.venta_id).run();
+  await db.batch([
+    db.prepare('DELETE FROM venta_items WHERE persona_id = ?').bind(id),
+    db.prepare('DELETE FROM entregas WHERE persona_id = ?').bind(id),
+    db.prepare('DELETE FROM ventas WHERE cervezas <= 0'),
+  ]);
   return { estado: 'ok' };
 }
 
+// BARRA: valida el QR y entrega una cerveza, solo si tiene alguna comprada sin retirar. Todo en un paso.
 async function canjear(db, max, b) {
   const codigo = norm(b.codigo), ahora = Date.now(), seguido = b.seguido ? 1 : 0;
-  // Valida y descuenta en un solo paso.
   const p = await db.prepare(
     `UPDATE personas SET usadas = usadas + 1, ultima = ?1
-     WHERE codigo = ?2 AND usadas < ?3 AND (?4 = 1 OR ultima IS NULL OR ultima <= ?5)
-     RETURNING *`).bind(ahora, codigo, max, seguido, ahora - ESPERA_MS).first();
+     WHERE codigo = ?2 AND usadas < compradas AND (?3 = 1 OR ultima IS NULL OR ultima <= ?4)
+     RETURNING *`).bind(ahora, codigo, seguido, ahora - ESPERA_MS).first();
   if (p) {
     const e = await db.prepare('INSERT INTO entregas (persona_id, numero, hecho, puesto) VALUES (?, ?, ?, ?) RETURNING id')
       .bind(p.id, p.usadas, ahora, texto(b.puesto)).first();
-    return { estado: 'ok', numero: p.usadas, max, restantes: max - p.usadas, entrega_id: e.id };
+    return { estado: 'ok', numero: p.usadas, entrega_id: e.id, ...saldo(p, max) };
   }
   const q = await db.prepare('SELECT * FROM personas WHERE codigo = ?').bind(codigo).first();
   if (!q) return { estado: 'inexistente' };
-  if (q.usadas >= max) return { estado: 'agotado', usadas: q.usadas, max, ultima_entrega: q.ultima };
-  return { estado: 'repetido', usadas: q.usadas, max };
+  if (q.usadas >= q.compradas) return { estado: 'sin_saldo', ultima_entrega: q.ultima, ...saldo(q, max) };
+  return { estado: 'repetido', ...saldo(q, max) };
 }
+const saldo = (p, max) => ({ compradas: p.compradas, usadas: p.usadas, pendientes: p.compradas - p.usadas, cupo: Math.max(max - p.compradas, 0), max });
 
 async function deshacer(db, max, b) {
   const id = Number(b.entrega_id) || 0, forzar = b.forzar ? 1 : 0;
@@ -165,27 +230,27 @@ async function deshacer(db, max, b) {
   const p = await db.prepare(
     `UPDATE personas SET usadas = MAX(usadas - 1, 0),
        ultima = (SELECT MAX(hecho) FROM entregas WHERE persona_id = ?1 AND anulada = 0)
-     WHERE id = ?1 RETURNING usadas, codigo`).bind(e.persona_id).first();
-  return { estado: 'ok', usadas: p.usadas, max, codigo: p.codigo };
+     WHERE id = ?1 RETURNING *`).bind(e.persona_id).first();
+  return { estado: 'ok', codigo: p.codigo, ...saldo(p, max) };
 }
 
-async function resumen(db, max) {
-  const t = await db.prepare('SELECT COUNT(*) AS personas, COALESCE(SUM(usadas), 0) AS entregadas FROM personas').first();
+async function resumen(db, max, precio, moneda) {
+  const t = await db.prepare('SELECT COUNT(*) AS personas, COALESCE(SUM(usadas), 0) AS entregadas, COALESCE(SUM(compradas), 0) AS vendidas FROM personas').first();
   const c = (await db.prepare('SELECT usadas, COUNT(*) AS personas FROM personas GROUP BY usadas').all()).results;
   const por_cantidad = [];
   for (let g = 0; g <= max; g++) por_cantidad.push({ usadas: g, personas: (c.find((x) => x.usadas === g) || {}).personas || 0 });
-  const por_equipo = (await db.prepare(
-    `SELECT COALESCE(equipo, 'Sin equipo') AS equipo, COUNT(*) AS personas, COALESCE(SUM(usadas), 0) AS cervezas
-     FROM personas GROUP BY 1 ORDER BY 2 DESC`).all()).results;
-  const por_puesto = (await db.prepare(
-    `SELECT COALESCE(puesto, 'Sin nombre') AS puesto, COUNT(*) AS entregas FROM entregas
-     WHERE anulada = 0 GROUP BY 1 ORDER BY 2 DESC`).all()).results;
-  const por_hora = (await db.prepare(
-    `SELECT (hecho / 3600000) * 3600000 AS hora, COUNT(*) AS entregas FROM entregas
-     WHERE anulada = 0 GROUP BY 1 ORDER BY 1`).all()).results;
-  const acreditadas_por_hora = (await db.prepare(
-    `SELECT (creado / 3600000) * 3600000 AS hora, COUNT(*) AS personas FROM personas GROUP BY 1 ORDER BY 1`).all()).results;
-  return { max, personas: t.personas, entregadas: t.entregadas, por_cantidad, por_equipo, por_puesto, por_hora, acreditadas_por_hora };
+  const todos = async (sql) => (await db.prepare(sql).all()).results;
+  const medios = await todos('SELECT medio, COUNT(*) AS ventas, COALESCE(SUM(cervezas), 0) AS cervezas, COALESCE(SUM(total), 0) AS total FROM ventas GROUP BY medio');
+  return {
+    max, precio, moneda, personas: t.personas, entregadas: t.entregadas, vendidas: t.vendidas, pendientes: t.vendidas - t.entregadas,
+    recaudado: medios.reduce((a, m) => a + m.total, 0), ventas: medios.reduce((a, m) => a + m.ventas, 0), por_medio: medios,
+    por_cantidad,
+    por_equipo: await todos(`SELECT COALESCE(equipo, 'Sin equipo') AS equipo, COUNT(*) AS personas, COALESCE(SUM(compradas), 0) AS compradas, COALESCE(SUM(usadas), 0) AS cervezas FROM personas GROUP BY 1 ORDER BY 2 DESC`),
+    por_puesto: await todos(`SELECT COALESCE(puesto, 'Sin nombre') AS puesto, COUNT(*) AS entregas FROM entregas WHERE anulada = 0 GROUP BY 1 ORDER BY 2 DESC`),
+    por_caja: await todos(`SELECT COALESCE(puesto, 'Sin nombre') AS puesto, COUNT(*) AS ventas, COALESCE(SUM(cervezas), 0) AS cervezas, COALESCE(SUM(total), 0) AS total FROM ventas GROUP BY 1 ORDER BY 4 DESC`),
+    por_hora: await todos(`SELECT (hecho / 3600000) * 3600000 AS hora, COUNT(*) AS entregas FROM entregas WHERE anulada = 0 GROUP BY 1 ORDER BY 1`),
+    vendidas_por_hora: await todos(`SELECT (hecho / 3600000) * 3600000 AS hora, COALESCE(SUM(cervezas), 0) AS cervezas FROM ventas GROUP BY 1 ORDER BY 1`),
+  };
 }
 
 async function personas(db, max, url) {
@@ -193,25 +258,31 @@ async function personas(db, max, url) {
   const limite = Math.min(Math.max(Number(url.searchParams.get('limite')) || 100, 1), 50000);
   const filas = (await db.prepare(
     `SELECT * FROM personas WHERE (?1 = '' OR documento LIKE '%' || ?1 || '%' OR codigo LIKE ?1 || '%')
-     ORDER BY COALESCE(ultima, creado) DESC LIMIT ?2`).bind(q, limite).all()).results;
-  let ents = [];
-  if (filas.length > 300) {
-    ents = (await db.prepare('SELECT id, persona_id, numero, hecho, puesto FROM entregas WHERE anulada = 0 ORDER BY hecho').all()).results;
-  } else {
+     ORDER BY MAX(COALESCE(ultima, 0), creado, COALESCE((SELECT MAX(v.hecho) FROM venta_items i JOIN ventas v ON v.id = i.venta_id WHERE i.persona_id = personas.id), 0)) DESC LIMIT ?2`).bind(q, limite).all()).results;
+  const traer = async (sqlTodo, sqlIds) => {
+    if (filas.length > 300) return (await db.prepare(sqlTodo).all()).results;
+    let out = [];
     for (let i = 0; i < filas.length; i += 80) {
       const ids = filas.slice(i, i + 80).map((p) => p.id);
-      const r = await db.prepare(
-        `SELECT id, persona_id, numero, hecho, puesto FROM entregas
-         WHERE anulada = 0 AND persona_id IN (${ids.map(() => '?').join(',')}) ORDER BY hecho`).bind(...ids).all();
-      ents = ents.concat(r.results);
+      out = out.concat((await db.prepare(sqlIds.replace('@', ids.map(() => '?').join(','))).bind(...ids).all()).results);
     }
-  }
-  const porPersona = new Map();
-  for (const e of ents) {
-    if (!porPersona.has(e.persona_id)) porPersona.set(e.persona_id, []);
-    porPersona.get(e.persona_id).push({ id: e.id, numero: e.numero, hecho: e.hecho, puesto: e.puesto });
-  }
-  return filas.map((p) => ({ ...persona(p, max), entregas: porPersona.get(p.id) || [] }));
+    return out;
+  };
+  const ents = await traer('SELECT id, persona_id, numero, hecho, puesto FROM entregas WHERE anulada = 0 ORDER BY hecho',
+    'SELECT id, persona_id, numero, hecho, puesto FROM entregas WHERE anulada = 0 AND persona_id IN (@) ORDER BY hecho');
+  const comps = await traer('SELECT i.persona_id, i.venta_id, i.cantidad, i.precio, v.hecho, v.medio, v.puesto FROM venta_items i JOIN ventas v ON v.id = i.venta_id ORDER BY v.hecho',
+    'SELECT i.persona_id, i.venta_id, i.cantidad, i.precio, v.hecho, v.medio, v.puesto FROM venta_items i JOIN ventas v ON v.id = i.venta_id WHERE i.persona_id IN (@) ORDER BY v.hecho');
+  const agrupar = (rows, f) => { const m = new Map(); for (const r of rows) { if (!m.has(r.persona_id)) m.set(r.persona_id, []); m.get(r.persona_id).push(f(r)); } return m; };
+  const E = agrupar(ents, (e) => ({ id: e.id, numero: e.numero, hecho: e.hecho, puesto: e.puesto }));
+  const C = agrupar(comps, (c) => ({ venta_id: c.venta_id, cantidad: c.cantidad, total: c.cantidad * c.precio, hecho: c.hecho, medio: c.medio, puesto: c.puesto }));
+  return filas.map((p) => ({ ...persona(p, max), entregas: E.get(p.id) || [], compras: C.get(p.id) || [] }));
+}
+
+async function ventas(db) {
+  return (await db.prepare(
+    `SELECT v.id, v.hecho, v.puesto, v.medio, v.cervezas, v.total,
+       (SELECT GROUP_CONCAT(p.pais || ' ' || p.documento || ' x' || i.cantidad, ' | ') FROM venta_items i JOIN personas p ON p.id = i.persona_id WHERE i.venta_id = v.id) AS detalle
+     FROM ventas v ORDER BY v.hecho DESC LIMIT 50000`).all()).results;
 }
 
 export default {
@@ -221,22 +292,25 @@ export default {
     if (!env.API_KEY || request.headers.get('X-Key') !== env.API_KEY) return json({ error: 'unauthorized' }, 401);
     const url = new URL(request.url), ruta = url.pathname.replace(/\/+$/, '') || '/';
     const max = Math.max(parseInt(env.MAX_CERVEZAS, 10) || 3, 1);
+    const precio = Number(env.PRECIO) > 0 ? Number(env.PRECIO) : 5, moneda = env.MONEDA || 'USD';
     const claveEliminar = env.CLAVE_ELIMINAR || 'amstel2026';
     try {
       await preparar(env.DB);
       if (request.method === 'GET') {
-        if (ruta === '/estado') return json({ ok: true, max, now: Date.now(), wallet: { google: hayGoogle(env), apple: false } });
+        if (ruta === '/estado') return json({ ok: true, version: 2, max, precio, moneda, now: Date.now(), wallet: { google: hayGoogle(env), apple: false } });
         if (ruta === '/wallet/google') return json(await enlaceGoogle(env, env.DB, max, url));
-        if (ruta === '/resumen') return json(await resumen(env.DB, max));
+        if (ruta === '/resumen') return json(await resumen(env.DB, max, precio, moneda));
         if (ruta === '/personas') return json(await personas(env.DB, max, url));
-        if (ruta === '/pase') {   // lo consulta el celular del fan: solo cuántas lleva, sin descontar nada
-          const p = await env.DB.prepare('SELECT usadas, equipo FROM personas WHERE codigo = ?').bind(norm(url.searchParams.get('codigo'))).first();
-          return json(p ? { estado: 'ok', usadas: p.usadas, max, equipo: p.equipo } : { estado: 'inexistente' });
+        if (ruta === '/ventas') return json(await ventas(env.DB));
+        if (ruta === '/pase') {   // lo consulta el celular del fan: solo su saldo, sin descontar nada
+          const p = await env.DB.prepare('SELECT * FROM personas WHERE codigo = ?').bind(norm(url.searchParams.get('codigo'))).first();
+          return json(p ? { estado: 'ok', equipo: p.equipo, ...saldo(p, max) } : { estado: 'inexistente' });
         }
       }
       if (request.method === 'POST') {
         const b = await request.json().catch(() => ({}));
-        if (ruta === '/registrar') return json(await registrar(env.DB, max, b));
+        if (ruta === '/consultar') return json(await consultar(env.DB, max, b));
+        if (ruta === '/vender') { const r = await vender(env.DB, max, precio, b); if (r.estado === 'ok') r.fans.forEach((f) => despues(actualizarGoogle(env, env.DB, max, f.persona.codigo))); return json(r); }
         if (ruta === '/canjear') { const r = await canjear(env.DB, max, b); if (r.estado === 'ok') despues(actualizarGoogle(env, env.DB, max, norm(b.codigo))); return json(r); }
         if (ruta === '/deshacer') { const r = await deshacer(env.DB, max, b); if (r.estado === 'ok') despues(actualizarGoogle(env, env.DB, max, r.codigo)); return json(r); }
         if (ruta === '/editar') return json(await editar(env.DB, max, b));
@@ -244,7 +318,7 @@ export default {
         if (ruta === '/vaciar') {
           if (String(b.clave || '') !== claveEliminar) return json({ estado: 'clave_incorrecta' });
           if (b.confirmacion !== 'BORRAR') return json({ estado: 'sin_confirmar' });
-          await env.DB.batch([env.DB.prepare('DELETE FROM entregas'), env.DB.prepare('DELETE FROM personas')]);
+          await env.DB.batch([env.DB.prepare('DELETE FROM venta_items'), env.DB.prepare('DELETE FROM ventas'), env.DB.prepare('DELETE FROM entregas'), env.DB.prepare('DELETE FROM personas')]);
           return json({ estado: 'ok' });
         }
       }
