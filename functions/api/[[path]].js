@@ -1,25 +1,17 @@
 // GENERADO por armar-api.sh a partir de worker/worker.js. No editar a mano.
-// API del Fan Fest Amstel · Cloudflare + D1
+// API del Fan Fest Amstel · Cloudflare + D1 · registro de pulseras
 // Este código es la única fuente. Se publica solo, junto con el sitio, como función de Cloudflare Pages
 // (functions/api/[[path]].js se genera a partir de este archivo con armar-api.sh). También sirve como
 // Worker independiente.
 // Vinculaciones: D1 como "DB". En Pages no hace falta clave (el sitio y la API están en la misma dirección);
 // como Worker independiente hay que definir el secreto "API_KEY".
-// Opcionales: MAX_CERVEZAS (por defecto 3), PRECIO (por defecto 5), MONEDA (por defecto USD) y el secreto
-// CLAVE_ELIMINAR (contraseña para eliminar registros o borrar todo; por defecto amstel2026).
-// Google Wallet (opcional): GW_ISSUER_ID, GW_SA_EMAIL y el secreto GW_PRIVATE_KEY (clave privada de la
-// cuenta de servicio, tal cual viene en su archivo JSON). SITE_URL = dirección pública del sitio, para el logo.
+// Opcional: el secreto CLAVE_ELIMINAR (contraseña para eliminar registros o borrar todo; por defecto amstel2026).
 //
-// Reglas, todas decididas acá:
-//  - Cada documento puede COMPRAR hasta MAX_CERVEZAS en total, en una o varias compras.
-//  - En la barra solo se RETIRA lo que ya está comprado.
-//  - Una compra puede incluir a varios fans; cada uno con su documento, su cupo y su etiqueta.
-// Las dos reglas se aplican con sentencias SQL condicionadas, así dos cajas o dos barras a la vez
-// nunca pueden pasarse del límite.
-
-const ESPERA_MS = 5000;        // misma etiqueta leída dos veces seguidas: no descuenta de nuevo
-const DESHACER_MS = 120000;    // la barra puede deshacer una entrega hasta 2 minutos después
-const ALFABETO = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'; // sin 0 O 1 I L
+// Regla única, decidida acá: cada documento retira UNA sola pulsera (la pulsera trae las tirillas de
+// consumo, que se cortan a mano en la barra). La base lo garantiza con UNIQUE (pais, documento): dos
+// puestos a la vez nunca pueden entregarle dos pulseras al mismo documento.
+// La versión anterior (venta de cervezas, etiqueta con QR, lector de barra y pase del fan) quedó guardada
+// en la rama "version-completa-venta-qr" del repositorio.
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -30,269 +22,84 @@ const CORS = {
 const json = (o, status = 200) =>
   new Response(JSON.stringify(o), { status, headers: { 'Content-Type': 'application/json', ...CORS } });
 const norm = (t) => String(t == null ? '' : t).toUpperCase().replace(/[^A-Z0-9]/g, '');
-const texto = (t) => { t = String(t == null ? '' : t).trim().slice(0, 40); return t || null; };
-function nuevoCodigo() {
-  const b = crypto.getRandomValues(new Uint8Array(8));
-  let c = ''; for (const x of b) c += ALFABETO[x % ALFABETO.length];
-  return c;
-}
-
-// ------------------------------------------------------------ Google Wallet
-const b64u = (buf) => btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-const b64uTxt = (t) => b64u(new TextEncoder().encode(t));
-async function jwtRS256(claims, pem) {
-  const der = Uint8Array.from(atob(String(pem).replace(/\\n/g, '\n').replace(/-----[^-]+-----/g, '').replace(/\s+/g, '')), (c) => c.charCodeAt(0));
-  const key = await crypto.subtle.importKey('pkcs8', der, { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' }, false, ['sign']);
-  const cuerpo = b64uTxt(JSON.stringify({ alg: 'RS256', typ: 'JWT' })) + '.' + b64uTxt(JSON.stringify(claims));
-  return cuerpo + '.' + b64u(await crypto.subtle.sign('RSASSA-PKCS1-v1_5', key, new TextEncoder().encode(cuerpo)));
-}
-const hayGoogle = (env) => !!(env.GW_ISSUER_ID && env.GW_SA_EMAIL && env.GW_PRIVATE_KEY);
-const loc = (value) => ({ defaultValue: { language: 'es', value } });
-function paseGoogle(env, p, max, sitio) {
-  const classId = `${env.GW_ISSUER_ID}.fanfest_amstel_2026`, q = Math.max(p.compradas - p.usadas, 0);
-  const obj = {
-    id: `${env.GW_ISSUER_ID}.ff_${p.codigo}`, classId, state: 'ACTIVE', hexBackgroundColor: '#c8102e',
-    cardTitle: loc('Fan Fest Amstel'), subheader: loc('Final Libertadores 2026 · Montevideo'),
-    header: loc(q > 1 ? `${q} cervezas para retirar` : q === 1 ? '1 cerveza para retirar' : 'Sin cervezas para retirar'),
-    barcode: { type: 'QR_CODE', value: p.codigo, alternateText: p.codigo.slice(0, 4) + '-' + p.codigo.slice(4) },
-    textModulesData: [
-      { id: 'equipo', header: 'Equipo', body: p.equipo || '-' },
-      { id: 'regla', header: 'Regla', body: `${max} cervezas por persona · ${max} cervejas por pessoa` },
-    ],
-  };
-  if (sitio) obj.logo = { sourceUri: { uri: sitio.replace(/\/?$/, '/') + 'assets/amstel.png' }, contentDescription: loc('Amstel') };
-  return { classId, obj };
-}
-// Enlace "Agregar a Google Wallet": un JWT firmado que crea la clase y el pase al guardarlo.
-async function enlaceGoogle(env, db, max, url) {
-  if (!hayGoogle(env)) return { estado: 'no_configurado' };
-  const p = await db.prepare('SELECT * FROM personas WHERE codigo = ?').bind(norm(url.searchParams.get('codigo'))).first();
-  if (!p) return { estado: 'inexistente' };
-  const sitio = env.SITE_URL || (/^https:\/\//.test(url.searchParams.get('sitio') || '') ? url.searchParams.get('sitio') : '');
-  const { classId, obj } = paseGoogle(env, p, max, sitio);
-  const jwt = await jwtRS256({ iss: env.GW_SA_EMAIL, aud: 'google', typ: 'savetowallet', iat: Math.floor(Date.now() / 1000), origins: [],
-    payload: { genericClasses: [{ id: classId }], genericObjects: [obj] } }, env.GW_PRIVATE_KEY);
-  return { estado: 'ok', url: 'https://pay.google.com/gp/v/save/' + jwt };
-}
-// Después de cada cerveza, actualiza el texto del pase ya guardado (si la persona no lo guardó, Google responde 404 y se ignora).
-async function actualizarGoogle(env, db, max, codigo) {
-  if (!hayGoogle(env) || !codigo) return;
-  try {
-    const p = await db.prepare('SELECT * FROM personas WHERE codigo = ?').bind(codigo).first(); if (!p) return;
-    const ahora = Math.floor(Date.now() / 1000);
-    const asercion = await jwtRS256({ iss: env.GW_SA_EMAIL, scope: 'https://www.googleapis.com/auth/wallet_object.issuer', aud: 'https://oauth2.googleapis.com/token', iat: ahora, exp: ahora + 600 }, env.GW_PRIVATE_KEY);
-    const r = await fetch('https://oauth2.googleapis.com/token', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: 'grant_type=' + encodeURIComponent('urn:ietf:params:oauth:grant-type:jwt-bearer') + '&assertion=' + asercion });
-    const tok = (await r.json()).access_token; if (!tok) return;
-    const { obj } = paseGoogle(env, p, max, '');
-    await fetch('https://walletobjects.googleapis.com/walletobjects/v1/genericObject/' + encodeURIComponent(obj.id), { method: 'PATCH',
-      headers: { Authorization: 'Bearer ' + tok, 'Content-Type': 'application/json' }, body: JSON.stringify({ header: obj.header }) });
-  } catch (e) { /* el pase de Wallet es un extra: nunca frena la barra */ }
-}
+const texto = (t, largo = 40) => { t = String(t == null ? '' : t).replace(/\s+/g, ' ').trim().slice(0, largo); return t || null; };
+const docOk = (doc, pais) => doc.length >= 5 && doc.length <= 20 && !!pais;
 
 let listo = false;
 async function preparar(db) {
   if (listo) return;
-  await db.batch([
-    db.prepare(`CREATE TABLE IF NOT EXISTS personas (
-      id INTEGER PRIMARY KEY AUTOINCREMENT, pais TEXT NOT NULL, documento TEXT NOT NULL, equipo TEXT,
-      codigo TEXT NOT NULL UNIQUE, compradas INTEGER NOT NULL DEFAULT 0, usadas INTEGER NOT NULL DEFAULT 0,
-      creado INTEGER NOT NULL, creado_por TEXT, ultima INTEGER, UNIQUE (pais, documento))`),
-    db.prepare(`CREATE TABLE IF NOT EXISTS entregas (
-      id INTEGER PRIMARY KEY AUTOINCREMENT, persona_id INTEGER NOT NULL, numero INTEGER NOT NULL,
-      hecho INTEGER NOT NULL, puesto TEXT, anulada INTEGER NOT NULL DEFAULT 0)`),
-    db.prepare(`CREATE INDEX IF NOT EXISTS entregas_persona ON entregas (persona_id)`),
-    db.prepare(`CREATE TABLE IF NOT EXISTS ventas (
-      id INTEGER PRIMARY KEY AUTOINCREMENT, hecho INTEGER NOT NULL, puesto TEXT, medio TEXT NOT NULL,
-      cervezas INTEGER NOT NULL, total REAL NOT NULL)`),
-    db.prepare(`CREATE TABLE IF NOT EXISTS venta_items (
-      id INTEGER PRIMARY KEY AUTOINCREMENT, venta_id INTEGER NOT NULL, persona_id INTEGER NOT NULL,
-      cantidad INTEGER NOT NULL, precio REAL NOT NULL)`),
-    db.prepare(`CREATE INDEX IF NOT EXISTS items_persona ON venta_items (persona_id)`),
-  ]);
-  // base creada con la versión anterior (sin compras): se agrega la columna y lo ya retirado cuenta como comprado
-  try { await db.prepare('ALTER TABLE personas ADD COLUMN compradas INTEGER NOT NULL DEFAULT 0').run(); await db.prepare('UPDATE personas SET compradas = usadas WHERE compradas < usadas').run(); } catch (e) { /* ya existía */ }
+  await db.prepare(`CREATE TABLE IF NOT EXISTS pulseras (
+    id INTEGER PRIMARY KEY AUTOINCREMENT, pais TEXT NOT NULL, documento TEXT NOT NULL, nombre TEXT, equipo TEXT,
+    creado INTEGER NOT NULL, creado_por TEXT, UNIQUE (pais, documento))`).run();
   listo = true;
 }
-const persona = (p, max) => ({
-  id: p.id, pais: p.pais, documento: p.documento, equipo: p.equipo, codigo: p.codigo,
-  compradas: p.compradas, usadas: p.usadas, pendientes: p.compradas - p.usadas, cupo: Math.max(max - p.compradas, 0), max,
-  creado: p.creado, creado_por: p.creado_por, ultima_entrega: p.ultima,
-});
-const docOk = (doc, pais) => doc.length >= 5 && doc.length <= 20 && !!pais;
+const buscar = (db, pais, doc) => db.prepare('SELECT * FROM pulseras WHERE pais = ? AND documento = ?').bind(pais, doc).first();
 
-// CAJA: busca un documento sin crear nada. Dice si ya compró y cuánto cupo le queda.
-async function consultar(db, max, b) {
+// Busca un documento sin registrar nada: dice si ya retiró su pulsera.
+// "parecido": el mismo número ya retiró como documento de otro país (para que el puesto lo verifique).
+async function consultar(db, b) {
   const doc = norm(b.documento), pais = norm(b.pais).slice(0, 3);
   if (!docOk(doc, pais)) return { estado: 'documento_invalido' };
-  const p = await db.prepare('SELECT * FROM personas WHERE pais = ? AND documento = ?').bind(pais, doc).first();
-  return p ? { estado: 'ok', existe: true, persona: persona(p, max) } : { estado: 'ok', existe: false, cupo: max, max };
+  const p = await buscar(db, pais, doc);
+  if (p) return { estado: 'ok', existe: true, pulsera: p };
+  const otro = await db.prepare('SELECT * FROM pulseras WHERE documento = ? AND pais <> ? LIMIT 1').bind(doc, pais).first();
+  return { estado: 'ok', existe: false, parecido: otro || null };
 }
 
-// CAJA: una compra para uno o varios fans. O entra completa o no entra nada.
-async function vender(db, max, precio, b) {
-  const medio = b.medio === 'tarjeta' || b.medio === 'efectivo' ? b.medio : null;
-  if (!medio) return { estado: 'falta_medio' };
-  const items = Array.isArray(b.items) ? b.items.slice(0, 20) : [];
-  if (!items.length) return { estado: 'sin_items' };
-  const fans = [], vistos = new Set();
-  for (const it of items) {
-    const doc = norm(it.documento), pais = norm(it.pais).slice(0, 3), cant = Math.floor(Number(it.cantidad) || 0);
-    if (!docOk(doc, pais)) return { estado: 'documento_invalido', documento: doc };
-    if (cant < 1 || cant > max) return { estado: 'cantidad_invalida', documento: doc };
-    if (vistos.has(pais + doc)) return { estado: 'documento_repetido', documento: doc };
-    vistos.add(pais + doc); fans.push({ doc, pais, cant, equipo: texto(it.equipo) });
-  }
-  const buscar = (f) => db.prepare('SELECT * FROM personas WHERE pais = ? AND documento = ?').bind(f.pais, f.doc).first();
-  // 1) todos tienen que tener cupo antes de tocar nada
-  for (const f of fans) {
-    f.p = await buscar(f);
-    if (!f.p && !f.equipo) return { estado: 'falta_equipo', documento: f.doc };
-    if (f.p && f.p.compradas + f.cant > max) return { estado: 'sin_cupo', documento: f.doc, cupo: Math.max(max - f.p.compradas, 0) };
-  }
-  // 2) crear a los que compran por primera vez
-  const ahora = Date.now(), puesto = texto(b.puesto);
-  for (const f of fans) {
-    for (let i = 0; !f.p && i < 6; i++) {
-      try {
-        f.p = await db.prepare('INSERT INTO personas (pais, documento, equipo, codigo, creado, creado_por) VALUES (?, ?, ?, ?, ?, ?) RETURNING *')
-          .bind(f.pais, f.doc, f.equipo, nuevoCodigo(), ahora, puesto).first();
-        f.nueva = !!f.p;
-      } catch (e) { f.p = await buscar(f); }
-    }
-    if (!f.p) throw new Error('no se pudo registrar ' + f.doc);
-  }
-  // 3) sumar las compras, cada una condicionada al cupo; si otra caja se adelantó, se deshace lo hecho
-  const hechos = [];
-  for (const f of fans) {
-    const r = await db.prepare('UPDATE personas SET compradas = compradas + ?1 WHERE id = ?2 AND compradas + ?1 <= ?3 RETURNING *').bind(f.cant, f.p.id, max).first();
-    if (!r) {
-      for (const h of hechos) await db.prepare('UPDATE personas SET compradas = MAX(compradas - ?1, usadas) WHERE id = ?2').bind(h.cant, h.p.id).run();
-      const q = await buscar(f);
-      return { estado: 'sin_cupo', documento: f.doc, cupo: q ? Math.max(max - q.compradas, 0) : 0 };
-    }
-    f.p = r; hechos.push(f);
-  }
-  const cervezas = fans.reduce((a, f) => a + f.cant, 0), total = cervezas * precio;
-  const v = await db.prepare('INSERT INTO ventas (hecho, puesto, medio, cervezas, total) VALUES (?, ?, ?, ?, ?) RETURNING id').bind(ahora, puesto, medio, cervezas, total).first();
-  await db.batch(fans.map((f) => db.prepare('INSERT INTO venta_items (venta_id, persona_id, cantidad, precio) VALUES (?, ?, ?, ?)').bind(v.id, f.p.id, f.cant, precio)));
-  return { estado: 'ok', venta_id: v.id, cervezas, total, medio,
-    fans: fans.map((f) => ({ nueva: !!f.nueva, cantidad: f.cant, persona: persona(f.p, max) })) };
+// Registra la entrega de la pulsera. Si el documento ya la retiró, no registra nada y devuelve la anterior.
+async function entregar(db, b) {
+  const doc = norm(b.documento), pais = norm(b.pais).slice(0, 3), equipo = texto(b.equipo);
+  if (!docOk(doc, pais)) return { estado: 'documento_invalido' };
+  if (!equipo) return { estado: 'falta_equipo' };
+  const p = await db.prepare(
+    'INSERT INTO pulseras (pais, documento, nombre, equipo, creado, creado_por) VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT (pais, documento) DO NOTHING RETURNING *')
+    .bind(pais, doc, texto(b.nombre, 80), equipo, Date.now(), texto(b.puesto)).first();
+  if (p) return { estado: 'ok', pulsera: p };
+  return { estado: 'ya_entregada', pulsera: await buscar(db, pais, doc) };
 }
 
-async function editar(db, max, b) {
+async function editar(db, b) {
   const id = Number(b.id) || 0, doc = norm(b.documento), pais = norm(b.pais).slice(0, 3), equipo = texto(b.equipo);
   if (!docOk(doc, pais)) return { estado: 'documento_invalido' };
   if (!equipo) return { estado: 'falta_equipo' };
-  const otro = await db.prepare('SELECT id FROM personas WHERE pais = ? AND documento = ? AND id <> ?').bind(pais, doc, id).first();
+  const otro = await db.prepare('SELECT id FROM pulseras WHERE pais = ? AND documento = ? AND id <> ?').bind(pais, doc, id).first();
   if (otro) return { estado: 'duplicado' };
-  const p = await db.prepare('UPDATE personas SET pais = ?, documento = ?, equipo = ? WHERE id = ? RETURNING *').bind(pais, doc, equipo, id).first();
-  if (!p) return { estado: 'inexistente' };
-  return { estado: 'ok', persona: persona(p, max) };
+  const p = await db.prepare('UPDATE pulseras SET pais = ?, documento = ?, nombre = ?, equipo = ? WHERE id = ? RETURNING *')
+    .bind(pais, doc, texto(b.nombre, 80), equipo, id).first();
+  return p ? { estado: 'ok', pulsera: p } : { estado: 'inexistente' };
 }
 
-// Elimina a la persona con sus compras y entregas (corrige un error de caja). Pide la contraseña.
+// Elimina el registro (corrige un error del puesto): ese documento puede volver a retirar. Pide la contraseña.
 async function eliminar(db, b, clave) {
   if (String(b.clave || '') !== clave) return { estado: 'clave_incorrecta' };
-  const id = Number(b.id) || 0;
-  const p = await db.prepare('DELETE FROM personas WHERE id = ? RETURNING id').bind(id).first();
-  if (!p) return { estado: 'inexistente' };
-  const its = (await db.prepare('SELECT venta_id, cantidad, precio FROM venta_items WHERE persona_id = ?').bind(id).all()).results;
-  for (const it of its) await db.prepare('UPDATE ventas SET cervezas = cervezas - ?1, total = total - ?2 WHERE id = ?3').bind(it.cantidad, it.cantidad * it.precio, it.venta_id).run();
-  await db.batch([
-    db.prepare('DELETE FROM venta_items WHERE persona_id = ?').bind(id),
-    db.prepare('DELETE FROM entregas WHERE persona_id = ?').bind(id),
-    db.prepare('DELETE FROM ventas WHERE cervezas <= 0'),
-  ]);
-  return { estado: 'ok' };
+  const p = await db.prepare('DELETE FROM pulseras WHERE id = ? RETURNING id').bind(Number(b.id) || 0).first();
+  return { estado: p ? 'ok' : 'inexistente' };
 }
 
-// BARRA: valida el QR y entrega una cerveza, solo si tiene alguna comprada sin retirar. Todo en un paso.
-async function canjear(db, max, b) {
-  const codigo = norm(b.codigo), ahora = Date.now(), seguido = b.seguido ? 1 : 0;
-  const p = await db.prepare(
-    `UPDATE personas SET usadas = usadas + 1, ultima = ?1
-     WHERE codigo = ?2 AND usadas < compradas AND (?3 = 1 OR ultima IS NULL OR ultima <= ?4)
-     RETURNING *`).bind(ahora, codigo, seguido, ahora - ESPERA_MS).first();
-  if (p) {
-    const e = await db.prepare('INSERT INTO entregas (persona_id, numero, hecho, puesto) VALUES (?, ?, ?, ?) RETURNING id')
-      .bind(p.id, p.usadas, ahora, texto(b.puesto)).first();
-    return { estado: 'ok', numero: p.usadas, entrega_id: e.id, ...saldo(p, max) };
-  }
-  const q = await db.prepare('SELECT * FROM personas WHERE codigo = ?').bind(codigo).first();
-  if (!q) return { estado: 'inexistente' };
-  if (q.usadas >= q.compradas) return { estado: 'sin_saldo', ultima_entrega: q.ultima, ...saldo(q, max) };
-  return { estado: 'repetido', ...saldo(q, max) };
-}
-const saldo = (p, max) => ({ compradas: p.compradas, usadas: p.usadas, pendientes: p.compradas - p.usadas, cupo: Math.max(max - p.compradas, 0), max });
-
-async function deshacer(db, max, b) {
-  const id = Number(b.entrega_id) || 0, forzar = b.forzar ? 1 : 0;
-  const e = await db.prepare(
-    'UPDATE entregas SET anulada = 1 WHERE id = ?1 AND anulada = 0 AND (?2 = 1 OR hecho >= ?3) RETURNING persona_id')
-    .bind(id, forzar, Date.now() - DESHACER_MS).first();
-  if (!e) return { estado: 'no_se_pudo' };
-  const p = await db.prepare(
-    `UPDATE personas SET usadas = MAX(usadas - 1, 0),
-       ultima = (SELECT MAX(hecho) FROM entregas WHERE persona_id = ?1 AND anulada = 0)
-     WHERE id = ?1 RETURNING *`).bind(e.persona_id).first();
-  return { estado: 'ok', codigo: p.codigo, ...saldo(p, max) };
-}
-
-async function resumen(db, max, precio, moneda) {
-  const t = await db.prepare('SELECT COUNT(*) AS personas, COALESCE(SUM(usadas), 0) AS entregadas, COALESCE(SUM(compradas), 0) AS vendidas FROM personas').first();
-  const c = (await db.prepare('SELECT usadas, COUNT(*) AS personas FROM personas GROUP BY usadas').all()).results;
-  const por_cantidad = [];
-  for (let g = 0; g <= max; g++) por_cantidad.push({ usadas: g, personas: (c.find((x) => x.usadas === g) || {}).personas || 0 });
+async function resumen(db) {
   const todos = async (sql) => (await db.prepare(sql).all()).results;
-  const medios = await todos('SELECT medio, COUNT(*) AS ventas, COALESCE(SUM(cervezas), 0) AS cervezas, COALESCE(SUM(total), 0) AS total FROM ventas GROUP BY medio');
+  const t = await db.prepare('SELECT COUNT(*) AS personas FROM pulseras').first();
   return {
-    max, precio, moneda, personas: t.personas, entregadas: t.entregadas, vendidas: t.vendidas, pendientes: t.vendidas - t.entregadas,
-    recaudado: medios.reduce((a, m) => a + m.total, 0), ventas: medios.reduce((a, m) => a + m.ventas, 0), por_medio: medios,
-    por_cantidad,
-    por_equipo: await todos(`SELECT COALESCE(equipo, 'Sin equipo') AS equipo, COUNT(*) AS personas, COALESCE(SUM(compradas), 0) AS compradas, COALESCE(SUM(usadas), 0) AS cervezas FROM personas GROUP BY 1 ORDER BY 2 DESC`),
-    por_puesto: await todos(`SELECT COALESCE(puesto, 'Sin nombre') AS puesto, COUNT(*) AS entregas FROM entregas WHERE anulada = 0 GROUP BY 1 ORDER BY 2 DESC`),
-    por_caja: await todos(`SELECT COALESCE(puesto, 'Sin nombre') AS puesto, COUNT(*) AS ventas, COALESCE(SUM(cervezas), 0) AS cervezas, COALESCE(SUM(total), 0) AS total FROM ventas GROUP BY 1 ORDER BY 4 DESC`),
-    por_hora: await todos(`SELECT (hecho / 3600000) * 3600000 AS hora, COUNT(*) AS entregas FROM entregas WHERE anulada = 0 GROUP BY 1 ORDER BY 1`),
-    vendidas_por_hora: await todos(`SELECT (hecho / 3600000) * 3600000 AS hora, COALESCE(SUM(cervezas), 0) AS cervezas FROM ventas GROUP BY 1 ORDER BY 1`),
+    personas: t.personas,
+    por_equipo: await todos(`SELECT COALESCE(equipo, 'Sin equipo') AS equipo, COUNT(*) AS personas FROM pulseras GROUP BY 1 ORDER BY 2 DESC`),
+    por_puesto: await todos(`SELECT COALESCE(creado_por, 'Sin nombre') AS puesto, COUNT(*) AS personas FROM pulseras GROUP BY 1 ORDER BY 2 DESC`),
+    por_pais: await todos(`SELECT pais, COUNT(*) AS personas FROM pulseras GROUP BY 1 ORDER BY 2 DESC`),
+    por_hora: await todos(`SELECT (creado / 3600000) * 3600000 AS hora, COUNT(*) AS personas FROM pulseras GROUP BY 1 ORDER BY 1`),
   };
 }
 
-async function personas(db, max, url) {
-  const q = norm(url.searchParams.get('q'));
-  const limite = Math.min(Math.max(Number(url.searchParams.get('limite')) || 100, 1), 50000);
-  const filas = (await db.prepare(
-    `SELECT * FROM personas WHERE (?1 = '' OR documento LIKE '%' || ?1 || '%' OR codigo LIKE ?1 || '%')
-     ORDER BY MAX(COALESCE(ultima, 0), creado, COALESCE((SELECT MAX(v.hecho) FROM venta_items i JOIN ventas v ON v.id = i.venta_id WHERE i.persona_id = personas.id), 0)) DESC LIMIT ?2`).bind(q, limite).all()).results;
-  const traer = async (sqlTodo, sqlIds) => {
-    if (filas.length > 300) return (await db.prepare(sqlTodo).all()).results;
-    let out = [];
-    for (let i = 0; i < filas.length; i += 80) {
-      const ids = filas.slice(i, i + 80).map((p) => p.id);
-      out = out.concat((await db.prepare(sqlIds.replace('@', ids.map(() => '?').join(','))).bind(...ids).all()).results);
-    }
-    return out;
-  };
-  const ents = await traer('SELECT id, persona_id, numero, hecho, puesto FROM entregas WHERE anulada = 0 ORDER BY hecho',
-    'SELECT id, persona_id, numero, hecho, puesto FROM entregas WHERE anulada = 0 AND persona_id IN (@) ORDER BY hecho');
-  const comps = await traer('SELECT i.persona_id, i.venta_id, i.cantidad, i.precio, v.hecho, v.medio, v.puesto FROM venta_items i JOIN ventas v ON v.id = i.venta_id ORDER BY v.hecho',
-    'SELECT i.persona_id, i.venta_id, i.cantidad, i.precio, v.hecho, v.medio, v.puesto FROM venta_items i JOIN ventas v ON v.id = i.venta_id WHERE i.persona_id IN (@) ORDER BY v.hecho');
-  const agrupar = (rows, f) => { const m = new Map(); for (const r of rows) { if (!m.has(r.persona_id)) m.set(r.persona_id, []); m.get(r.persona_id).push(f(r)); } return m; };
-  const E = agrupar(ents, (e) => ({ id: e.id, numero: e.numero, hecho: e.hecho, puesto: e.puesto }));
-  const C = agrupar(comps, (c) => ({ venta_id: c.venta_id, cantidad: c.cantidad, total: c.cantidad * c.precio, hecho: c.hecho, medio: c.medio, puesto: c.puesto }));
-  return filas.map((p) => ({ ...persona(p, max), entregas: E.get(p.id) || [], compras: C.get(p.id) || [] }));
-}
-
-async function ventas(db) {
+// Lista de pulseras entregadas, de la más reciente a la más vieja. Busca por documento o por nombre.
+async function pulseras(db, url) {
+  const crudo = texto(url.searchParams.get('q'), 60) || '', q = norm(crudo);
+  const limite = Math.min(Math.max(Number(url.searchParams.get('limite')) || 100, 1), 100000);
   return (await db.prepare(
-    `SELECT v.id, v.hecho, v.puesto, v.medio, v.cervezas, v.total,
-       (SELECT GROUP_CONCAT(p.pais || ' ' || p.documento || ' x' || i.cantidad, ' | ') FROM venta_items i JOIN personas p ON p.id = i.persona_id WHERE i.venta_id = v.id) AS detalle
-     FROM ventas v ORDER BY v.hecho DESC LIMIT 50000`).all()).results;
+    `SELECT * FROM pulseras
+     WHERE (?1 = '' AND ?2 = '') OR (?1 <> '' AND documento LIKE '%' || ?1 || '%') OR (?2 <> '' AND nombre LIKE '%' || ?2 || '%')
+     ORDER BY creado DESC, id DESC LIMIT ?3`).bind(q, crudo, limite).all()).results;
 }
 
 const api = {
   async fetch(request, env, ctx, opc) {
-    const despues = (pr) => { if (ctx && ctx.waitUntil) ctx.waitUntil(pr); };
     if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS });
     const abierto = !!(opc && opc.abierto);   // publicado dentro de Pages sin API_KEY: mismo origen que el sitio
     if (!abierto && (!env.API_KEY || request.headers.get('X-Key') !== env.API_KEY)) return json({ error: 'unauthorized' }, 401);
@@ -300,34 +107,24 @@ const api = {
     let ruta = url.pathname.replace(/\/+$/, '') || '/';
     if (opc && opc.prefijo && ruta.indexOf(opc.prefijo) === 0) ruta = ruta.slice(opc.prefijo.length) || '/';
     if (!env.DB) return json({ ok: false, error: 'falta_db' }, 503);   // falta vincular la base D1 como "DB"
-    const max = Math.max(parseInt(env.MAX_CERVEZAS, 10) || 3, 1);
-    const precio = Number(env.PRECIO) > 0 ? Number(env.PRECIO) : 5, moneda = env.MONEDA || 'USD';
     const claveEliminar = env.CLAVE_ELIMINAR || 'amstel2026';
     try {
       await preparar(env.DB);
       if (request.method === 'GET') {
-        if (ruta === '/estado') return json({ ok: true, version: 2, max, precio, moneda, now: Date.now(), wallet: { google: hayGoogle(env), apple: false } });
-        if (ruta === '/wallet/google') return json(await enlaceGoogle(env, env.DB, max, url));
-        if (ruta === '/resumen') return json(await resumen(env.DB, max, precio, moneda));
-        if (ruta === '/personas') return json(await personas(env.DB, max, url));
-        if (ruta === '/ventas') return json(await ventas(env.DB));
-        if (ruta === '/pase') {   // lo consulta el celular del fan: solo su saldo, sin descontar nada
-          const p = await env.DB.prepare('SELECT * FROM personas WHERE codigo = ?').bind(norm(url.searchParams.get('codigo'))).first();
-          return json(p ? { estado: 'ok', equipo: p.equipo, ...saldo(p, max) } : { estado: 'inexistente' });
-        }
+        if (ruta === '/estado') return json({ ok: true, version: 3, now: Date.now() });
+        if (ruta === '/resumen') return json(await resumen(env.DB));
+        if (ruta === '/pulseras') return json(await pulseras(env.DB, url));
       }
       if (request.method === 'POST') {
         const b = await request.json().catch(() => ({}));
-        if (ruta === '/consultar') return json(await consultar(env.DB, max, b));
-        if (ruta === '/vender') { const r = await vender(env.DB, max, precio, b); if (r.estado === 'ok') r.fans.forEach((f) => despues(actualizarGoogle(env, env.DB, max, f.persona.codigo))); return json(r); }
-        if (ruta === '/canjear') { const r = await canjear(env.DB, max, b); if (r.estado === 'ok') despues(actualizarGoogle(env, env.DB, max, norm(b.codigo))); return json(r); }
-        if (ruta === '/deshacer') { const r = await deshacer(env.DB, max, b); if (r.estado === 'ok') despues(actualizarGoogle(env, env.DB, max, r.codigo)); return json(r); }
-        if (ruta === '/editar') return json(await editar(env.DB, max, b));
+        if (ruta === '/consultar') return json(await consultar(env.DB, b));
+        if (ruta === '/entregar') return json(await entregar(env.DB, b));
+        if (ruta === '/editar') return json(await editar(env.DB, b));
         if (ruta === '/eliminar') return json(await eliminar(env.DB, b, claveEliminar));
         if (ruta === '/vaciar') {
           if (String(b.clave || '') !== claveEliminar) return json({ estado: 'clave_incorrecta' });
           if (b.confirmacion !== 'BORRAR') return json({ estado: 'sin_confirmar' });
-          await env.DB.batch([env.DB.prepare('DELETE FROM venta_items'), env.DB.prepare('DELETE FROM ventas'), env.DB.prepare('DELETE FROM entregas'), env.DB.prepare('DELETE FROM personas')]);
+          await env.DB.prepare('DELETE FROM pulseras').run();
           return json({ estado: 'ok' });
         }
       }

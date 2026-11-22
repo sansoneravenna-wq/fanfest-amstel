@@ -1,42 +1,42 @@
-FAN FEST AMSTEL · Final Libertadores 2026 (Estudiantes vs Palmeiras) · 3 cervezas por persona
-=============================================================================================
+FAN FEST AMSTEL · Final Libertadores 2026 (Estudiantes vs Palmeiras) · registro de pulseras
+===========================================================================================
 
 Se abre el link en Chrome y se usa directo, sin usuario ni clave (igual que la de Ceibal).
 
-  Caja       -> venta de cervezas. Cada documento puede comprar hasta 3 en total, en una o varias veces.
-                1) Ingresar el documento y "Buscar": el sistema dice si es la primera compra o cuántas
-                   ya compró y cuántas puede comprar todavía.
-                2) Elegir cuántas compra (solo deja hasta su cupo). Si es su primera compra, elegir equipo.
-                3) "Añadir cervezas para segundo fan": suma a otra persona, con su documento, a la misma
-                   compra. Se pueden sumar varios. Cada uno tiene su cupo y su etiqueta.
-                4) Se ve el total (USD 5 por cerveza), se elige Tarjeta o Efectivo y "Cobrar y registrar".
-                La etiqueta se imprime una sola vez por persona, en su primera compra; si vuelve a comprar
-                usa la misma. El cobro se hace aparte (posnet o efectivo): el sistema solo lo registra.
-                Abajo está la lista de compradores con buscador: Reimprimir, Pase, Editar y Eliminar
-                (Eliminar pide contraseña y borra a la persona con sus compras y entregas).
-  Barra      -> abre el lector a pantalla completa. Lo principal es cuántas cervezas PAGAS tiene para
-                retirar. Verde: entregar ("Le quedan 2 para retirar"). Rojo: no tiene pagas (y dice si
-                puede comprar más en caja) o ya compró y retiró sus 3.
-  Consumo    -> vendidas, retiradas y pagas sin retirar; recaudación por medio de pago y por caja;
-                gráficos por día y hora de entregas y de ventas; por equipo y por barra; detalle de cada
-                persona; descarga a Excel de personas y de ventas.
+CÓMO FUNCIONA
+  Cada persona retira UNA pulsera, que trae 3 tirillas (una por cerveza). En la barra le cortan una
+  tirilla por cada cerveza: eso se hace a mano, fuera del sistema. El sistema solo registra quién ya
+  retiró su pulsera, para que nadie pueda volver a buscar otra con el mismo documento.
 
-Links directos: .../#caja   .../#barra   .../#consumo
-En cada dispositivo: botón de persona (arriba a la derecha) -> tu nombre (ej. "Ana · Barra 2"). Sin contraseña.
+  Pulseras  -> 1) Elegir país (Uruguay, Brasil, Argentina, Otro/pasaporte), escribir el documento y
+                  "Buscar" (o Enter).
+               2) Verde "Puede retirar su pulsera": nombre y apellido (opcional), elegir equipo
+                  (Estudiantes, Palmeiras o Neutral) y "Registrar entrega de pulsera".
+               3) Rojo "Ya retiró su pulsera": muestra a qué hora y en qué puesto. No se entrega otra.
+               Si el mismo número ya retiró como documento de otro país, avisa para que lo verifiquen.
+               Abajo está la lista de pulseras entregadas con buscador (documento o nombre), Editar y
+               Eliminar (Eliminar pide contraseña: ese documento podría volver a retirar).
+  Reporte   -> pulseras entregadas por día y hora, por equipo, por puesto y por país; detalle con
+               buscador y descarga a Excel (país, documento, nombre, equipo, fecha, hora y puesto).
+
+Links directos: .../#pulseras   .../#reporte
+En cada dispositivo: botón de persona (arriba a la derecha) -> tu nombre (ej. "Ana · Puesto 1"). Sin contraseña.
 Engranaje (barra de abajo) -> Configuración: conexión a la base y "Borrar todo".
 
 ARCHIVOS
   index.html          toda la plataforma
-  assets/             logos (amstel-negro.png es la versión de un color para la etiqueta)
-  vendor/             generador y lector de QR
-  worker/worker.js    la API: ahí se deciden el límite de 3, el precio y los retiros
+  assets/             logos
+  worker/worker.js    la API: ahí se decide que cada documento retira una sola pulsera
   functions/api/      la misma API, generada con armar-api.sh, que Cloudflare Pages publica en /api
   _headers            hace que el navegador siempre consulte si hay versión nueva
 
-BASE COMPARTIDA (para que cajas, barras y celulares vean los mismos datos)
+BASE COMPARTIDA (para que todos los puestos vean los mismos datos)
+  IMPORTANTE: sin este paso cada dispositivo guarda sus datos por separado, y una persona podría
+  retirar una pulsera en cada puesto. Con varios puestos, la base compartida es imprescindible.
+
   La base se publica sola junto con el sitio, dentro del mismo proyecto de Cloudflare Pages (carpeta
   functions/). Cada cambio que se sube al repositorio actualiza sitio y base a la vez, y cada dispositivo
-  abierto se recarga solo con la versión nueva cuando no está en medio de una operación.
+  abierto se recarga solo con la versión nueva cuando no está en medio de un registro.
 
   Paso único en Cloudflare (se hace una sola vez):
     1. Storage & Databases -> D1 -> Create database. Nombre: fanfest-amstel-db.
@@ -46,35 +46,15 @@ BASE COMPARTIDA (para que cajas, barras y celulares vean los mismos datos)
   Listo: al abrir el sitio desaparece el cartel "los datos quedan solo en este dispositivo".
   En Configuración (engranaje) dice si está conectado o qué falta.
 
-  Opcionales, en Settings -> Variables and Secrets del mismo proyecto:
-    CLAVE_ELIMINAR (contraseña para eliminar registros y borrar todo; por defecto amstel2026),
-    PRECIO (5), MONEDA (USD), MAX_CERVEZAS (3).
+  Opcional, en Settings -> Variables and Secrets del mismo proyecto:
+    CLAVE_ELIMINAR (contraseña para eliminar registros y borrar todo; por defecto amstel2026).
   Para cambiar la API: editar worker/worker.js y correr armar-api.sh antes de subir.
   (worker/worker.js también sirve como Worker independiente, con el secreto API_KEY; no hace falta.)
-
-IMPRESORA
-  Brother QL-800, rollo continuo de 62 mm, etiqueta 62 x 80 mm, solo negro.
-  La primera vez, en el diálogo de Chrome: Brother, papel 62 x 80, Márgenes "Ninguno",
-  destildar "Encabezados y pies de página". En el driver: Longitud 80 mm, cortar cada 1 etiqueta.
 
 ANTES DEL EVENTO
   Configuración (engranaje) -> "Borrar todo" para limpiar las pruebas (pide la contraseña de eliminar).
 
-PASE EN EL CELULAR
-  Al acreditar aparece un QR "Pase para el celular" (y hay un botón "Pase" en cada documento acreditado).
-  El fan lo escanea con la cámara y se le abre su pase: el mismo QR de la etiqueta, cuántas cervezas le
-  quedan (se actualiza solo) y el botón "Guardar como imagen". Necesita el sitio publicado; el contador
-  en vivo necesita además la base compartida.
-
-GOOGLE WALLET (opcional)
-  El botón "Agregar a Google Wallet" aparece en el pase cuando el proyecto de Pages tiene estas tres variables:
-    GW_ISSUER_ID     número de emisor (Google Pay & Wallet Console -> Google Wallet API)
-    GW_SA_EMAIL      correo de la cuenta de servicio de Google Cloud autorizada en esa consola
-    GW_PRIVATE_KEY   (secreto) el valor "private_key" del archivo JSON de esa cuenta de servicio
-  Opcional: SITE_URL con la dirección pública del sitio (para el logo del pase).
-  Mientras el emisor esté en modo demo, solo pueden guardar el pase las cuentas de prueba cargadas en
-  la consola; para el público hay que pedir el acceso de publicación a Google.
-  Después de cada cerveza el pase guardado se actualiza ("Quedan 2 cervezas").
-
-APPLE WALLET
-  Todavía no está: requiere cuenta de Apple Developer, un Pass Type ID y su certificado.
+VERSIÓN ANTERIOR (guardada para otro evento)
+  La plataforma completa (venta de cervezas con cupo por documento y varios fans por compra, etiqueta
+  con QR para la Brother QL-800, lector de barra con el celular, pase del fan en su celular, Google
+  Wallet y panel de ventas) está en la rama "version-completa-venta-qr" de este repositorio.

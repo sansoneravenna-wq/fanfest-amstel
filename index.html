@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="es" data-ver="20261113-1">
+<html lang="es" data-ver="20261122-1">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#c8102e">
 <meta name="robots" content="noindex">
-<title>Fan Fest Amstel · 3 cervezas por persona</title>
+<title>Fan Fest Amstel · Pulseras</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23c8102e'/%3E%3Cpath d='M22 14h20v12a10 10 0 0 1-20 0z' fill='%23f3d9a0'/%3E%3Cpath d='M22 18h-6v3a8 8 0 0 0 8 8M42 18h6v3a8 8 0 0 1-8 8' fill='none' stroke='%23f3d9a0' stroke-width='3.5' stroke-linecap='round'/%3E%3Cpath d='M29 35h6v7h-6z' fill='%23f3d9a0'/%3E%3Crect x='22' y='42' width='20' height='7' rx='2' fill='%23f3d9a0'/%3E%3C/svg%3E">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -33,8 +33,6 @@
   .saludo b{display:block;font-size:18px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .saludo span{font-size:12.5px;opacity:.8}
   .rt{height:24px;width:auto;display:block;flex:none;opacity:.96}
-  .por{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:22px;font-size:12.5px;font-weight:600;opacity:.9}
-  .por img{height:18px;width:auto;display:block}
   .marca img{height:50px;width:50px;display:block;border-radius:50%;box-shadow:0 6px 16px -6px rgba(0,0,0,.5)}
   .partido{display:flex;justify-content:center;margin-top:20px}
   .partido div{display:inline-flex;align-items:center;gap:12px;background:#fff;color:var(--tinta);border-radius:999px;padding:8px 18px;font-weight:700;font-size:14.5px;box-shadow:0 10px 22px -12px rgba(0,0,0,.5)}
@@ -58,15 +56,6 @@
   .pill .tx{flex:1;min-width:0}
   .pill .tx b{display:block;font-size:16px;font-weight:700}
   .pill .tx span{font-size:13.5px;color:var(--gris)}
-  .anillo{position:relative;width:54px;height:54px;flex:none}
-  .anillo svg{width:54px;height:54px;transform:rotate(-90deg)}
-  .anillo circle{fill:none;stroke-width:5}
-  .anillo .f{stroke:#ecebe8}.anillo .v{stroke:var(--rojo);stroke-linecap:round;transition:stroke-dashoffset .5s}
-  .anillo b{position:absolute;inset:0;display:grid;place-items:center;font-size:12.5px;font-weight:700}
-  .vasos{display:inline-flex;gap:4px;vertical-align:middle}
-  .vasos i{width:11px;height:16px;border:1.6px solid #cfd0d6;border-radius:2px 2px 5px 5px;display:block}
-  .vasos i.paga{border-color:var(--oro);background:rgba(243,217,160,.6)}
-  .vasos i.on{border-color:var(--oro);background:var(--oro)}
 
   .grid{display:grid;grid-template-columns:1.15fr .85fr;gap:20px;align-items:start}
   .grid.dos{grid-template-columns:1fr 1fr}
@@ -89,8 +78,6 @@
   button.it:hover .c{box-shadow:0 0 0 2px var(--rojo)}
   .acc{display:flex;gap:6px;flex:none}
   .btn.rj{color:var(--rojo)}
-  .det{margin:0 4px 10px 68px;background:var(--card);border-radius:18px;padding:12px 14px;font-size:14px;box-shadow:var(--sombra)}
-  .det .e{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:5px 0}
   .vacio{color:var(--gris);font-size:14px;padding:14px 4px;margin:0}
 
   .chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
@@ -114,10 +101,6 @@
   .msg{min-height:1.3em;font-size:14px;margin:0 2px 12px;color:var(--gris);font-weight:600}
   .msg.mal{color:var(--rojo)} .msg.aviso{color:var(--ambar)} .msg.bien{color:var(--verde)}
   .nota{font-size:13px;color:var(--gris);margin:10px 2px 0}
-  .prev{display:flex;justify-content:center;background:var(--fondo);border-radius:20px;padding:18px;margin-bottom:14px}
-  .prev .label{box-shadow:0 6px 18px rgba(0,0,0,.16)}
-  .ya{display:flex;flex-direction:column;gap:6px;background:#fff7e8;border-radius:20px;padding:16px;margin-bottom:14px;font-size:14.5px}
-  .ya b{font-size:16px}
 
   /* gráficos por hora */
   .dias{margin:-6px 0 16px}
@@ -136,32 +119,12 @@
   .tip.show{opacity:1}
 
   /* caja */
-  .fan{background:var(--fondo);border-radius:22px;padding:16px 16px 14px;margin-bottom:12px}
-  .fan-h{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
-  .fan-h b{font-size:15px}
-  .chipi{font-size:12.5px;font-weight:700;padding:5px 11px;border-radius:999px;background:#fff}
-  .chipi.nu{background:#e4f4ea;color:#0d6b31}.chipi.ya{background:#fff1d6;color:#8a5a00}.chipi.no{background:#fde4e8;color:var(--rojo)}
-  .fan .chip{background:#fff}.fan .chip.on{background:var(--tinta)}
-  .fan label.f input{background:#fff}
   .docfila{display:flex;gap:8px;margin-top:7px}
   .docfila input.doc{margin-top:0;font-size:24px !important;padding:12px 16px !important;border-radius:18px !important;min-width:0}
   .docfila .btn{flex:none;padding:0 22px;font-size:15.5px}
   .fdoc{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
   .fdoc b{font-size:22px;font-weight:800;font-variant-numeric:tabular-nums}
   .fdoc .btn{margin-left:auto}
-  .cant{display:flex;gap:8px;align-items:center}
-  .cant button{width:66px;height:56px;border-radius:18px;border:0;background:#fff;font-size:24px;font-weight:800;color:var(--tinta)}
-  .cant button.on{background:var(--tinta);color:#fff}
-  .cant span{margin-left:auto;font-weight:800;font-size:18px}
-  .tot{display:flex;justify-content:space-between;align-items:baseline;margin:18px 4px 12px;font-weight:700;color:var(--gris)}
-  .tot b{font-size:36px;font-weight:800;color:var(--tinta);letter-spacing:-.02em}
-  .medios{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
-  .medios button{display:flex;align-items:center;justify-content:center;gap:10px;border:0;background:var(--fondo);border-radius:18px;padding:16px;font-weight:800;font-size:16.5px;color:var(--tinta)}
-  .medios button svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-  .medios button.on{background:var(--tinta);color:#fff}
-  .hf{display:flex;align-items:center;gap:12px;padding:9px 0;border-top:1px solid var(--linea);flex-wrap:wrap}
-  .hf .c{width:44px;height:44px;border-radius:50%;background:var(--rojo);color:#fff;display:grid;place-items:center;font-weight:800;flex:none}
-  .hf .m{flex:1;min-width:0}.hf .m b{display:block}.hf .m span{display:block;font-size:13px;color:var(--gris)}
 
   /* barras del consumo */
   .br{display:grid;grid-template-columns:132px 1fr 70px;gap:10px;align-items:center;padding:7px 0;font-size:14px}
@@ -170,80 +133,6 @@
   .br .n{text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
   .buscar{display:flex;gap:10px;margin:8px 0 6px}
   .buscar input{flex:1;border:0;background:var(--card);border-radius:999px;padding:13px 20px;outline:none;box-shadow:var(--sombra);font-weight:600;min-width:0}
-
-  /* lector a pantalla completa */
-  body[data-v=barra]{overflow:hidden;background:#000}
-  body[data-v=barra] .top,body[data-v=barra] .nav{display:none}
-  .lector{position:fixed;inset:0;z-index:40;background:#000;color:#fff}
-  .lector video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-  .marco{position:absolute;left:50%;top:46%;width:min(68vw,52vh,420px);aspect-ratio:1/1;transform:translate(-50%,-50%);border:3px solid rgba(255,255,255,.92);border-radius:28px;box-shadow:0 0 0 200vmax rgba(0,0,0,.42)}
-  .cam-msg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:90px 32px 190px;background:#17181c;color:#d8d8dc;font-size:15px}
-  .cam-msg[hidden]{display:none}
-  .lec-top{position:absolute;left:0;right:0;top:0;display:flex;align-items:center;gap:14px;padding:16px 18px;padding-top:calc(16px + env(safe-area-inset-top));background:linear-gradient(rgba(0,0,0,.6),transparent)}
-  .lec-top .rond{background:rgba(255,255,255,.2)}
-  .lec-pie{position:absolute;left:0;right:0;bottom:0;padding:18px;padding-bottom:calc(20px + env(safe-area-inset-bottom));background:linear-gradient(transparent,rgba(0,0,0,.72) 40%);display:flex;flex-direction:column;gap:12px;align-items:center}
-  .lec-ult{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:14px;color:rgba(255,255,255,.85)}
-  .lec-ult b{color:#fff;font-size:16px}
-  .lec-pie .btn{background:rgba(255,255,255,.16);color:#fff;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);padding:13px 20px}
-  .lec-pie .btn.rojo{background:var(--rojo)}
-  .lec-man{display:flex;gap:8px;width:100%;max-width:420px}
-  .lec-man[hidden]{display:none}
-  .lec-man input{flex:1;min-width:0;border:0;border-radius:999px;padding:13px 18px;font-weight:700;letter-spacing:.06em;outline:none}
-  .centro{text-align:center}
-  .fila{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:14px}
-  .res{position:fixed;inset:0;z-index:60;display:flex;flex-direction:column;padding:26px;color:#fff;text-align:center}
-  .res[hidden]{display:none}
-  .res.bien{background:var(--verde)} .res.mal{background:var(--rojo)} .res.aviso{background:var(--ambar)}
-  .res .in{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px}
-  .res .t{font-size:clamp(30px,8.5vw,46px);font-weight:800;text-transform:uppercase;letter-spacing:.02em;line-height:1.08;max-width:11em}
-  .res .ri{width:min(38vw,170px);height:auto;fill:none;stroke:#fff;stroke-width:8;stroke-linecap:round;stroke-linejoin:round;margin-bottom:6px}
-  .res .ri circle{stroke-width:6;opacity:.9}
-  .res .n{font-size:138px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
-  .res .n small{font-size:32px;color:rgba(255,255,255,.8);font-weight:700}
-  .res .s{font-size:21px;font-weight:600}
-  .res .s small{color:rgba(255,255,255,.8);font-size:16px}
-  .res .vasos{gap:10px}
-  .res .vasos i{width:30px;height:42px;border:3px solid #fff;border-radius:4px 4px 10px 10px}
-  .res .vasos i{border-color:rgba(255,255,255,.4)}
-  .res .vasos i.paga{border-color:#fff;background:rgba(255,255,255,.3)}
-  .res .vasos i.on{border-color:#fff;background:#fff}
-  .res .b{display:flex;flex-direction:column;gap:10px;margin-top:18px;width:100%;max-width:340px}
-  .res .btn{font-size:16px;padding:15px}
-  .res .btn.claro{background:#fff;color:var(--tinta)}
-  .res .btn.fant{background:transparent;color:#fff;box-shadow:inset 0 0 0 2px rgba(255,255,255,.6)}
-  .res .btn.sig{background:rgba(0,0,0,.28);color:#fff;font-size:20px;padding:20px}
-
-  /* pase del fan en su celular */
-  body[data-v=pase]{background:var(--rojo)}
-  body[data-v=pase] .top,body[data-v=pase] .nav,body[data-v=pase] #aviso-local,body[data-v=pase] .hoja{display:none}
-  #pase{display:none;min-height:100vh;color:#fff;background:radial-gradient(90% 60% at 50% 0%,var(--rojo-3) 0%,var(--rojo) 60%);padding:26px 20px 40px;text-align:center}
-  body[data-v=pase] #pase{display:block}
-  #pase .pl{width:92px;height:92px;border-radius:50%;box-shadow:0 12px 26px -10px rgba(0,0,0,.5)}
-  #pase h1{margin:12px 0 2px;font-size:30px;font-weight:800;letter-spacing:.1em;text-transform:uppercase}
-  #pase .ps{font-size:14px;opacity:.9}
-  #pase .partido{margin-top:14px}
-  #pase .tarj{background:#fff;color:var(--tinta);border-radius:30px;max-width:380px;margin:20px auto 0;padding:22px 22px 20px;box-shadow:0 30px 60px -26px rgba(0,0,0,.6)}
-  #pase .qr{width:100%;max-width:300px;margin:0 auto}
-  #pase .qr svg{width:100%;height:auto;display:block}
-  #pase .cod{font-family:"Courier New",monospace;font-weight:700;font-size:20px;letter-spacing:.08em;margin-top:12px}
-  #pase .eq{font-size:14px;color:var(--gris);font-weight:600;margin-top:2px}
-  #pase .est{margin-top:16px;padding-top:16px;border-top:1px solid var(--linea)}
-  #pase .est b{display:block;font-size:24px;font-weight:800;margin-top:10px}
-  #pase .est small{display:block;margin-top:2px;font-size:13px}
-  #pase .vasos{gap:10px}
-  #pase .vasos i{width:30px;height:42px;border-width:3px;border-radius:4px 4px 10px 10px}
-  #pase .pb{max-width:380px;margin:18px auto 0;display:flex;flex-direction:column;gap:10px}
-  #pase .pb .btn{background:#fff;color:var(--tinta);font-size:17px;padding:17px;width:100%}
-  #pase .pie{margin-top:18px;font-size:18px;font-weight:800}
-  #pase .pie small{display:block;color:#fff;opacity:.85;font-size:14px;font-weight:600}
-  #pimg{position:fixed;inset:0;z-index:90;background:rgba(23,24,28,.92);display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:20px;color:#fff;text-align:center}
-  #pimg.open{display:flex}
-  #pimg img{max-height:68vh;max-width:86vw;border-radius:18px;box-shadow:0 20px 50px rgba(0,0,0,.6)}
-  #pimg p{margin:0;font-size:15px;font-weight:600;max-width:340px}
-  .paseqr{display:flex;gap:14px;align-items:center;background:var(--fondo);border-radius:20px;padding:14px;margin-top:14px;text-align:left}
-  .paseqr .q{width:112px;height:112px;background:#fff;border-radius:12px;padding:8px;flex:none}
-  .paseqr .q svg{width:100%;height:100%;display:block}
-  .paseqr b{display:block;font-size:15px}.paseqr span{font-size:13px;color:var(--gris)}
 
   /* navegación flotante */
   .nav{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:30;display:flex;gap:4px;padding:6px;border-radius:999px;
@@ -270,42 +159,23 @@
     .grid,.grid.dos,.grid.tres{grid-template-columns:1fr}
     #rec .it{flex-wrap:wrap}
     #rec .acc{width:100%;padding-left:64px;margin-top:-2px}
+    .ficha{grid-template-columns:1fr}
     .acts{gap:22px}
     .total .num{font-size:46px}
     .br{grid-template-columns:112px 1fr 62px}
   }
 
-  /* ---------- etiqueta: mismas medidas en pantalla y en papel ---------- */
-  #print{display:none}
-  .label{--u:1mm;width:calc(var(--lw)*var(--u));height:calc(var(--lh)*var(--u));background:#fff;color:#000;
-    display:flex;flex-direction:column;align-items:center;text-align:center;
-    padding:calc(2.5*var(--u)) calc(3*var(--u));overflow:hidden;font-family:Arial,Helvetica,sans-serif;line-height:1.15}
-  .l-cab{display:flex;align-items:center;justify-content:center;gap:calc(4.5*var(--u));height:calc(13*var(--u));flex:none}
-  .l-cab img{display:block;height:calc(10.5*var(--u));width:auto}
-  .l-cab img.l-logo{height:calc(13*var(--u))}
-  .l-cab img.l-alto{height:calc(12.4*var(--u))}
-  .l-cab b{font-weight:800;font-size:calc(6*var(--u));text-transform:uppercase}
-  .l-ev{font-size:calc(3.2*var(--u));font-weight:800;text-transform:uppercase;letter-spacing:.1em;margin-top:calc(1.2*var(--u));white-space:nowrap}
-  .l-sub{font-size:calc(2.2*var(--u));white-space:nowrap}
-  .l-qr{width:calc(var(--qr)*var(--u));height:calc(var(--qr)*var(--u));margin:calc(4*var(--u)) 0;flex:none}
-  .l-qr svg{width:100%;height:100%;display:block}
-  .l-doc{font-size:calc(4.2*var(--u));font-weight:800;letter-spacing:.02em;white-space:nowrap}
-  .l-doc small{display:block;font-size:calc(2*var(--u));font-weight:400;color:#000;text-transform:uppercase;letter-spacing:.1em;margin-bottom:calc(.4*var(--u))}
-  .l-pie{width:100%;margin-top:auto;border-top:.3mm solid #000;padding-top:calc(1.2*var(--u));display:flex;justify-content:space-between;align-items:center;font-size:calc(2.4*var(--u));white-space:nowrap}
-  .l-pie div{text-align:left;line-height:1.2}
-  .l-pie b,.l-pie i{display:block}
-  .l-pie i{font-style:normal}
-  .l-pie span{font-family:"Courier New",monospace;font-weight:700}
-  @media print{
-    html,body{background:#fff;margin:0;padding:0;min-height:0;height:auto}
-    body > *:not(#print){display:none !important}
-    /* Cada etiqueta ocupa una hoja y se adapta a la que entregue la impresora (tamaño, márgenes o escala):
-       siempre entra completa y centrada. */
-    #print{display:block}
-    #print .pg{display:flex;align-items:center;justify-content:center;width:100vw;height:calc(100vh - 1mm);overflow:hidden;break-after:page;page-break-after:always}
-    #print .pg:last-child{break-after:auto;page-break-after:auto}
-    #print .label{--u:min(calc(100vw / var(--lw)), calc((100vh - 1mm) / var(--lh)));box-shadow:none;break-inside:avoid;page-break-inside:avoid}
-  }
+  /* resultado de la búsqueda de un documento y ficha de la pulsera */
+  .estado{display:flex;align-items:center;gap:14px;border-radius:22px;padding:16px 18px;margin-bottom:14px}
+  .estado svg{width:52px;height:52px;flex:none;fill:none;stroke:currentColor;stroke-width:7;stroke-linecap:round;stroke-linejoin:round}
+  .estado b{display:block;font-size:19px;font-weight:800;letter-spacing:.01em;text-transform:uppercase;line-height:1.15}
+  .estado span{display:block;font-size:13.5px;font-weight:600;margin-top:2px}
+  .estado.si{background:#e4f4ea;color:#0d6b31}
+  .estado.no{background:var(--rojo);color:#fff}
+  .ficha{display:grid;grid-template-columns:1fr 1fr;gap:12px 16px;background:var(--fondo);border-radius:20px;padding:16px}
+  .ficha small{display:block;font-size:12px}
+  .ficha b{display:block;font-size:15.5px;font-weight:700;overflow-wrap:anywhere}
+  .ficha b.num{font-size:20px;font-weight:800;font-variant-numeric:tabular-nums}
 </style>
 </head>
 <body>
@@ -322,14 +192,13 @@
     </div>
     <div class="partido" id="partido"></div>
     <div class="total">
-      <div class="et">Cervezas entregadas</div>
+      <div class="et">Pulseras entregadas</div>
       <div class="num" id="k-total">–</div>
-      <div class="sub" id="k-sub">3 cervezas por persona</div>
+      <div class="sub" id="k-sub">Una pulsera por persona</div>
     </div>
     <div class="acts">
-      <button class="act" data-ir="acreditar"><i><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></i>Caja</button>
-      <button class="act" data-ir="barra"><i><svg viewBox="0 0 24 24"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M8 12h8"/></svg></i>Barra</button>
-      <button class="act" data-ir="consumo"><i><svg viewBox="0 0 24 24"><path d="M5 20V10M12 20V4M19 20v-7"/></svg></i>Consumo</button>
+      <button class="act" data-ir="pulseras"><i><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></i>Pulseras</button>
+      <button class="act" data-ir="reporte"><i><svg viewBox="0 0 24 24"><path d="M5 20V10M12 20V4M19 20v-7"/></svg></i>Reporte</button>
     </div>
   </div>
 </section>
@@ -337,24 +206,18 @@
 <main class="hoja"><div class="wrap" id="vista"></div></main>
 
 <nav class="nav">
-  <button data-ir="acreditar"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><span>Caja</span></button>
-  <button data-ir="barra"><svg viewBox="0 0 24 24"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M8 12h8"/></svg><span>Barra</span></button>
-  <button data-ir="consumo"><svg viewBox="0 0 24 24"><path d="M5 20V10M12 20V4M19 20v-7"/></svg><span>Consumo</span></button>
+  <button data-ir="pulseras"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><span>Pulseras</span></button>
+  <button data-ir="reporte"><svg viewBox="0 0 24 24"><path d="M5 20V10M12 20V4M19 20v-7"/></svg><span>Reporte</span></button>
   <button data-act="config"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3v2.5M12 18.5V21M3 12h2.5M18.5 12H21M5.6 5.6l1.8 1.8M16.6 16.6l1.8 1.8M5.6 18.4l1.8-1.8M16.6 7.4l1.8-1.8"/></svg><span>Configuración</span></button>
 </nav>
-
-<section id="pase"></section>
-<div id="pimg"><img id="pimg-i" alt="Tu pase"><p>Mantené apretada la imagen y elegí "Guardar" para tenerla en tu galería.</p><button class="btn" data-act="cerrar-img">Listo</button></div>
-
-<div class="res" id="res" hidden></div>
 
 <div class="ov" id="ov">
   <div class="modal">
     <div id="a-user">
       <h2>¿Quién sos?</h2>
-      <p>Tu nombre queda guardado en este dispositivo y aparece en cada acreditación y cada entrega.</p>
+      <p>Tu nombre queda guardado en este dispositivo y aparece en cada pulsera que entregues.</p>
       <form id="f-nombre" autocomplete="off">
-        <label class="f">Nombre<input id="a-puesto" maxlength="40" placeholder="Ej.: Ana · Ingreso 1, Barra 2"></label>
+        <label class="f">Nombre<input id="a-puesto" maxlength="40" placeholder="Ej.: Ana · Puesto 1"></label>
         <div class="fila" style="justify-content:flex-start;margin:0"><button class="btn rojo">Guardar</button><button type="button" class="btn" data-act="cerrar">Cerrar</button></div>
       </form>
     </div>
@@ -366,7 +229,7 @@
       <label class="f">Clave (X-Key)<input id="a-key" placeholder="clave"></label>
       <button class="btn" data-act="conectar">Guardar y conectar</button> <span class="msg" id="a-msg"></span>
       <h3>Zona peligrosa</h3>
-      <p>Borra todas las personas y entregas. Sirve para limpiar las pruebas antes del evento. Pide contraseña.</p>
+      <p>Borra todas las pulseras registradas. Sirve para limpiar las pruebas antes del evento. Pide contraseña.</p>
       <div class="fila" style="justify-content:flex-start;margin:0"><button class="btn" style="color:var(--rojo)" data-act="vaciar">Borrar todo</button><button class="btn" data-act="cerrar">Cerrar</button></div>
     </div>
   </div>
@@ -376,10 +239,7 @@
 
 <div class="toast" id="toast"></div>
 <div class="tip" id="tip"></div>
-<div id="print" aria-hidden="true"></div>
 
-<script src="vendor/qrcode.js"></script>
-<script src="vendor/jsQR.js"></script>
 <script>
 (function () {
 'use strict';
@@ -388,29 +248,26 @@
 var CFG = {
   marca: 'Amstel',
   logo: 'assets/amstel.png',
-  logoEtiqueta: 'assets/amstel-negro.png',   // versión en un solo color para la impresora térmica
   evento: 'Fan Fest',
   subtitulo: 'Final Libertadores 2026 · Montevideo',
-  local: { nombre: 'Estudiantes', escudo: 'assets/estudiantes.png', escudoEtiqueta: 'assets/estudiantes-negro.png' },
-  visita: { nombre: 'Palmeiras', escudo: 'assets/palmeiras.png', escudoEtiqueta: 'assets/palmeiras-negro.png' },
+  local: { nombre: 'Estudiantes', escudo: 'assets/estudiantes.png' },
+  visita: { nombre: 'Palmeiras', escudo: 'assets/palmeiras.png' },
   equipos: [{ n: 'Estudiantes', escudo: 'assets/estudiantes.png' }, { n: 'Palmeiras', escudo: 'assets/palmeiras.png' }, { n: 'Neutral' }],
-  maxCervezas: 3,           // el límite, el precio y la moneda reales los decide la API; esto es para el modo sin conexión
-  precio: 5, moneda: 'USD',
-  etiqueta: { ancho: 62, alto: 80, qr: 30 },   // Brother QL-800, rollo continuo de 62 mm
-  clave: 'amstel2026'       // contraseña para eliminar registros (modo sin conexión; con la base compartida la decide el Worker)
+  tirillas: 3,              // consumos que trae cada pulsera (se cortan a mano en la barra)
+  clave: 'amstel2026'       // contraseña para eliminar registros (modo sin conexión; con la base compartida la decide la API)
 };
-// Base compartida: se completa cuando esté creado el Worker en Cloudflare.
+// Base compartida aparte (opcional): la API ya se publica junto con el sitio.
 var SYNC_DEFAULT = { url: '', key: '' };
 
 var VER = 'v' + document.documentElement.getAttribute('data-ver');
 var $ = function (s) { return document.querySelector(s); };
-var vista = $('#vista'), printBox = $('#print');
+var vista = $('#vista');
 
 // ============================================================ utilidades
 function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
 function norm(t) { return String(t || '').toUpperCase().replace(/[^A-Z0-9]/g, ''); }
+function limpio(t, largo) { return String(t || '').replace(/\s+/g, ' ').trim().slice(0, largo || 80); }
 function hora(t) { return t ? new Date(t).toLocaleTimeString('es-UY', { hour: '2-digit', minute: '2-digit', hour12: false }) : ''; }
-function fmtCodigo(c) { c = norm(c); return c.slice(0, 4) + '-' + c.slice(4); }
 function miles(n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '.'); }
 function fmtDoc(pais, doc) {
   if (pais === 'UY' && /^\d{7,8}$/.test(doc)) return miles(doc.slice(0, -1)) + '-' + doc.slice(-1);
@@ -426,6 +283,7 @@ function ciValida(doc) {          // dígito verificador de la cédula uruguaya
   return (10 - (s % 10)) % 10 === +d[7];
 }
 var PAISES = [{ id: 'UY', n: 'Uruguay', d: 'Cédula' }, { id: 'BR', n: 'Brasil', d: 'RG / CPF' }, { id: 'AR', n: 'Argentina', d: 'DNI' }, { id: 'OTR', n: 'Otro', d: 'Pasaporte' }];
+function paisDe(id) { return PAISES.filter(function (x) { return x.id === id; })[0] || { id: id, n: id, d: 'Documento' }; }
 var mem = {};
 var store = {
   get: function (k) { try { var v = localStorage.getItem(k); if (v != null) return v; } catch (e) {} return k in mem ? mem[k] : null; },
@@ -434,14 +292,14 @@ var store = {
 };
 var toastT;
 function toast(t, err) { var el = $('#toast'); el.textContent = t; el.className = 'toast show' + (err ? ' err' : ''); clearTimeout(toastT); toastT = setTimeout(function () { el.className = 'toast'; }, 3200); }
-// vasos: lleno = retirada, marcado = paga sin retirar, gris = todavía no comprada
-function vasos(u, max, comp) { if (comp == null) comp = max; var s = '<span class="vasos">'; for (var i = 0; i < max; i++) s += '<i class="' + (i < u ? 'on' : i < comp ? 'paga' : '') + '"></i>'; return s + '</span>'; }
-function precio() { return (R && R.precio) || CFG.precio; }
-function plata(n) { return ((R && R.moneda) || CFG.moneda) + ' ' + miles(Math.round(n)); }
-function nCerv(n) { return n + (n === 1 ? ' cerveza' : ' cervezas'); }
 function puesto() { return store.get('amstel-puesto') || ''; }
+function nPuls(n) { return miles(n) + (n === 1 ? ' pulsera' : ' pulseras'); }
+function diaKey(t) { var d = new Date(t), z = function (n) { return (n < 10 ? '0' : '') + n; }; return d.getFullYear() + '-' + z(d.getMonth() + 1) + '-' + z(d.getDate()); }
+// "14:32" si fue hoy; "21/11 · 14:32" si fue otro día
+function cuando(t) { if (!t) return ''; var d = new Date(t); return (diaKey(t) === diaKey(Date.now()) ? '' : d.getDate() + '/' + (d.getMonth() + 1) + ' · ') + hora(t); }
+function escudoDe(n) { var e = CFG.equipos.filter(function (x) { return x.n === n; })[0]; return e && e.escudo ? '<img class="esc" src="' + esc(e.escudo) + '" alt="">' : ''; }
 
-// ============================================================ API compartida (Cloudflare Worker + D1)
+// ============================================================ API compartida (Cloudflare Pages + D1)
 function syncCfg() {
   try { var o = JSON.parse(store.get('amstel-sync')); if (o && o.url) return o; } catch (e) {}
   return SYNC_DEFAULT.url ? SYNC_DEFAULT : null;
@@ -459,140 +317,69 @@ function apiRemota(sync) {
   return {
     local: false,
     consultar: function (pais, doc) { return call('POST', '/consultar', { pais: pais, documento: doc }); },
-    vender: function (items, medio) { return call('POST', '/vender', { items: items, medio: medio, puesto: puesto() }); },
-    canjear: function (cod, seguido) { return call('POST', '/canjear', { codigo: cod, puesto: puesto(), seguido: !!seguido }); },
-    deshacer: function (id, forzar) { return call('POST', '/deshacer', { entrega_id: id, forzar: !!forzar }); },
+    entregar: function (pais, doc, nombre, equipo) { return call('POST', '/entregar', { pais: pais, documento: doc, nombre: nombre, equipo: equipo, puesto: puesto() }); },
     resumen: function () { return call('GET', '/resumen'); },
-    personas: function (q, lim) { return call('GET', '/personas?q=' + encodeURIComponent(q || '') + '&limite=' + (lim || 100)); },
-    ventas: function () { return call('GET', '/ventas'); },
-    editar: function (id, pais, doc, equipo) { return call('POST', '/editar', { id: id, pais: pais, documento: doc, equipo: equipo }); },
+    pulseras: function (q, lim) { return call('GET', '/pulseras?q=' + encodeURIComponent(q || '') + '&limite=' + (lim || 100)); },
+    editar: function (id, pais, doc, nombre, equipo) { return call('POST', '/editar', { id: id, pais: pais, documento: doc, nombre: nombre, equipo: equipo }); },
     eliminar: function (id, clave) { return call('POST', '/eliminar', { id: id, clave: clave }); },
     vaciar: function (clave) { return call('POST', '/vaciar', { confirmacion: 'BORRAR', clave: clave }); },
-    estado: function () { return call('GET', '/estado'); },
-    pase: function (cod) { return call('GET', '/pase?codigo=' + encodeURIComponent(cod)); },
-    walletGoogle: function (cod) { return call('GET', '/wallet/google?codigo=' + encodeURIComponent(cod) + '&sitio=' + encodeURIComponent(location.href.split('#')[0].replace(/[^/]*$/, ''))); }
+    estado: function () { return call('GET', '/estado'); }
   };
 }
-// Misma lógica guardada en este dispositivo: para probar sin la base compartida.
+// Misma lógica guardada en este dispositivo: para probar o seguir trabajando sin la base compartida.
 function apiLocal() {
-  var KEY = 'amstel-local-db', MAX = CFG.maxCervezas || 3, PRECIO = CFG.precio || 5;
-  function load() {
-    var db; try { db = JSON.parse(store.get(KEY)); } catch (e) {}
-    db = db || {}; db.personas = db.personas || []; db.entregas = db.entregas || []; db.ventas = db.ventas || []; db.items = db.items || []; db.seq = db.seq || 1;
-    db.personas.forEach(function (p) { if (p.compradas == null) p.compradas = p.usadas || 0; });   // datos de la versión anterior
-    return db;
-  }
+  var KEY = 'amstel-pulseras-db';
+  function load() { var db; try { db = JSON.parse(store.get(KEY)); } catch (e) {} db = db || {}; db.pulseras = db.pulseras || []; db.seq = db.seq || 1; return db; }
   function save(db) { store.set(KEY, JSON.stringify(db)); }
-  function cod() { var a = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789', c = ''; for (var i = 0; i < 8; i++) c += a[Math.floor(Math.random() * a.length)]; return c; }
-  function saldo(p) { return { compradas: p.compradas, usadas: p.usadas, pendientes: p.compradas - p.usadas, cupo: Math.max(MAX - p.compradas, 0), max: MAX }; }
-  function pj(p) { var j = saldo(p); j.id = p.id; j.pais = p.pais; j.documento = p.documento; j.equipo = p.equipo; j.codigo = p.codigo; j.creado = p.creado; j.creado_por = p.creado_por; j.ultima_entrega = p.ultima; return j; }
   function w(fn) { return function () { var a = arguments; return new Promise(function (ok, no) { setTimeout(function () { try { ok(fn.apply(null, a)); } catch (e) { no(e); } }, 80); }); }; }
-  function busca(db, pais, doc) { return db.personas.filter(function (x) { return x.pais === pais && x.documento === doc; })[0]; }
+  function busca(db, pais, doc) { return db.pulseras.filter(function (x) { return x.pais === pais && x.documento === doc; })[0]; }
+  function ok(d, pa) { return d.length >= 5 && d.length <= 20 && !!pa; }
+  function cuenta(lista, clave, nombre, vacio) { var o = {}; lista.forEach(function (p) { var k = p[clave] || vacio; o[k] = (o[k] || 0) + 1; }); return Object.keys(o).map(function (k) { var r = { personas: o[k] }; r[nombre] = k; return r; }).sort(function (a, b) { return b.personas - a.personas; }); }
   return {
     local: true,
     consultar: w(function (pais, doc) {
-      var d = norm(doc), pa = norm(pais).slice(0, 3);
-      if (d.length < 5 || d.length > 20 || !pa) return { estado: 'documento_invalido' };
-      var p = busca(load(), pa, d);
-      return p ? { estado: 'ok', existe: true, persona: pj(p) } : { estado: 'ok', existe: false, cupo: MAX, max: MAX };
+      var d = norm(doc), pa = norm(pais).slice(0, 3), db = load();
+      if (!ok(d, pa)) return { estado: 'documento_invalido' };
+      var p = busca(db, pa, d);
+      if (p) return { estado: 'ok', existe: true, pulsera: p };
+      return { estado: 'ok', existe: false, parecido: db.pulseras.filter(function (x) { return x.documento === d && x.pais !== pa; })[0] || null };
     }),
-    vender: w(function (items, medio) {
-      if (medio !== 'tarjeta' && medio !== 'efectivo') return { estado: 'falta_medio' };
-      if (!items || !items.length) return { estado: 'sin_items' };
-      var db = load(), fans = [], vistos = {}, i, f;
-      for (i = 0; i < items.length; i++) {
-        var d = norm(items[i].documento), pa = norm(items[i].pais).slice(0, 3), c = Math.floor(+items[i].cantidad || 0);
-        if (d.length < 5 || d.length > 20 || !pa) return { estado: 'documento_invalido', documento: d };
-        if (c < 1 || c > MAX) return { estado: 'cantidad_invalida', documento: d };
-        if (vistos[pa + d]) return { estado: 'documento_repetido', documento: d };
-        vistos[pa + d] = 1; f = { doc: d, pais: pa, cant: c, equipo: (items[i].equipo || '').trim() || null, p: busca(db, pa, d) };
-        if (!f.p && !f.equipo) return { estado: 'falta_equipo', documento: d };
-        if (f.p && f.p.compradas + c > MAX) return { estado: 'sin_cupo', documento: d, cupo: Math.max(MAX - f.p.compradas, 0) };
-        fans.push(f);
-      }
-      var ahora = Date.now(), cervezas = 0, v = { id: db.seq++, hecho: ahora, puesto: puesto() || null, medio: medio };
-      fans.forEach(function (f) {
-        if (!f.p) { f.p = { id: db.seq++, pais: f.pais, documento: f.doc, equipo: f.equipo, codigo: cod(), compradas: 0, usadas: 0, creado: ahora, creado_por: puesto() || null, ultima: null }; db.personas.push(f.p); f.nueva = true; }
-        f.p.compradas += f.cant; cervezas += f.cant;
-        db.items.push({ venta_id: v.id, persona_id: f.p.id, cantidad: f.cant, precio: PRECIO });
-      });
-      v.cervezas = cervezas; v.total = cervezas * PRECIO; db.ventas.push(v); save(db);
-      return { estado: 'ok', venta_id: v.id, cervezas: cervezas, total: v.total, medio: medio, fans: fans.map(function (f) { return { nueva: !!f.nueva, cantidad: f.cant, persona: pj(f.p) }; }) };
-    }),
-    canjear: w(function (c, seguido) {
-      var db = load(), p = db.personas.filter(function (x) { return x.codigo === norm(c); })[0], r;
-      if (!p) return { estado: 'inexistente' };
-      if (p.usadas >= p.compradas) { r = saldo(p); r.estado = 'sin_saldo'; r.ultima_entrega = p.ultima; return r; }
-      if (!seguido && p.ultima && Date.now() - p.ultima < 5000) { r = saldo(p); r.estado = 'repetido'; return r; }
-      p.usadas++; p.ultima = Date.now();
-      var e = { id: db.seq++, persona_id: p.id, numero: p.usadas, hecho: p.ultima, puesto: puesto() || null, anulada: 0 };
-      db.entregas.push(e); save(db);
-      r = saldo(p); r.estado = 'ok'; r.numero = p.usadas; r.entrega_id = e.id; return r;
-    }),
-    deshacer: w(function (id, forzar) {
-      var db = load(), e = db.entregas.filter(function (x) { return x.id === id; })[0];
-      if (!e || e.anulada || (!forzar && Date.now() - e.hecho > 120000)) return { estado: 'no_se_pudo' };
-      e.anulada = 1;
-      var p = db.personas.filter(function (x) { return x.id === e.persona_id; })[0];
-      p.usadas = Math.max(p.usadas - 1, 0);
-      var v = db.entregas.filter(function (x) { return x.persona_id === p.id && !x.anulada; });
-      p.ultima = v.length ? v[v.length - 1].hecho : null; save(db);
-      var r = saldo(p); r.estado = 'ok'; return r;
+    entregar: w(function (pais, doc, nombre, equipo) {
+      var d = norm(doc), pa = norm(pais).slice(0, 3), db = load();
+      if (!ok(d, pa)) return { estado: 'documento_invalido' };
+      if (!limpio(equipo, 40)) return { estado: 'falta_equipo' };
+      var p = busca(db, pa, d);
+      if (p) return { estado: 'ya_entregada', pulsera: p };
+      p = { id: db.seq++, pais: pa, documento: d, nombre: limpio(nombre) || null, equipo: limpio(equipo, 40), creado: Date.now(), creado_por: puesto() || null };
+      db.pulseras.push(p); save(db); return { estado: 'ok', pulsera: p };
     }),
     resumen: w(function () {
-      var db = load(), pc = [], pp = {}, ph = {}, pe = {}, vh = {}, pm = {}, pk = {};
-      for (var g = 0; g <= MAX; g++) pc.push({ usadas: g, personas: db.personas.filter(function (p) { return p.usadas === g; }).length });
-      db.personas.forEach(function (p) { var k = p.equipo || 'Sin equipo'; pe[k] = pe[k] || { equipo: k, personas: 0, compradas: 0, cervezas: 0 }; pe[k].personas++; pe[k].compradas += p.compradas; pe[k].cervezas += p.usadas; });
-      db.entregas.forEach(function (e) { if (e.anulada) return; var k = e.puesto || 'Sin nombre'; pp[k] = (pp[k] || 0) + 1; var h = Math.floor(e.hecho / 3600000) * 3600000; ph[h] = (ph[h] || 0) + 1; });
-      db.ventas.forEach(function (v) {
-        var h = Math.floor(v.hecho / 3600000) * 3600000; vh[h] = (vh[h] || 0) + v.cervezas;
-        pm[v.medio] = pm[v.medio] || { medio: v.medio, ventas: 0, cervezas: 0, total: 0 }; pm[v.medio].ventas++; pm[v.medio].cervezas += v.cervezas; pm[v.medio].total += v.total;
-        var k = v.puesto || 'Sin nombre'; pk[k] = pk[k] || { puesto: k, ventas: 0, cervezas: 0, total: 0 }; pk[k].ventas++; pk[k].cervezas += v.cervezas; pk[k].total += v.total;
-      });
-      var vend = db.personas.reduce(function (a, p) { return a + p.compradas; }, 0), ent = db.personas.reduce(function (a, p) { return a + p.usadas; }, 0);
-      var lista = function (o) { return Object.keys(o).map(function (k) { return o[k]; }); };
-      return { max: MAX, precio: PRECIO, moneda: CFG.moneda, personas: db.personas.length, entregadas: ent, vendidas: vend, pendientes: vend - ent,
-        recaudado: db.ventas.reduce(function (a, v) { return a + v.total; }, 0), ventas: db.ventas.length, por_medio: lista(pm), por_cantidad: pc,
-        por_equipo: lista(pe).sort(function (a, b) { return b.personas - a.personas; }),
-        por_puesto: Object.keys(pp).map(function (k) { return { puesto: k, entregas: pp[k] }; }).sort(function (a, b) { return b.entregas - a.entregas; }),
-        por_caja: lista(pk).sort(function (a, b) { return b.total - a.total; }),
-        por_hora: Object.keys(ph).sort().map(function (k) { return { hora: +k, entregas: ph[k] }; }),
-        vendidas_por_hora: Object.keys(vh).sort().map(function (k) { return { hora: +k, cervezas: vh[k] }; }) };
+      var ps = load().pulseras, ph = {};
+      ps.forEach(function (p) { var h = Math.floor(p.creado / 3600000) * 3600000; ph[h] = (ph[h] || 0) + 1; });
+      return { personas: ps.length, por_equipo: cuenta(ps, 'equipo', 'equipo', 'Sin equipo'), por_puesto: cuenta(ps, 'creado_por', 'puesto', 'Sin nombre'), por_pais: cuenta(ps, 'pais', 'pais', ''),
+        por_hora: Object.keys(ph).sort().map(function (k) { return { hora: +k, personas: ph[k] }; }) };
     }),
-    personas: w(function (q, lim) {
-      var db = load(); q = norm(q);
-      var ult = function (p) { var t = Math.max(p.ultima || 0, p.creado); db.items.forEach(function (i) { if (i.persona_id === p.id) { var v = db.ventas.filter(function (x) { return x.id === i.venta_id; })[0]; if (v) t = Math.max(t, v.hecho); } }); return t; };
-      return db.personas.filter(function (p) { return !q || p.documento.indexOf(q) >= 0 || p.codigo.indexOf(q) === 0; })
-        .map(function (p) { return [ult(p), p]; }).sort(function (a, b) { return b[0] - a[0]; }).slice(0, lim || 100)
-        .map(function (x) { var p = x[1], j = pj(p);
-          j.entregas = db.entregas.filter(function (e) { return e.persona_id === p.id && !e.anulada; }).map(function (e) { return { id: e.id, numero: e.numero, hecho: e.hecho, puesto: e.puesto }; });
-          j.compras = db.items.filter(function (i) { return i.persona_id === p.id; }).map(function (i) { var v = db.ventas.filter(function (x) { return x.id === i.venta_id; })[0] || {}; return { venta_id: i.venta_id, cantidad: i.cantidad, total: i.cantidad * i.precio, hecho: v.hecho, medio: v.medio, puesto: v.puesto }; });
-          return j; });
+    pulseras: w(function (q, lim) {
+      var crudo = limpio(q, 60).toLowerCase(), n = norm(q);
+      return load().pulseras.filter(function (p) { return (!n && !crudo) || (n && p.documento.indexOf(n) >= 0) || (crudo && (p.nombre || '').toLowerCase().indexOf(crudo) >= 0); })
+        .sort(function (a, b) { return b.creado - a.creado || b.id - a.id; }).slice(0, lim || 100);
     }),
-    ventas: w(function () {
-      var db = load();
-      return db.ventas.slice().reverse().map(function (v) { return { id: v.id, hecho: v.hecho, puesto: v.puesto, medio: v.medio, cervezas: v.cervezas, total: v.total,
-        detalle: db.items.filter(function (i) { return i.venta_id === v.id; }).map(function (i) { var p = db.personas.filter(function (x) { return x.id === i.persona_id; })[0] || {}; return (p.pais || '') + ' ' + (p.documento || '') + ' x' + i.cantidad; }).join(' | ') }; });
-    }),
-    editar: w(function (id, pais, doc, equipo) {
+    editar: w(function (id, pais, doc, nombre, equipo) {
       var d = norm(doc), pa = norm(pais).slice(0, 3), db = load();
-      if (d.length < 5 || d.length > 20 || !pa) return { estado: 'documento_invalido' };
-      if (!equipo) return { estado: 'falta_equipo' };
-      if (db.personas.some(function (x) { return x.id !== id && x.pais === pa && x.documento === d; })) return { estado: 'duplicado' };
-      var p = db.personas.filter(function (x) { return x.id === id; })[0]; if (!p) return { estado: 'inexistente' };
-      p.pais = pa; p.documento = d; p.equipo = equipo; save(db); return { estado: 'ok', persona: pj(p) };
+      if (!ok(d, pa)) return { estado: 'documento_invalido' };
+      if (!limpio(equipo, 40)) return { estado: 'falta_equipo' };
+      if (db.pulseras.some(function (x) { return x.id !== id && x.pais === pa && x.documento === d; })) return { estado: 'duplicado' };
+      var p = db.pulseras.filter(function (x) { return x.id === id; })[0]; if (!p) return { estado: 'inexistente' };
+      p.pais = pa; p.documento = d; p.nombre = limpio(nombre) || null; p.equipo = limpio(equipo, 40); save(db); return { estado: 'ok', pulsera: p };
     }),
     eliminar: w(function (id, clave) {
       if (clave !== CFG.clave) return { estado: 'clave_incorrecta' };
-      var db = load(), n = db.personas.length;
-      db.personas = db.personas.filter(function (x) { return x.id !== id; }); if (db.personas.length === n) return { estado: 'inexistente' };
-      db.items.forEach(function (i) { if (i.persona_id !== id) return; var v = db.ventas.filter(function (x) { return x.id === i.venta_id; })[0]; if (v) { v.cervezas -= i.cantidad; v.total -= i.cantidad * i.precio; } });
-      db.items = db.items.filter(function (i) { return i.persona_id !== id; }); db.ventas = db.ventas.filter(function (v) { return v.cervezas > 0; });
-      db.entregas = db.entregas.filter(function (e) { return e.persona_id !== id; }); save(db); return { estado: 'ok' };
+      var db = load(), n = db.pulseras.length;
+      db.pulseras = db.pulseras.filter(function (x) { return x.id !== id; }); if (db.pulseras.length === n) return { estado: 'inexistente' };
+      save(db); return { estado: 'ok' };
     }),
-    vaciar: w(function (clave) { if (clave !== CFG.clave) return { estado: 'clave_incorrecta' }; save({ personas: [], entregas: [], ventas: [], items: [], seq: 1 }); return { estado: 'ok' }; }),
-    estado: w(function () { return { ok: true, max: MAX }; }),
-    pase: w(function (c) { var p = load().personas.filter(function (x) { return x.codigo === norm(c); })[0], r; if (!p) return { estado: 'inexistente' }; r = saldo(p); r.estado = 'ok'; r.equipo = p.equipo; return r; })
+    vaciar: w(function (clave) { if (clave !== CFG.clave) return { estado: 'clave_incorrecta' }; save({ pulseras: [], seq: 1 }); return { estado: 'ok' }; }),
+    estado: w(function () { return { ok: true, version: 3 }; })
   };
 }
 var api;
@@ -604,316 +391,144 @@ function iniciarApi() {
   if (s) { api = apiRemota(s); conexion.modo = 'worker'; fin(); return Promise.resolve(); }
   api = apiLocal();
   if (!/^https?:$/.test(location.protocol)) { fin(); return Promise.resolve(); }
-  var cand = apiRemota({ url: location.href.split('#')[0].split('?')[0].replace(/[^/]*$/, '') + 'api', key: '' });
-  var prueba = fetch(location.href.split('#')[0].split('?')[0].replace(/[^/]*$/, '') + 'api/estado', { cache: 'no-store' })
+  var base = location.href.split('#')[0].split('?')[0].replace(/[^/]*$/, '') + 'api';
+  var prueba = fetch(base + '/estado', { cache: 'no-store' })
     .then(function (r) { return r.json().catch(function () { return {}; }); })
-    .then(function (e) { if (e && e.ok && e.version >= 2) { api = cand; conexion.modo = 'sitio'; } else if (e && e.error) conexion.falta = e.error; })
+    .then(function (e) { if (e && e.ok && e.version >= 3) { api = apiRemota({ url: base, key: '' }); conexion.modo = 'sitio'; } else if (e && e.error) conexion.falta = e.error; })
     .catch(function () {});
   return Promise.race([prueba, new Promise(function (ok) { setTimeout(ok, 4000); })]).then(fin);
 }
 function errTxt(e) { return 'No se pudo conectar con la base. Revisá internet y probá de nuevo.' + (e && /401/.test(e.message) ? ' (clave incorrecta)' : ''); }
 
-// ============================================================ etiqueta
-function qrSvg(t) { var q = window.qrcode(0, 'M'); q.addData(t); q.make(); return q.createSvgTag({ cellSize: 4, margin: 0, scalable: true }); }
-function etiquetaHtml(p) {
-  var E = CFG.etiqueta, max = p.max || CFG.maxCervezas;
-  return '<div class="label" style="--lw:' + E.ancho + ';--lh:' + E.alto + ';--qr:' + E.qr + '">' +
-    '<div class="l-cab">' + (CFG.local.escudoEtiqueta ? '<img src="' + esc(CFG.local.escudoEtiqueta) + '" alt="">' : '') +
-    (CFG.logoEtiqueta ? '<img class="l-logo" src="' + esc(CFG.logoEtiqueta) + '" alt="">' : '<b>' + esc(CFG.marca) + '</b>') +
-    (CFG.visita.escudoEtiqueta ? '<img class="l-alto" src="' + esc(CFG.visita.escudoEtiqueta) + '" alt="">' : '') + '</div>' +
-    '<div class="l-ev">' + esc(CFG.evento) + '</div><div class="l-sub">' + esc(CFG.subtitulo) + '</div>' +
-    '<div class="l-qr">' + qrSvg(p.codigo) + '</div>' +
-    '<div class="l-doc"><small>Documento ' + esc(p.pais === 'OTR' ? '' : p.pais) + (p.equipo ? ' · ' + esc(p.equipo) : '') + '</small>' + esc(fmtDoc(p.pais, p.documento)) + '</div>' +
-    '<div class="l-pie"><div><b>' + max + ' cervezas por persona</b><i>' + max + ' cervejas por pessoa</i></div><span>' + esc(fmtCodigo(p.codigo)) + '</span></div></div>';
-}
-function imprimir(p) {
-  var lista = (Array.isArray(p) ? p : [p]).filter(Boolean); if (!lista.length) return;
-  var E = CFG.etiqueta, st = document.getElementById('page-size');
-  if (!st) { st = document.createElement('style'); st.id = 'page-size'; document.head.appendChild(st); }
-  st.textContent = '@page{size:' + E.ancho + 'mm ' + E.alto + 'mm;margin:0}';
-  printBox.innerHTML = lista.map(function (x) { return '<div class="pg">' + etiquetaHtml(x) + '</div>'; }).join('');   // una etiqueta por hoja
-  var imgs = [].slice.call(printBox.querySelectorAll('img')), falta = imgs.filter(function (i) { return !i.complete; }).length, hecho = false;
-  function ya() { if (hecho) return; hecho = true; setTimeout(function () { window.print(); }, 60); }
-  if (!falta) return ya();
-  imgs.forEach(function (i) { if (!i.complete) i.onload = i.onerror = function () { if (--falta <= 0) ya(); }; });
-  setTimeout(ya, 1500);
-}
-
 // ============================================================ total de arriba
 var R = null;
 function pintarTotal() {
   if (!R) return;
-  $('#k-total').textContent = miles(R.entregadas);
-  $('#k-sub').textContent = miles(R.vendidas) + ' vendidas · ' + miles(R.pendientes) + ' pagas para retirar · ' + plata(R.recaudado);
+  var hoy = diaKey(Date.now()), n = 0;
+  (R.por_hora || []).forEach(function (h) { if (diaKey(h.hora) === hoy) n += h.personas; });
+  $('#k-total').textContent = miles(R.personas);
+  $('#k-sub').textContent = 'Una pulsera por persona · ' + miles(n) + ' hoy';
 }
 function refrescar() {
-  return api.resumen().then(function (r) { var igual = JSON.stringify(r) === JSON.stringify(R); R = r; pintarTotal(); if (actual === 'consumo' && !igual) pintarConsumoResumen(); return r; }).catch(function () {});
+  return api.resumen().then(function (r) { var igual = JSON.stringify(r) === JSON.stringify(R); R = r; pintarTotal(); if (actual === 'reporte' && !igual) pintarReporte(); return r; }).catch(function () {});
 }
 
-// ============================================================ CAJA (venta de cervezas)
-var ing = { rec: [], q: '', ultima: null };
-function nuevoFan() { return { pais: 'UY', doc: '', est: 'vacio', aviso: false, existe: false, p: null, equipo: '', cant: 0, cupo: 0, msg: '', mc: 'mal' }; }
-var caja = { fans: [nuevoFan()], medio: '', ocupado: false, msg: '', hecho: null };
-function escudoDe(n) { var e = CFG.equipos.filter(function (x) { return x.n === n; })[0]; return e && e.escudo ? '<img class="esc" src="' + esc(e.escudo) + '" alt="">' : ''; }
-function vAcreditar() {
+// ============================================================ PULSERAS (registro de la entrega)
+var ICO_OK = '<svg viewBox="0 0 96 96"><circle cx="48" cy="48" r="42"/><path d="M28 50l14 14 27-30"/></svg>';
+var ICO_NO = '<svg viewBox="0 0 96 96"><circle cx="48" cy="48" r="42"/><path d="M32 32l32 32M64 32L32 64"/></svg>';
+function nuevoReg() { return { pais: 'UY', doc: '', est: 'vacio', aviso: false, msg: '', mc: 'mal', nombre: '', equipo: '', p: null, parecido: null, ocupado: false }; }
+var reg = nuevoReg(), ult = null, lst = { rec: [], q: '' };
+function vPulseras() {
   vista.innerHTML =
-    '<div class="pill"><div class="ico"><svg viewBox="0 0 24 24"><path d="M7 4h10l-1 15a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1L7 4zM7.4 9h9.2"/></svg></div>' +
-    '<div class="tx"><b>' + plata(precio()) + ' cada cerveza · hasta ' + CFG.maxCervezas + ' por persona</b><span>Cada fan compra con su documento, en una o varias veces. La etiqueta se imprime una sola vez.</span></div>' + vasos(3, 3) + '</div>' +
-    '<div class="grid"><section class="card"><h2>Nueva compra</h2><div id="fans"></div>' +
-    '<button class="btn borde" id="b-otro" data-act="otro-fan" style="width:100%"></button>' +
-    '<div class="tot" id="tot"></div><div class="medios" id="medios"></div>' +
-    '<div class="msg mal" id="m-caja"></div><button class="btn rojo grande" id="b-cobrar" data-act="cobrar"></button></section>' +
-    '<section class="card"><h2>Última compra</h2><div id="et"></div></section></div>' +
-    '<div class="sec"><span>Compradores</span><span style="color:var(--gris);font-weight:600" id="n-acr"></span></div>' +
-    '<div class="buscar"><input id="q-acr" type="search" placeholder="Buscar documento o código" value="' + esc(ing.q) + '" autocomplete="off"></div>' +
+    '<div class="pill"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="26" height="26"><rect x="3" y="9" width="18" height="6" rx="3"/><path d="M9 9v6M13 9v6M17 9v6"/></svg></div>' +
+    '<div class="tx"><b>Una pulsera por persona · ' + CFG.tirillas + ' tirillas, una por cerveza</b><span>Se registra el documento al entregar la pulsera. Si vuelve con el mismo documento, el sistema avisa que ya la retiró.</span></div></div>' +
+    '<div class="grid"><section class="card"><h2>Entregar pulsera</h2><div id="reg"></div></section>' +
+    '<section class="card"><h2>Última pulsera entregada</h2><div id="ult"></div></section></div>' +
+    '<div class="sec"><span>Pulseras entregadas</span><span style="color:var(--gris);font-weight:600" id="n-rec"></span></div>' +
+    '<div class="buscar"><input id="q-rec" type="search" placeholder="Buscar documento o nombre" value="' + esc(lst.q) + '" autocomplete="off"></div>' +
     '<div class="lista" id="rec"><p class="vacio">Cargando…</p></div>';
-  var tq; $('#q-acr').oninput = function () { ing.q = this.value; clearTimeout(tq); tq = setTimeout(pintarRec, 250); };
-  pintarCaja(true); pintarHecho(); pintarRec();
+  var tq; $('#q-rec').oninput = function () { lst.q = this.value; clearTimeout(tq); tq = setTimeout(pintarRec, 250); };
+  pintarReg(true); pintarUlt(); pintarRec();
 }
-function fanHtml(f, i) {
-  var h = '<div class="fan"><div class="fan-h"><b>Fan ' + (i + 1) + '</b>';
-  if (f.est === 'ok') h += '<span class="chipi ' + (f.existe ? (f.cupo > 0 ? 'ya' : 'no') : 'nu') + '">' + (!f.existe ? 'Primera compra' : f.cupo > 0 ? 'Ya compró ' + f.p.compradas + ' · puede comprar ' + f.cupo + ' más' : 'Ya compró sus ' + f.p.max) + '</span>';
-  if (caja.fans.length > 1) h += '<button type="button" class="btn mini" data-cquitar="' + i + '" style="margin-left:auto">Quitar</button>';
-  h += '</div>';
-  if (f.est !== 'ok') {
-    var pd = PAISES.filter(function (x) { return x.id === f.pais; })[0];
-    h += '<div class="chips">' + PAISES.map(function (p) { return '<button type="button" class="chip' + (p.id === f.pais ? ' on' : '') + '" data-cpais="' + i + ':' + p.id + '">' + p.n + '</button>'; }).join('') + '</div>' +
+function fichaHtml(p) {     // datos de una pulsera ya registrada
+  return '<div class="ficha"><div><small>' + esc(paisDe(p.pais).d) + ' · ' + esc(paisDe(p.pais).n) + '</small><b class="num">' + esc(fmtDoc(p.pais, p.documento)) + '</b></div>' +
+    (p.nombre ? '<div><small>Nombre y apellido</small><b>' + esc(p.nombre) + '</b></div>' : '') +
+    '<div><small>Equipo</small><b>' + escudoDe(p.equipo) + esc(p.equipo || 'Sin equipo') + '</b></div>' +
+    '<div><small>Retiró la pulsera</small><b>' + esc(cuando(p.creado)) + (p.creado_por ? ' · ' + esc(p.creado_por) : '') + '</b></div></div>';
+}
+function pintarReg(foco) {
+  var el = $('#reg'); if (!el) return; var h = '', pd = paisDe(reg.pais);
+  if (reg.est === 'vacio') {
+    h = '<div class="chips">' + PAISES.map(function (p) { return '<button type="button" class="chip' + (p.id === reg.pais ? ' on' : '') + '" data-rpais="' + p.id + '">' + p.n + '</button>'; }).join('') + '</div>' +
       '<label class="f">' + pd.d + (pd.id === 'UY' ? ' (con dígito verificador)' : '') +
-      '<span class="docfila"><input class="doc" data-cdoc="' + i + '" id="doc-' + i + '" maxlength="24" autocapitalize="characters" spellcheck="false" autocomplete="off" inputmode="' + (pd.id === 'UY' || pd.id === 'AR' ? 'numeric' : 'text') + '" value="' + esc(f.doc) + '"><button type="button" class="btn rojo" data-cbuscar="' + i + '">Buscar</button></span></label>' +
-      '<div class="msg ' + f.mc + '" id="fm-' + i + '">' + esc(f.msg) + '</div>';
+      '<span class="docfila"><input class="doc" id="r-doc" maxlength="24" autocapitalize="characters" spellcheck="false" autocomplete="off" inputmode="' + (pd.id === 'UY' || pd.id === 'AR' ? 'numeric' : 'text') + '" value="' + esc(reg.doc) + '"><button type="button" class="btn rojo" data-act="r-buscar">Buscar</button></span></label>' +
+      '<div class="msg ' + reg.mc + '" id="r-msg">' + esc(reg.msg) + '</div>' +
+      '<p class="nota" style="margin-top:0">Ingresá el documento y tocá Buscar (o Enter). El sistema dice si puede retirar su pulsera.</p>';
+  } else if (reg.est === 'libre') {
+    h = '<div class="fdoc"><b>' + esc(fmtDoc(reg.pais, norm(reg.doc))) + '</b><small>' + esc(pd.n) + '</small><button type="button" class="btn mini" data-act="r-cambiar">Cambiar</button></div>' +
+      '<div class="estado si">' + ICO_OK + '<div><b>Puede retirar su pulsera</b><span>Este documento todavía no retiró ninguna.</span></div></div>' +
+      (reg.parecido ? '<p class="msg aviso">Atención: el mismo número ya retiró una pulsera como documento de ' + esc(paisDe(reg.parecido.pais).n) + ' (' + esc(cuando(reg.parecido.creado)) + '). Verificá que no sea la misma persona.</p>' : '') +
+      '<label class="f">Nombre y apellido (opcional)<input id="r-nom" maxlength="80" autocomplete="off" autocapitalize="words" value="' + esc(reg.nombre) + '"></label>' +
+      '<label class="f" style="margin-bottom:8px">Equipo</label><div class="chips equipos">' + CFG.equipos.map(function (e) { return '<button type="button" class="chip' + (e.n === reg.equipo ? ' on' : '') + '" data-requipo="' + esc(e.n) + '">' + (e.escudo ? '<img src="' + esc(e.escudo) + '" alt="">' : '') + esc(e.n) + '</button>'; }).join('') + '</div>' +
+      '<div class="msg ' + reg.mc + '" id="r-msg">' + esc(reg.msg) + '</div>' +
+      '<button class="btn rojo grande" data-act="r-entregar">' + (reg.ocupado ? 'Registrando…' : 'Registrar entrega de pulsera') + '</button>';
   } else {
-    h += '<div class="fdoc"><b>' + esc(fmtDoc(f.pais, norm(f.doc))) + '</b><small>' + esc(f.pais) + (f.existe && f.equipo ? ' · ' + escudoDe(f.equipo) + esc(f.equipo) : '') + '</small><button type="button" class="btn mini" data-ccambiar="' + i + '">Cambiar</button></div>';
-    if (f.existe && f.p.pendientes > 0) h += '<p class="nota" style="margin:0 0 10px">Tiene ' + nCerv(f.p.pendientes) + (f.p.pendientes === 1 ? ' paga' : ' pagas') + ' sin retirar.</p>';
-    if (!f.existe) h += '<label class="f" style="margin-bottom:8px">Equipo</label><div class="chips equipos">' + CFG.equipos.map(function (e) { return '<button type="button" class="chip' + (e.n === f.equipo ? ' on' : '') + '" data-cequipo="' + i + ':' + esc(e.n) + '">' + (e.escudo ? '<img src="' + esc(e.escudo) + '" alt="">' : '') + esc(e.n) + '</button>'; }).join('') + '</div>';
-    if (f.cupo > 0) {
-      h += '<label class="f" style="margin-bottom:8px">¿Cuántas cervezas compra?</label><div class="cant">';
-      for (var n = 1; n <= f.cupo; n++) h += '<button type="button" class="' + (f.cant === n ? 'on' : '') + '" data-ccant="' + i + ':' + n + '">' + n + '</button>';
-      h += '<span>' + (f.cant ? plata(f.cant * precio()) : '') + '</span></div>';
-    } else h += '<p class="msg mal" style="margin:0 0 10px">No puede comprar más: llegó al máximo de ' + f.p.max + '.</p><button type="button" class="btn mini borde" data-creimp="' + i + '">Reimprimir su etiqueta</button>';
+    h = '<div class="estado no">' + ICO_NO + '<div><b>Ya retiró su pulsera</b><span>No se le entrega otra.</span></div></div>' + fichaHtml(reg.p) +
+      '<button class="btn grande" data-act="r-nuevo" id="r-sig" style="margin-top:14px">Siguiente documento</button>';
   }
-  return h + '</div>';
+  el.innerHTML = h;
+  if (foco) { var f = $(reg.est === 'vacio' ? '#r-doc' : reg.est === 'libre' ? '#r-nom' : '#r-sig'); if (f) { f.focus(); if (f.setSelectionRange) f.setSelectionRange(f.value.length, f.value.length); } }
 }
-function pintarCaja(foco) {
-  if (!$('#fans')) return;
-  $('#fans').innerHTML = caja.fans.map(fanHtml).join('');
-  $('#b-otro').textContent = caja.fans.length === 1 ? 'Añadir cervezas para segundo fan' : 'Añadir cervezas para otro fan';
-  var n = caja.fans.reduce(function (a, f) { return a + (f.est === 'ok' ? f.cant : 0); }, 0);
-  $('#tot').innerHTML = '<span>' + (n ? nCerv(n) + (caja.fans.length > 1 ? ' · ' + caja.fans.length + ' fans' : '') : 'Total') + '</span><b>' + plata(n * precio()) + '</b>';
-  $('#medios').innerHTML = [['tarjeta', 'Tarjeta', '<path d="M3 7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM3 10h18M7 15h3"/>'], ['efectivo', 'Efectivo', '<path d="M3 7h18v10H3zM12 9.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM6 10v4M18 10v4"/>']].map(function (m) {
-    return '<button type="button" class="' + (caja.medio === m[0] ? 'on' : '') + '" data-cmedio="' + m[0] + '"><svg viewBox="0 0 24 24">' + m[2] + '</svg>' + m[1] + '</button>'; }).join('');
-  $('#b-cobrar').textContent = caja.ocupado ? 'Registrando…' : n ? 'Cobrar ' + plata(n * precio()) + ' y registrar' : 'Cobrar y registrar';
-  $('#m-caja').textContent = caja.msg;
-  if (foco) { var k = -1; caja.fans.forEach(function (f, i) { if (k < 0 && f.est !== 'ok') k = i; }); var el = k >= 0 && $('#doc-' + k); if (el) { el.focus(); el.setSelectionRange(el.value.length, el.value.length); } }
+function buscarDoc() {
+  var d = norm(reg.doc), r0 = reg; reg.mc = 'mal';
+  if (d.length < 5) { reg.msg = 'Escribí el número de documento completo.'; return pintarReg(true); }
+  if (reg.pais === 'UY' && !reg.aviso && !ciValida(d)) { reg.aviso = true; reg.mc = 'aviso'; reg.msg = 'El dígito verificador no coincide. Revisá el número; si está bien, tocá Buscar de nuevo.'; return pintarReg(true); }
+  reg.mc = ''; reg.msg = 'Buscando…'; pintarReg();
+  api.consultar(reg.pais, d).then(function (r) {
+    if (reg !== r0) return;
+    if (r.estado !== 'ok') { reg.mc = 'mal'; reg.msg = 'Documento no válido.'; return pintarReg(true); }
+    reg.msg = ''; reg.mc = 'mal';
+    if (r.existe) { reg.est = 'ya'; reg.p = r.pulsera; } else { reg.est = 'libre'; reg.parecido = r.parecido || null; }
+    pintarReg(true);
+  }).catch(function (e) { reg.mc = 'mal'; reg.msg = errTxt(e); pintarReg(true); });
 }
-function buscarFan(i) {
-  var f = caja.fans[i], d = norm(f.doc); f.mc = 'mal';
-  if (d.length < 5) { f.msg = 'Escribí el número de documento completo.'; return pintarCaja(true); }
-  if (caja.fans.some(function (x, k) { return k !== i && x.est === 'ok' && x.pais === f.pais && norm(x.doc) === d; })) { f.msg = 'Ese documento ya está en esta compra.'; return pintarCaja(true); }
-  if (f.pais === 'UY' && !f.aviso && !ciValida(d)) { f.aviso = true; f.mc = 'aviso'; f.msg = 'El dígito verificador no coincide. Revisá el número; si está bien, tocá Buscar de nuevo.'; return pintarCaja(true); }
-  f.mc = ''; f.msg = 'Buscando…'; pintarCaja();
-  api.consultar(f.pais, d).then(function (r) {
-    if (caja.fans[i] !== f) return;
-    if (r.estado !== 'ok') { f.mc = 'mal'; f.msg = 'Documento no válido.'; return pintarCaja(true); }
-    f.est = 'ok'; f.msg = ''; f.existe = r.existe; f.p = r.persona || null; f.cupo = r.existe ? r.persona.cupo : r.cupo; f.equipo = r.existe ? (r.persona.equipo || '') : ''; f.cant = f.cupo > 0 ? 1 : 0;
-    caja.msg = ''; pintarCaja(true);
-  }).catch(function (e) { f.mc = 'mal'; f.msg = errTxt(e); pintarCaja(true); });
+function entregar() {
+  if (reg.ocupado || reg.est !== 'libre') return;
+  if (!reg.equipo) { reg.mc = 'mal'; reg.msg = 'Elegí el equipo.'; return pintarReg(); }
+  var r0 = reg; reg.ocupado = true; reg.msg = ''; pintarReg();
+  api.entregar(reg.pais, norm(reg.doc), limpio(reg.nombre), reg.equipo).then(function (r) {
+    if (reg !== r0) return; reg.ocupado = false;
+    if (r.estado === 'ok') { ult = r.pulsera; reg = nuevoReg(); reg.pais = r0.pais; pintarReg(true); pintarUlt(); toast('Pulsera registrada'); refrescar().then(pintarRec); return; }
+    if (r.estado === 'ya_entregada') { reg.est = 'ya'; reg.p = r.pulsera; return pintarReg(true); }     // otro puesto se la entregó recién
+    reg.mc = 'mal'; reg.msg = r.estado === 'falta_equipo' ? 'Elegí el equipo.' : 'No se pudo registrar (' + r.estado + ').'; pintarReg();
+  }).catch(function (e) { reg.ocupado = false; reg.mc = 'mal'; reg.msg = errTxt(e); pintarReg(); });
 }
-function cobrar() {
-  if (caja.ocupado) return;
-  var fs = caja.fans, falta = '';
-  fs.forEach(function (f, i) {
-    if (falta) return; var n = 'Fan ' + (i + 1) + ': ';
-    if (f.est !== 'ok') falta = n + 'ingresá el documento y tocá Buscar.';
-    else if (f.cupo <= 0) falta = n + 'ya compró el máximo. Quitalo de la compra.';
-    else if (!f.existe && !f.equipo) falta = n + 'elegí el equipo.';
-    else if (!f.cant) falta = n + 'elegí cuántas cervezas compra.';
-  });
-  if (!falta && !caja.medio) falta = 'Elegí cómo paga: tarjeta o efectivo.';
-  if (falta) { caja.msg = falta; return pintarCaja(); }
-  caja.ocupado = true; caja.msg = ''; pintarCaja();
-  api.vender(fs.map(function (f) { return { pais: f.pais, documento: norm(f.doc), equipo: f.equipo, cantidad: f.cant }; }), caja.medio).then(function (r) {
-    caja.ocupado = false;
-    if (r.estado === 'ok') {
-      var nuevas = r.fans.filter(function (x) { return x.nueva; }).map(function (x) { return x.persona; });
-      ing.ultima = r.fans[0].persona;
-      caja = { fans: [nuevoFan()], medio: '', ocupado: false, msg: '', hecho: r };
-      pintarCaja(true); pintarHecho(); if (nuevas.length) imprimir(nuevas);
-      refrescar().then(pintarRec); return;
-    }
-    if (r.estado === 'sin_cupo') {     // otra caja le vendió mientras tanto: se vuelve a consultar ese documento
-      caja.msg = 'El documento ' + r.documento + ' ya no tiene ese cupo: puede comprar ' + r.cupo + ' más. Revisá la cantidad.';
-      fs.forEach(function (f) { if (norm(f.doc) === r.documento) { f.cupo = r.cupo; f.cant = Math.min(f.cant, r.cupo); if (f.p) { f.p.compradas = f.p.max - r.cupo; } } });
-    } else caja.msg = 'No se pudo registrar la compra (' + r.estado + ').';
-    pintarCaja();
-  }).catch(function (e) { caja.ocupado = false; caja.msg = errTxt(e); pintarCaja(); });
+function pintarUlt() {
+  var el = $('#ult'); if (!el) return;
+  el.innerHTML = !ult ? '<p class="vacio" style="padding:0">Acá aparece la última pulsera que registres en este dispositivo.</p>' :
+    '<div class="estado si">' + ICO_OK + '<div><b>Pulsera entregada</b><span>Con sus ' + CFG.tirillas + ' tirillas. En la barra le cortan una por cada cerveza.</span></div></div>' + fichaHtml(ult);
 }
-function urlPase(c) { return location.href.split('#')[0] + '#pase=' + norm(c); }
-function bloquePase(p) {
-  return '<div class="paseqr"><div class="q">' + qrSvg(urlPase(p.codigo)) + '</div><div><b>Pase para el celular</b><span>Que lo escanee con la cámara: ve cuántas tiene para retirar y puede guardarlo como imagen.</span></div></div>';
-}
-function pintarHecho() {
-  var el = $('#et'); if (!el) return; var r = caja.hecho;
-  if (!r) { el.innerHTML = '<p class="vacio" style="padding:0">Acá aparece la compra recién registrada, con la etiqueta de cada fan.</p>'; return; }
-  var p0 = r.fans[0].persona;
-  el.innerHTML = '<p class="okmsg">Compra registrada · ' + nCerv(r.cervezas) + ' · ' + plata(r.total) + ' · ' + (r.medio === 'tarjeta' ? 'Tarjeta' : 'Efectivo') + '</p>' +
-    r.fans.map(function (x, i) { var p = x.persona;
-      return '<div class="hf"><div class="c">' + p.pendientes + '</div><div class="m"><b>' + esc(fmtDoc(p.pais, p.documento)) + '</b><span>+' + nCerv(x.cantidad) + ' · tiene ' + p.pendientes + ' para retirar</span><span>' + (x.nueva ? 'Etiqueta nueva impresa' : 'Usa la etiqueta que ya tiene') + '</span></div>' +
-        '<div class="acc"><button class="btn mini borde" data-hreimp="' + i + '">Reimprimir</button><button class="btn mini borde" data-hpase="' + i + '">Pase</button></div></div>'; }).join('') +
-    '<div class="prev" style="margin-top:14px">' + etiquetaHtml(p0) + '</div>' + (r.fans.length === 1 ? bloquePase(p0) : '');
-}
-function mostrarEtiqueta(p) {     // después de editar un registro: refresca la compra que está en pantalla
-  if (caja.hecho) caja.hecho.fans.forEach(function (x) { if (x.persona.id === p.id) { x.persona.pais = p.pais; x.persona.documento = p.documento; x.persona.equipo = p.equipo; } });
-  pintarHecho();
-}
-function quitarDeHecho(id) { if (caja.hecho && caja.hecho.fans.some(function (x) { return x.persona.id === id; })) caja.hecho = null; if (ing.ultima && ing.ultima.id === id) ing.ultima = null; pintarHecho(); }
-function abrirPase(pp) {
-  ed = { p: pp };
-  $('#m2').innerHTML = '<h2>Pase para el celular</h2><p>Que la persona escanee este QR con la cámara de su celular. Se le abre su pase con las cervezas que tiene para retirar y puede guardarlo como imagen.</p>' +
-    '<div style="max-width:300px;margin:0 auto 16px;background:#fff;border-radius:16px;padding:12px;box-shadow:inset 0 0 0 1.5px var(--linea)">' + qrSvg(urlPase(pp.codigo)).replace('<svg', '<svg style="width:100%;height:auto;display:block"') + '</div>' +
-    '<p style="text-align:center"><b>' + esc(fmtDoc(pp.pais, pp.documento)) + '</b> · ' + esc(pp.equipo || '') + '</p><div class="fila" style="margin:0"><button class="btn" data-act="cerrar2">Cerrar</button></div>';
-  $('#ov2').classList.add('open');
+function filaHtml(p, i, acciones) {
+  return '<div class="it"><div class="c">' + (escudoDe(p.equipo).replace('class="esc"', 'style="height:28px"') || '–') + '</div>' +
+    '<div class="m"><b>' + esc(fmtDoc(p.pais, p.documento)) + (p.nombre ? ' · ' + esc(p.nombre) : '') + '</b><span>' + esc(p.equipo || 'Sin equipo') + ' · ' + esc(paisDe(p.pais).n) + '</span></div>' +
+    '<div class="d"><b>' + esc(cuando(p.creado)) + '</b><span>' + esc(p.creado_por || 'Sin nombre') + '</span></div>' +
+    (acciones ? '<div class="acc"><button class="btn mini borde" data-editar="' + i + '">Editar</button><button class="btn mini borde rj" data-eliminar="' + i + '">Eliminar</button></div>' : '') + '</div>';
 }
 function pintarRec() {
   if (!$('#rec')) return;
-  api.personas(ing.q, 60).then(function (ps) {
+  api.pulseras(lst.q, 60).then(function (ps) {
     var el = $('#rec'); if (!el) return;
-    ing.rec = ps;
-    $('#n-acr').textContent = R ? miles(R.personas) + ' en total' : '';
-    el.innerHTML = !ps.length ? '<p class="vacio">' + (ing.q ? 'No hay ningún comprador que coincida.' : 'Todavía no hay compras.') + '</p>' : ps.map(function (p, i) {
-      return '<div class="it"><div class="c' + (p.pendientes > 0 ? ' lleno' : '') + '">' + p.pendientes + '</div>' +
-        '<div class="m"><b>' + esc(fmtDoc(p.pais, p.documento)) + '</b><span>' + escudoDe(p.equipo) + esc(p.equipo || 'Sin equipo') + ' · ' + esc(p.pais) + ' · ' + (p.pendientes > 0 ? nCerv(p.pendientes) + ' para retirar' : 'nada para retirar') + '</span></div>' +
-        '<div class="d"><b>Compró ' + p.compradas + ' · retiró ' + p.usadas + '</b><span>' + (p.cupo > 0 ? 'Puede comprar ' + p.cupo + ' más' : 'Llegó al máximo de ' + p.max) + '</span>' +
-        '</div><div class="acc"><button class="btn mini borde" data-reimp="' + i + '">Reimprimir</button>' +
-        '<button class="btn mini borde" data-pase="' + i + '">Pase</button>' +
-        '<button class="btn mini borde" data-editar="' + i + '">Editar</button>' +
-        '<button class="btn mini borde rj" data-eliminar="' + i + '">Eliminar</button></div></div>';
-    }).join('') + (ps.length >= 60 ? '<p class="nota">Se muestran los 60 más recientes. Usá el buscador para encontrar cualquier otro.</p>' : '');
+    lst.rec = ps;
+    $('#n-rec').textContent = R ? miles(R.personas) + ' en total' : '';
+    el.innerHTML = !ps.length ? '<p class="vacio">' + (lst.q ? 'No hay ninguna pulsera que coincida.' : 'Todavía no se entregó ninguna pulsera.') + '</p>' :
+      ps.map(function (p, i) { return filaHtml(p, i, true); }).join('') + (ps.length >= 60 ? '<p class="nota">Se muestran las 60 más recientes. Usá el buscador para encontrar cualquier otra.</p>' : '');
   }).catch(function (e) { var el = $('#rec'); if (el) el.innerHTML = '<p class="msg mal">' + errTxt(e) + '</p>'; });
 }
-document.addEventListener('input', function (ev) { var t = ev.target; if (!t.matches || !t.matches('[data-cdoc]')) return; var f = caja.fans[+t.getAttribute('data-cdoc')]; if (!f) return; f.doc = t.value; f.aviso = false; f.msg = ''; var m = $('#fm-' + t.getAttribute('data-cdoc')); if (m) m.textContent = ''; });
-document.addEventListener('keydown', function (ev) { var t = ev.target; if (ev.key === 'Enter' && t.matches && t.matches('[data-cdoc]')) { ev.preventDefault(); buscarFan(+t.getAttribute('data-cdoc')); } });
+document.addEventListener('input', function (ev) {
+  var t = ev.target;
+  if (t.id === 'r-doc') { reg.doc = t.value; reg.aviso = false; reg.msg = ''; var m = $('#r-msg'); if (m) m.textContent = ''; }
+  else if (t.id === 'r-nom') reg.nombre = t.value;
+});
+document.addEventListener('keydown', function (ev) {
+  if (ev.key !== 'Enter') return; var t = ev.target;
+  if (t.id === 'r-doc') { ev.preventDefault(); buscarDoc(); }
+  else if (t.id === 'r-nom') { ev.preventDefault(); entregar(); }
+});
 
-// ============================================================ BARRA
-var bar = { stream: null, raf: 0, ocupado: false, ult: '', ultT: 0, timer: 0, det: null, audio: null, hechas: [] };
-function vBarra() {
-  vista.innerHTML =
-    '<div class="lector"><video id="vid" playsinline muted></video><div class="marco"></div>' +
-    '<div class="cam-msg" id="cam-msg">Abriendo la cámara…</div>' +
-    '<div class="lec-top"><button class="rond" data-ir="acreditar" title="Salir del lector"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>' +
-    '<div class="saludo"><b>Barra' + (puesto() ? ' · ' + esc(puesto()) : '') + '</b><span>Apuntá al QR de la etiqueta</span></div>' +
-    '<button class="rond" data-act="luz" id="b-luz" hidden title="Linterna"><svg viewBox="0 0 24 24"><path d="M9 3h6v4l-2 3v10a1 1 0 0 1-2 0V10L9 7V3z"/></svg></button></div>' +
-    '<div class="lec-pie"><div class="lec-ult" id="lec-ult"></div>' +
-    '<form id="f-man" class="lec-man" hidden><input id="man" placeholder="Código de 8 caracteres" maxlength="12" autocapitalize="characters" autocomplete="off"><button class="btn rojo">Validar</button></form>' +
-    '<div class="fila" style="margin:0"><button class="btn" data-act="manual">Escribir código</button><button class="btn" data-ir="consumo">Ver consumo</button></div></div></div>';
-  $('#f-man').onsubmit = function (ev) { ev.preventDefault(); var c = norm($('#man').value); if (c) { $('#man').value = ''; canjear(c, false); } };
-  pintarHechas(); abrirCamara();
-}
-function pintarHechas() {
-  var el = $('#lec-ult'); if (!el) return;
-  var h = bar.hechas[0];
-  el.innerHTML = '<span>Entregadas en este puesto: <b>' + bar.hechas.length + '</b></span>' +
-    (h ? '<span>Última entrega: ' + hora(h.t) + ' · le quedaban ' + h.pend + ' para retirar</span>' : '');
-}
-function abrirCamara() {
-  var msg = $('#cam-msg');
-  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { msg.textContent = 'Este navegador no permite usar la cámara. Usá "Escribir código".'; return; }
-  navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 } }, audio: false }).then(function (st) {
-    var v = $('#vid'); if (!v || actual !== 'barra') { st.getTracks().forEach(function (t) { t.stop(); }); return; }
-    bar.stream = st; v.srcObject = st; var pl = v.play(); if (pl && pl.catch) pl.catch(function () {});
-    msg.hidden = true;
-    var tr = st.getVideoTracks()[0], caps = tr.getCapabilities ? tr.getCapabilities() : {};
-    if (caps.torch) $('#b-luz').hidden = false;
-    if ('BarcodeDetector' in window) { try { bar.det = new window.BarcodeDetector({ formats: ['qr_code'] }); } catch (e) { bar.det = null; } }
-    bucle();
-  }).catch(function () { msg.textContent = 'No se pudo abrir la cámara. Dale permiso al sitio y recargá, o usá "Escribir código".'; });
-}
-function cerrarCamara() {
-  cancelAnimationFrame(bar.raf); clearTimeout(bar.timer);
-  if (bar.stream) { bar.stream.getTracks().forEach(function (t) { t.stop(); }); bar.stream = null; }
-}
-var lienzo = document.createElement('canvas'), ultCuadro = 0;
-function bucle() {
-  bar.raf = requestAnimationFrame(bucle);
-  var v = $('#vid'); if (!v || bar.ocupado || v.readyState < 2) return;
-  var ahora = Date.now(); if (ahora - ultCuadro < 110) return; ultCuadro = ahora;
-  if (bar.det) { bar.det.detect(v).then(function (r) { if (r && r[0]) leido(r[0].rawValue); }).catch(function () {}); return; }
-  var w = v.videoWidth, h = v.videoHeight; if (!w) return;
-  var k = Math.min(1, 720 / Math.max(w, h)); lienzo.width = Math.round(w * k); lienzo.height = Math.round(h * k);
-  var cx = lienzo.getContext('2d', { willReadFrequently: true }); cx.drawImage(v, 0, 0, lienzo.width, lienzo.height);
-  var img = cx.getImageData(0, 0, lienzo.width, lienzo.height);
-  var r = window.jsQR(img.data, img.width, img.height, { inversionAttempts: 'dontInvert' });
-  if (r && r.data) leido(r.data);
-}
-function leido(t) {
-  var c = norm(String(t).split('/').pop()); if (!c || bar.ocupado) return;
-  if (c === bar.ult && Date.now() - bar.ultT < 8000) return;   // la misma etiqueta sigue frente a la cámara
-  canjear(c, false);
-}
-function sonido(ok) {
-  try {
-    if (navigator.vibrate) navigator.vibrate(ok ? 80 : [120, 80, 120]);
-    var A = window.AudioContext || window.webkitAudioContext; if (!A) return;
-    bar.audio = bar.audio || new A(); if (bar.audio.state === 'suspended') bar.audio.resume();
-    var o = bar.audio.createOscillator(), g = bar.audio.createGain();
-    o.frequency.value = ok ? 880 : 220; o.type = ok ? 'sine' : 'square'; g.gain.value = 0.15; o.connect(g); g.connect(bar.audio.destination);
-    o.start(); o.stop(bar.audio.currentTime + (ok ? 0.12 : 0.4));
-  } catch (e) {}
-}
-function canjear(c, seguido) {
-  bar.ocupado = true; clearTimeout(bar.timer);
-  api.canjear(c, seguido).then(function (r) {
-    bar.ult = c; bar.ultT = Date.now();
-    if (r.estado === 'ok') { bar.hechas.unshift({ id: r.entrega_id, codigo: c, numero: r.numero, max: r.max, pend: r.pendientes, t: Date.now() }); pintarHechas(); sonido(true); refrescar(); }
-    else if (r.estado !== 'repetido') sonido(false);
-    resultado(c, r);
-  }).catch(function (e) { sonido(false); resultado(c, { estado: 'error', texto: errTxt(e) }); });
-}
-var ICO_OK = '<svg class="ri" viewBox="0 0 96 96"><circle cx="48" cy="48" r="42"/><path d="M28 50l14 14 27-30"/></svg>';
-var ICO_NO = '<svg class="ri" viewBox="0 0 96 96"><circle cx="48" cy="48" r="42"/><path d="M32 32l32 32M64 32L32 64"/></svg>';
-function paraRetirar(n) { return n > 1 ? 'Le quedan ' + n + ' para retirar' : n === 1 ? 'Le queda 1 para retirar' : 'No le quedan pagas'; }
-function cupoTxt(r) { return r.cupo > 0 ? 'Puede comprar ' + r.cupo + ' más en caja' : 'Ya compró sus ' + r.max; }
-function resultado(c, r) {
-  var el = $('#res'), h = '', cl = 'mal', espera = 6000;
-  if (r.estado === 'ok') {
-    cl = 'bien'; espera = 4500;
-    h = ICO_OK + '<div class="t">' + (r.pendientes > 0 ? paraRetirar(r.pendientes) : 'Era su última paga') + '</div>' + vasos(r.usadas, r.max, r.compradas) +
-      '<div class="s">Entregá 1 cerveza<br><small>' + cupoTxt(r) + '</small></div><div class="b">' +
-      (r.pendientes > 0 ? '<button class="btn claro" data-otra="' + c + '">Otra cerveza a la misma persona</button>' : '') +
-      '<button class="btn fant" data-deshacer="' + r.entrega_id + '">Deshacer</button></div>';
-  } else if (r.estado === 'sin_saldo') {
-    h = ICO_NO + '<div class="t">' + (r.cupo > 0 ? 'No tiene cervezas pagas' : 'No puede canjear más cervezas') + '</div>' + vasos(r.usadas, r.max, r.compradas) +
-      '<div class="s">' + (r.compradas === 0 ? 'Todavía no compró ninguna' : r.cupo > 0 ? 'Ya retiró las ' + r.compradas + ' que compró' : 'Ya compró y retiró sus ' + r.max) +
-      (r.cupo > 0 ? '<br><small>' + cupoTxt(r) + '</small>' : r.ultima_entrega ? '<br><small>Última a las ' + hora(r.ultima_entrega) + '</small>' : '') + '</div>';
-  } else if (r.estado === 'repetido') {
-    cl = 'aviso'; espera = 3500;
-    h = '<div class="t">Recién validada</div><div class="s">No se descontó otra. ' + paraRetirar(r.pendientes) + '.</div>' +
-      (r.pendientes > 0 ? '<div class="b"><button class="btn claro" data-otra="' + c + '">Entregar otra cerveza</button></div>' : '');
-  } else if (r.estado === 'inexistente') {
-    h = ICO_NO + '<div class="t">Código no válido</div><div class="s">No entregar<br><small>' + esc(fmtCodigo(c)) + '</small></div>';
-  } else if (r.estado === 'deshecho') {
-    cl = 'aviso'; espera = 3000; h = '<div class="t">Entrega deshecha</div><div class="s">' + paraRetirar(r.pendientes) + '</div>';
-  } else { h = ICO_NO + '<div class="t">No se pudo validar</div><div class="s">' + esc(r.texto || 'Probá de nuevo.') + '</div>'; }
-  el.className = 'res ' + cl; el.hidden = false;
-  el.innerHTML = '<div class="in">' + h + '</div><button class="btn sig" data-act="sig">Siguiente</button>';
-  clearTimeout(bar.timer); bar.timer = setTimeout(cerrarRes, espera);
-}
-function cerrarRes() { clearTimeout(bar.timer); $('#res').hidden = true; bar.ultT = Date.now(); bar.ocupado = false; }
-
-// ============================================================ CONSUMO
-var con = { q: '', abierta: null, ps: [], timer: 0, dia: '' };
-function vConsumo() {
+// ============================================================ REPORTE
+var rep = { q: '', dia: '' };
+function vReporte() {
   vista.innerHTML = '<div id="c-res"></div>' +
-    '<div class="sec"><span>Compras y retiros por persona</span><span><button data-act="csv-ventas" style="margin-right:18px">Descargar ventas</button><button data-act="csv">Descargar personas</button></span></div>' +
-    '<div class="buscar"><input id="buscar" type="search" placeholder="Buscar documento o código" value="' + esc(con.q) + '"></div>' +
+    '<div class="sec"><span>Detalle de pulseras entregadas</span><span><button data-act="csv">Descargar Excel</button></span></div>' +
+    '<div class="buscar"><input id="buscar" type="search" placeholder="Buscar documento o nombre" value="' + esc(rep.q) + '"></div>' +
     '<div class="lista" id="c-lista"><p class="vacio">Cargando…</p></div>';
-  var t; $('#buscar').oninput = function () { con.q = this.value; clearTimeout(t); t = setTimeout(cargarPersonas, 250); };
-  pintarConsumoResumen(); cargarPersonas();
+  var t; $('#buscar').oninput = function () { rep.q = this.value; clearTimeout(t); t = setTimeout(cargarDetalle, 250); };
+  pintarReporte(); cargarDetalle();
 }
 function barras(filas, total) {
   var mx = Math.max.apply(null, filas.map(function (f) { return f.n; }).concat([1]));
   return filas.map(function (f) { return '<div class="br"><span>' + f.l + '</span><span class="p"><i style="width:' + (f.n / mx * 100) + '%"></i></span><span class="n">' + miles(f.n) + (total ? ' <small>' + Math.round(f.n / total * 100) + '%</small>' : '') + '</span></div>'; }).join('');
 }
-function diaKey(t) { var d = new Date(t), z = function (n) { return (n < 10 ? '0' : '') + n; }; return d.getFullYear() + '-' + z(d.getMonth() + 1) + '-' + z(d.getDate()); }
 function diaTxt(k) { var p = k.split('-'), d = new Date(+p[0], +p[1] - 1, +p[2]); var t = d.toLocaleDateString('es-UY', { weekday: 'short', day: 'numeric', month: 'numeric' }).replace('.', ''); return t.charAt(0).toUpperCase() + t.slice(1); }
 function pasoLindo(mx) { var b = mx / 4, e = Math.pow(10, Math.floor(Math.log10(b || 1))), f = b / e; return Math.max(1, (f <= 1 ? 1 : f <= 2 ? 2 : f <= 5 ? 5 : 10) * e); }
 // Columnas por hora: una sola serie, barras finas con punta redondeada, grilla tenue, detalle al pasar el dedo o el mouse.
@@ -936,53 +551,36 @@ function columnas(filas, unidad) {
   });
   return '<svg class="graf" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + esc(unidad) + ' por hora">' + g + '</svg>';
 }
-function pintarConsumoResumen() {
+function pintarReporte() {
   var el = $('#c-res'); if (!el || !R) return;
-  var pct = R.vendidas ? Math.round(R.entregadas / R.vendidas * 100) : 0, circ = 2 * Math.PI * 22;
   // días con datos (hora local) y serie por hora del día elegido
   var dias = {}, hoy = diaKey(Date.now());
-  (R.por_hora || []).forEach(function (h) { var k = diaKey(h.hora); dias[k] = dias[k] || { c: 0, p: 0 }; dias[k].c += h.entregas; });
-  (R.vendidas_por_hora || []).forEach(function (h) { var k = diaKey(h.hora); dias[k] = dias[k] || { c: 0, p: 0 }; dias[k].p += h.cervezas; });
+  (R.por_hora || []).forEach(function (h) { var k = diaKey(h.hora); dias[k] = (dias[k] || 0) + h.personas; });
   var ks = Object.keys(dias).sort();
-  if (!con.dia || !dias[con.dia]) con.dia = dias[hoy] ? hoy : (ks[ks.length - 1] || hoy);
-  var hc = {}, hp = {}, hmin = 24, hmax = -1;
-  (R.por_hora || []).forEach(function (h) { if (diaKey(h.hora) !== con.dia) return; var x = new Date(h.hora).getHours(); hc[x] = (hc[x] || 0) + h.entregas; hmin = Math.min(hmin, x); hmax = Math.max(hmax, x); });
-  (R.vendidas_por_hora || []).forEach(function (h) { if (diaKey(h.hora) !== con.dia) return; var x = new Date(h.hora).getHours(); hp[x] = (hp[x] || 0) + h.cervezas; hmin = Math.min(hmin, x); hmax = Math.max(hmax, x); });
-  var fc = [], fp = [];
+  if (!rep.dia || !dias[rep.dia]) rep.dia = dias[hoy] ? hoy : (ks[ks.length - 1] || hoy);
+  var hc = {}, hmin = 24, hmax = -1;
+  (R.por_hora || []).forEach(function (h) { if (diaKey(h.hora) !== rep.dia) return; var x = new Date(h.hora).getHours(); hc[x] = (hc[x] || 0) + h.personas; hmin = Math.min(hmin, x); hmax = Math.max(hmax, x); });
+  var fc = [];
   if (hmax >= 0) { hmin = Math.max(0, Math.min(hmin, hmax - 5)); hmax = Math.min(23, Math.max(hmax, hmin + 5)); }
-  for (var x = hmin; x <= hmax; x++) { var l = (x < 10 ? '0' : '') + x + ':00 a ' + (x < 10 ? '0' : '') + x + ':59'; fc.push({ l: l, c: x + ' h', n: hc[x] || 0 }); fp.push({ l: l, c: x + ' h', n: hp[x] || 0 }); }
-  var d = dias[con.dia] || { c: 0, p: 0 };
+  for (var x = hmin; x <= hmax; x++) fc.push({ l: (x < 10 ? '0' : '') + x + ':00 a ' + (x < 10 ? '0' : '') + x + ':59', c: x + ' h', n: hc[x] || 0 });
+  var tarjeta = function (titulo, filas, vacio) { return '<section class="card"><h2>' + titulo + '</h2>' + (filas.length ? barras(filas, R.personas) : '<p class="vacio" style="padding:0">' + vacio + '</p>') + '</section>'; };
   el.innerHTML =
-    '<div class="pill"><div class="ico"><svg viewBox="0 0 24 24"><path d="M7 4h10l-1 15a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1L7 4zM7.4 9h9.2"/></svg></div>' +
-    '<div class="tx"><b>' + miles(R.entregadas) + ' retiradas de ' + miles(R.vendidas) + ' vendidas</b><span>' + miles(R.pendientes) + ' pagas sin retirar · ' + miles(R.personas) + (R.personas === 1 ? ' comprador' : ' compradores') + ' · ' + plata(R.recaudado) + ' recaudados</span></div>' +
-    '<div class="anillo"><svg viewBox="0 0 54 54"><circle class="f" cx="27" cy="27" r="22"/><circle class="v" cx="27" cy="27" r="22" stroke-dasharray="' + circ + '" stroke-dashoffset="' + (circ * (1 - pct / 100)) + '"/></svg><b>' + pct + '%</b></div></div>' +
-    (ks.length ? '<div class="chips dias">' + ks.map(function (k) { return '<button class="chip' + (k === con.dia ? ' on' : '') + '" data-dia="' + k + '">' + diaTxt(k) + (k === hoy ? ' (hoy)' : '') + '</button>'; }).join('') + '</div>' : '') +
-    '<div class="grid dos"><section class="card"><h2>Cervezas entregadas por hora</h2><p class="kp"><b>' + miles(d.c) + '</b> en el día</p>' + columnas(fc, 'cervezas') + '</section>' +
-    '<section class="card"><h2>Cervezas vendidas por hora</h2><p class="kp"><b>' + miles(d.p) + '</b> en el día · ' + plata(d.p * R.precio) + '</p>' + columnas(fp, 'cervezas vendidas') + '</section></div>' +
-    '<div class="sec"><span>Totales del evento</span></div>' +
-    '<div class="grid tres"><section class="card"><h2>Ventas y recaudación</h2>' +
-    '<p class="kp" style="margin:0 0 10px"><b>' + plata(R.recaudado) + '</b> en ' + miles(R.ventas) + (R.ventas === 1 ? ' venta' : ' ventas') + '</p>' +
-    (R.por_medio.length ? R.por_medio.map(function (m) { return '<div class="it" style="padding:7px 0"><div class="m"><b>' + (m.medio === 'tarjeta' ? 'Tarjeta' : 'Efectivo') + '</b><span>' + miles(m.ventas) + (m.ventas === 1 ? ' venta' : ' ventas') + ' · ' + nCerv(m.cervezas) + '</span></div><div class="d"><b>' + plata(m.total) + '</b></div></div>'; }).join('') : '<p class="vacio" style="padding:0">Sin ventas todavía.</p>') +
-    (R.por_caja.length ? '<h2 style="margin:14px 0 6px">Por caja</h2>' + R.por_caja.map(function (k) { return '<div class="it" style="padding:7px 0"><div class="m"><b>' + esc(k.puesto) + '</b><span>' + miles(k.ventas) + (k.ventas === 1 ? ' venta' : ' ventas') + ' · ' + nCerv(k.cervezas) + '</span></div><div class="d"><b>' + plata(k.total) + '</b></div></div>'; }).join('') : '') + '</section>' +
+    '<div class="pill"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="26" height="26"><rect x="3" y="9" width="18" height="6" rx="3"/><path d="M9 9v6M13 9v6M17 9v6"/></svg></div>' +
+    '<div class="tx"><b>' + nPuls(R.personas) + (R.personas === 1 ? ' entregada' : ' entregadas') + '</b><span>Una por documento · equivalen a ' + miles(R.personas * CFG.tirillas) + ' cervezas como máximo (' + CFG.tirillas + ' tirillas por pulsera)</span></div></div>' +
+    (ks.length ? '<div class="chips dias">' + ks.map(function (k) { return '<button class="chip' + (k === rep.dia ? ' on' : '') + '" data-dia="' + k + '">' + diaTxt(k) + (k === hoy ? ' (hoy)' : '') + '</button>'; }).join('') + '</div>' : '') +
+    '<div class="grid dos"><section class="card"><h2>Pulseras entregadas por hora</h2><p class="kp"><b>' + miles(dias[rep.dia] || 0) + '</b> en el día</p>' + columnas(fc, 'pulseras') + '</section>' +
     '<section class="card"><h2>Por equipo</h2>' + (R.por_equipo.length ? R.por_equipo.map(function (e) {
-      return '<div class="it" style="padding:8px 0"><div class="c" style="background:var(--fondo);box-shadow:none">' + (escudoDe(e.equipo).replace('class="esc"', 'style="height:28px"') || '–') + '</div><div class="m"><b>' + esc(e.equipo) + '</b><span>' + miles(e.personas) + (e.personas === 1 ? ' persona' : ' personas') + '</span></div><div class="d"><b>' + miles(e.cervezas) + ' de ' + miles(e.compradas) + '</b><span>retiradas</span></div></div>';
-    }).join('') : '<p class="vacio" style="padding:0">Sin personas todavía.</p>') + '</section>' +
-    '<section class="card"><h2>Entregas por barra</h2>' +
-    (R.por_puesto.length ? barras(R.por_puesto.map(function (p) { return { l: esc(p.puesto), n: p.entregas }; })) : '<p class="vacio" style="padding:0">Sin entregas todavía.</p>') + '</section></div>';
+      return '<div class="it" style="padding:8px 0"><div class="c" style="background:var(--fondo);box-shadow:none">' + (escudoDe(e.equipo).replace('class="esc"', 'style="height:28px"') || '–') + '</div><div class="m"><b>' + esc(e.equipo) + '</b><span>' + (R.personas ? Math.round(e.personas / R.personas * 100) : 0) + '% del total</span></div><div class="d"><b>' + miles(e.personas) + '</b><span>' + (e.personas === 1 ? 'pulsera' : 'pulseras') + '</span></div></div>';
+    }).join('') : '<p class="vacio" style="padding:0">Sin pulseras todavía.</p>') + '</section></div>' +
+    '<div class="sec"><span>Totales del evento</span></div>' +
+    '<div class="grid dos">' + tarjeta('Por puesto de entrega', R.por_puesto.map(function (p) { return { l: esc(p.puesto), n: p.personas }; }), 'Sin pulseras todavía.') +
+    tarjeta('Por país del documento', R.por_pais.map(function (p) { return { l: esc(paisDe(p.pais).n), n: p.personas }; }), 'Sin pulseras todavía.') + '</div>';
 }
-function cargarPersonas() {
-  api.personas(con.q, 200).then(function (ps) {
-    con.ps = ps; var el = $('#c-lista'); if (!el) return;
-    el.innerHTML = !ps.length ? '<p class="vacio">' + (con.q ? 'Sin resultados.' : 'Todavía no hay compras.') + '</p>' : ps.map(function (p, i) {
-      var ab = con.abierta === p.id;
-      return '<button class="it" data-det="' + p.id + '"><div class="c' + (p.pendientes > 0 ? ' lleno' : '') + '">' + p.pendientes + '</div>' +
-        '<div class="m"><b>' + esc(fmtDoc(p.pais, p.documento)) + '</b><span>' + escudoDe(p.equipo) + esc(p.equipo || 'Sin equipo') + ' · ' + esc(p.pais) + ' · ' + (p.pendientes > 0 ? nCerv(p.pendientes) + ' para retirar' : 'nada para retirar') + '</span></div>' +
-        '<div class="d"><b>Compró ' + p.compradas + ' · retiró ' + p.usadas + '</b><span>' + (p.ultima_entrega ? 'Última entrega ' + hora(p.ultima_entrega) : 'Sin retirar') + '</span></div></button>' +
-        (ab ? '<div class="det">' + (p.compras || []).map(function (c) { return '<div class="e"><span>Compró ' + c.cantidad + ' · ' + plata(c.total) + ' · ' + (c.medio === 'tarjeta' ? 'tarjeta' : 'efectivo') + ' · ' + hora(c.hecho) + (c.puesto ? ' · ' + esc(c.puesto) : '') + '</span></div>'; }).join('') + (p.entregas.length ? p.entregas.map(function (e) {
-          return '<div class="e"><span>Retiró la ' + e.numero + '.ª · ' + hora(e.hecho) + ' · ' + esc(e.puesto || 'Sin nombre') + '</span><button class="btn mini" data-anular="' + e.id + '">Deshacer</button></div>';
-        }).join('') : '<div class="e">Todavía no retiró ninguna.</div>') +
-          '<div class="e"><span><small>Código ' + esc(fmtCodigo(p.codigo)) + '</small></span><button class="btn mini" data-reimp-p="' + i + '">Reimprimir etiqueta</button></div></div>' : '');
-    }).join('') + (ps.length >= 200 ? '<p class="nota">Se muestran las 200 más recientes. Usá el buscador o descargá el Excel para ver todas.</p>' : '');
+function cargarDetalle() {
+  api.pulseras(rep.q, 200).then(function (ps) {
+    var el = $('#c-lista'); if (!el) return;
+    el.innerHTML = !ps.length ? '<p class="vacio">' + (rep.q ? 'Sin resultados.' : 'Todavía no se entregó ninguna pulsera.') + '</p>' :
+      ps.map(function (p, i) { return filaHtml(p, i, false); }).join('') + (ps.length >= 200 ? '<p class="nota">Se muestran las 200 más recientes. Usá el buscador o descargá el Excel para ver todas.</p>' : '');
   }).catch(function (e) { var el = $('#c-lista'); if (el) el.innerHTML = '<p class="msg mal">' + errTxt(e) + '</p>'; });
 }
 function bajarCsv(nombre, filas) {
@@ -990,92 +588,12 @@ function bajarCsv(nombre, filas) {
   var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
   a.download = nombre; document.body.appendChild(a); a.click(); a.remove();
 }
-var fechaHora = function (t) { return t ? new Date(t).toLocaleString('es-UY', { hour12: false }) : ''; };
 function descargarCsv() {
-  api.personas('', 50000).then(function (ps) {
-    var max = (R && R.max) || CFG.maxCervezas, cab = ['Pais', 'Documento', 'Equipo', 'Codigo', 'Compradas', 'Retiradas', 'Para retirar', 'Pagado', 'Primera compra', 'Caja'];
-    for (var i = 1; i <= max; i++) cab.push('Retiro ' + i + ' hora', 'Retiro ' + i + ' barra');
-    bajarCsv('personas-fan-fest-amstel.csv', [cab].concat(ps.map(function (p) {
-      var r = [p.pais, p.documento, p.equipo || '', p.codigo, p.compradas, p.usadas, p.pendientes, (p.compras || []).reduce(function (a, c) { return a + c.total; }, 0), fechaHora(p.creado), p.creado_por || ''];
-      for (var i = 0; i < max; i++) { var e = p.entregas[i]; r.push(e ? fechaHora(e.hecho) : '', e ? (e.puesto || '') : ''); } return r; })));
+  api.pulseras('', 100000).then(function (ps) {
+    bajarCsv('pulseras-fan-fest-amstel.csv', [['Pais', 'Tipo de documento', 'Documento', 'Nombre y apellido', 'Equipo', 'Fecha', 'Hora', 'Entregada por']].concat(ps.map(function (p) {
+      var d = new Date(p.creado);
+      return [paisDe(p.pais).n, paisDe(p.pais).d, p.documento, p.nombre || '', p.equipo || '', d.toLocaleDateString('es-UY'), d.toLocaleTimeString('es-UY', { hour12: false }), p.creado_por || '']; })));
   }).catch(function (e) { toast(errTxt(e), true); });
-}
-function descargarVentas() {
-  api.ventas().then(function (vs) {
-    bajarCsv('ventas-fan-fest-amstel.csv', [['Venta', 'Fecha y hora', 'Caja', 'Medio de pago', 'Cervezas', 'Total', 'Detalle (documento x cantidad)']].concat(vs.map(function (v) {
-      return [v.id, fechaHora(v.hecho), v.puesto || '', v.medio === 'tarjeta' ? 'Tarjeta' : 'Efectivo', v.cervezas, v.total, v.detalle || '']; })));
-  }).catch(function (e) { toast(errTxt(e), true); });
-}
-
-// ============================================================ pase del fan (se abre en su celular)
-var pase = { cod: '', timer: 0, info: null };
-function vPase(cod) {
-  pase.cod = norm(cod); document.body.setAttribute('data-v', 'pase'); actual = 'pase'; cerrarCamara(); window.scrollTo(0, 0);
-  var max = CFG.maxCervezas;
-  $('#pase').innerHTML = '<img class="pl" src="' + esc(CFG.logo) + '" alt="Amstel"><h1>' + esc(CFG.evento) + '</h1><div class="ps">' + esc(CFG.subtitulo) + '</div>' +
-    '<div class="partido"><div><img src="' + esc(CFG.local.escudo) + '" alt="">' + esc(CFG.local.nombre) + ' <small>vs</small> ' + esc(CFG.visita.nombre) + '<img src="' + esc(CFG.visita.escudo) + '" alt=""></div></div>' +
-    '<div class="tarj"><div class="qr">' + qrSvg(pase.cod) + '</div><div class="cod">' + esc(fmtCodigo(pase.cod)) + '</div><div class="eq" id="p-eq"></div>' +
-    '<div class="est" id="p-est"><small>Mostrá este QR en la barra · Mostre este QR no bar</small></div></div>' +
-    '<div class="pb"><button class="btn" data-act="gwallet" id="b-gw" hidden style="background:#17181c;color:#fff">Agregar a Google Wallet</button><button class="btn" data-act="guardar-img">Guardar como imagen</button></div>' +
-    '<div class="pie">' + max + ' cervezas por persona<small>' + max + ' cervejas por pessoa</small></div>' +
-    '<div class="por">Una plataforma de <img src="assets/redtickets-blanco.png" alt="RedTickets"></div>';
-  api.estado().then(function (e) { var b = $('#b-gw'); if (b && e && e.wallet && e.wallet.google) b.hidden = false; }).catch(function () {});
-  estadoPase(); clearInterval(pase.timer); pase.timer = setInterval(function () { if (!document.hidden && actual === 'pase') estadoPase(); }, 8000);
-}
-function estadoPase() {
-  api.pase(pase.cod).then(function (r) {
-    var el = $('#p-est'); if (!el) return;
-    if (r.estado !== 'ok') { pase.info = null; return; }       // sin datos: queda el pase solo con el QR
-    pase.info = r; var q = r.pendientes;
-    $('#p-eq').innerHTML = r.equipo ? escudoDe(r.equipo) + esc(r.equipo) : '';
-    el.innerHTML = vasos(r.usadas, r.max, r.compradas) + '<b>' + (q > 1 ? 'Tenés ' + q + ' cervezas para retirar' : q === 1 ? 'Tenés 1 cerveza para retirar' : r.cupo > 0 ? 'No tenés cervezas pagas' : 'Ya retiraste tus ' + r.max + ' cervezas') + '</b>' +
-      '<small>' + (q > 0 ? 'Mostrá este QR en la barra · Mostre este QR no bar' : r.cupo > 0 ? 'Podés comprar ' + r.cupo + ' más en caja · Você pode comprar mais ' + r.cupo : 'Gracias por venir · Obrigado por vir') + '</small>' +
-      (q > 0 && r.cupo > 0 ? '<small>Podés comprar ' + r.cupo + ' más en caja</small>' : '');
-  }).catch(function () {});
-}
-function cargarImg(src) { return new Promise(function (ok) { if (!src) return ok(null); var i = new Image(); i.onload = function () { ok(i); }; i.onerror = function () { ok(null); }; i.src = src; }); }
-function imagenPase() {
-  var W = 1080, H = 1920, max = CFG.maxCervezas;
-  var fuente = document.fonts && document.fonts.load ? Promise.all([document.fonts.load('800 80px Manrope'), document.fonts.load('600 40px Manrope')]).catch(function () {}) : Promise.resolve();
-  return Promise.all([cargarImg(CFG.logo), cargarImg(CFG.local.escudo), cargarImg(CFG.visita.escudo), fuente]).then(function (im) {
-    var c = document.createElement('canvas'); c.width = W; c.height = H; var x = c.getContext('2d'), F = 'Manrope, system-ui, sans-serif';
-    var g = x.createRadialGradient(W / 2, 200, 100, W / 2, 500, 1500); g.addColorStop(0, '#d92643'); g.addColorStop(.55, '#c8102e'); g.addColorStop(1, '#a50d26');
-    x.fillStyle = g; x.fillRect(0, 0, W, H);
-    function rr(px, py, w, h, r) { x.beginPath(); x.moveTo(px + r, py); x.arcTo(px + w, py, px + w, py + h, r); x.arcTo(px + w, py + h, px, py + h, r); x.arcTo(px, py + h, px, py, r); x.arcTo(px, py, px + w, py, r); x.closePath(); }
-    if (im[0]) x.drawImage(im[0], W / 2 - 120, 110, 240, 240);
-    x.fillStyle = '#fff'; x.textAlign = 'center'; x.textBaseline = 'alphabetic';
-    x.font = '800 92px ' + F; x.fillText(CFG.evento.toUpperCase().split('').join('\u200a'), W / 2, 470);
-    x.font = '600 38px ' + F; x.fillText(CFG.subtitulo, W / 2, 530);
-    // partido
-    x.font = '800 44px ' + F; var txt = CFG.local.nombre + '  vs  ' + CFG.visita.nombre, tw = x.measureText(txt).width, pw = tw + 260, px0 = (W - pw) / 2;
-    x.fillStyle = '#fff'; rr(px0, 580, pw, 110, 55); x.fill();
-    if (im[1]) x.drawImage(im[1], px0 + 34, 596, 78 * im[1].width / im[1].height, 78);
-    if (im[2]) { var w2 = 82 * im[2].width / im[2].height; x.drawImage(im[2], px0 + pw - 34 - w2, 594, w2, 82); }
-    x.fillStyle = '#17181c'; x.fillText(txt, W / 2, 651);
-    // tarjeta con el QR
-    x.fillStyle = '#fff'; rr(110, 750, 860, 900, 64); x.fill();
-    var q = window.qrcode(0, 'M'); q.addData(pase.cod); q.make(); var n = q.getModuleCount(), lado = 620, m = lado / n, qx = (W - lado) / 2, qy = 820;
-    x.fillStyle = '#000'; for (var r = 0; r < n; r++) for (var k = 0; k < n; k++) if (q.isDark(r, k)) x.fillRect(Math.floor(qx + k * m), Math.floor(qy + r * m), Math.ceil(m), Math.ceil(m));
-    x.fillStyle = '#17181c'; x.font = '700 60px "Courier New", monospace'; x.fillText(fmtCodigo(pase.cod), W / 2, 1530);
-    x.font = '600 36px ' + F; x.fillStyle = '#5f626a'; x.fillText('Mostrá este QR en la barra · Mostre este QR no bar', W / 2, 1596);
-    x.fillStyle = '#fff'; x.font = '800 64px ' + F; x.fillText(max + ' cervezas por persona', W / 2, 1765);
-    x.font = '600 42px ' + F; x.fillText(max + ' cervejas por pessoa', W / 2, 1828);
-    return c;
-  });
-}
-function guardarImagenPase() {
-  imagenPase().then(function (c) {
-    var url = c.toDataURL('image/png'), nombre = 'pase-fan-fest-amstel.png';
-    $('#pimg-i').src = url; $('#pimg').classList.add('open');
-    c.toBlob(function (blob) {
-      if (!blob) return;
-      try {
-        var f = new File([blob], nombre, { type: 'image/png' });
-        if (navigator.canShare && navigator.canShare({ files: [f] })) { navigator.share({ files: [f], title: 'Mi pase del Fan Fest' }).catch(function () {}); return; }
-      } catch (e) {}
-      var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = nombre; document.body.appendChild(a); a.click(); a.remove();
-    }, 'image/png');
-  });
 }
 
 // ============================================================ editar / eliminar registro
@@ -1083,9 +601,10 @@ var ed = null;
 function cerrarM2() { $('#ov2').classList.remove('open'); ed = null; }
 function abrirEditar(p) {
   ed = { p: p, pais: p.pais, equipo: p.equipo || '' };
-  $('#m2').innerHTML = '<h2>Editar registro</h2><p>El QR de la etiqueta sigue siendo el mismo y conserva sus compras y retiros (compró ' + p.compradas + ', retiró ' + p.usadas + ').</p>' +
+  $('#m2').innerHTML = '<h2>Editar registro</h2><p>Corrige los datos de esta pulsera. La hora de entrega no cambia.</p>' +
     '<form id="f-ed" autocomplete="off"><div class="chips" id="ed-paises"></div>' +
     '<label class="f">Documento<input id="ed-doc" maxlength="24" autocapitalize="characters" spellcheck="false" value="' + esc(p.documento) + '"></label>' +
+    '<label class="f">Nombre y apellido (opcional)<input id="ed-nom" maxlength="80" autocapitalize="words" value="' + esc(p.nombre || '') + '"></label>' +
     '<label class="f" style="margin-bottom:8px">Equipo</label><div class="chips equipos" id="ed-equipos"></div>' +
     '<div class="msg" id="ed-msg"></div><div class="fila" style="justify-content:flex-start;margin:0"><button class="btn rojo">Guardar</button><button type="button" class="btn" data-act="cerrar2">Cancelar</button></div></form>';
   pintarEd(); $('#ov2').classList.add('open'); $('#ed-doc').focus();
@@ -1094,13 +613,11 @@ function abrirEditar(p) {
     if (d.length < 5) { m.textContent = 'Escribí el número de documento completo.'; m.className = 'msg mal'; return; }
     if (!ed.equipo) { m.textContent = 'Elegí el equipo.'; m.className = 'msg mal'; return; }
     m.textContent = 'Guardando…'; m.className = 'msg';
-    api.editar(p0.id, ed.pais, d, ed.equipo).then(function (r) {
-      if (r.estado === 'duplicado') { m.textContent = 'Ya hay otra persona acreditada con ese documento.'; m.className = 'msg mal'; return; }
+    api.editar(p0.id, ed.pais, d, limpio($('#ed-nom').value), ed.equipo).then(function (r) {
+      if (r.estado === 'duplicado') { m.textContent = 'Ya hay otra pulsera registrada con ese documento.'; m.className = 'msg mal'; return; }
       if (r.estado !== 'ok') { m.textContent = r.estado === 'inexistente' ? 'Ese registro ya no existe.' : 'Documento no válido.'; m.className = 'msg mal'; return; }
-      var cambio = r.persona.documento !== p0.documento || r.persona.pais !== p0.pais || r.persona.equipo !== p0.equipo;
-      if (ing.ultima && ing.ultima.id === p0.id) ing.ultima = r.persona; mostrarEtiqueta(r.persona);
-      cerrarM2(); pintarRec(); refrescar();
-      toast(cambio ? 'Registro actualizado. Reimprimí la etiqueta para que salga con los datos nuevos.' : 'Sin cambios.');
+      if (ult && ult.id === p0.id) { ult = r.pulsera; pintarUlt(); }
+      cerrarM2(); pintarRec(); refrescar(); toast('Registro actualizado');
     }).catch(function (e) { m.textContent = errTxt(e); m.className = 'msg mal'; });
   };
 }
@@ -1111,8 +628,8 @@ function pintarEd() {
 function abrirEliminar(p) {
   ed = { p: p };
   $('#m2').innerHTML = '<h2>¿Seguro que desea eliminar este registro?</h2>' +
-    '<p><b>' + esc(fmtDoc(p.pais, p.documento)) + '</b> · ' + esc(p.equipo || 'Sin equipo') + ' · compró ' + p.compradas + ' y retiró ' + p.usadas + '.</p>' +
-    '<p>Se borra la persona con sus compras y sus entregas (baja la recaudación), y su etiqueta deja de funcionar en la barra. No se puede deshacer.</p>' +
+    '<p><b>' + esc(fmtDoc(p.pais, p.documento)) + '</b>' + (p.nombre ? ' · ' + esc(p.nombre) : '') + ' · ' + esc(p.equipo || 'Sin equipo') + ' · retiró su pulsera ' + esc(cuando(p.creado)) + '.</p>' +
+    '<p>Al eliminarlo, ese documento queda como si nunca hubiera retirado: podría pedir otra pulsera. Usalo solo para corregir un error. No se puede deshacer.</p>' +
     '<form id="f-el" autocomplete="off"><label class="f">Contraseña<input type="password" id="el-pw" autocomplete="new-password"></label>' +
     '<div class="msg mal" id="el-msg"></div><div class="fila" style="justify-content:flex-start;margin:0"><button class="btn rojo">Eliminar registro</button><button type="button" class="btn" data-act="cerrar2">Cancelar</button></div></form>';
   $('#ov2').classList.add('open'); $('#el-pw').focus();
@@ -1121,7 +638,7 @@ function abrirEliminar(p) {
     if (!pw) { m.textContent = 'Ingresá la contraseña para eliminar.'; return; }
     api.eliminar(p0.id, pw).then(function (r) {
       if (r.estado === 'clave_incorrecta') { m.textContent = 'Contraseña incorrecta. No se eliminó nada.'; $('#el-pw').select(); return; }
-      quitarDeHecho(p0.id);
+      if (ult && ult.id === p0.id) { ult = null; pintarUlt(); }
       cerrarM2(); pintarRec(); refrescar(); toast(r.estado === 'ok' ? 'Registro eliminado' : 'Ese registro ya no existía');
     }).catch(function (e) { m.textContent = errTxt(e); });
   };
@@ -1143,71 +660,40 @@ $('#f-nombre').onsubmit = function (ev) {
 document.addEventListener('click', function (ev) {
   var t = ev.target, b;
   if ((b = t.closest('[data-ir]'))) { ir(b.getAttribute('data-ir')); return; }
-  if ((b = t.closest('[data-cpais]'))) { var x1 = b.getAttribute('data-cpais').split(':'), f1 = caja.fans[+x1[0]]; f1.pais = x1[1]; f1.aviso = false; f1.msg = ''; pintarCaja(true); return; }
-  if ((b = t.closest('[data-cbuscar]'))) { buscarFan(+b.getAttribute('data-cbuscar')); return; }
-  if ((b = t.closest('[data-ccambiar]'))) { var f2 = caja.fans[+b.getAttribute('data-ccambiar')]; f2.est = 'vacio'; f2.cant = 0; f2.p = null; f2.existe = false; f2.equipo = ''; pintarCaja(true); return; }
-  if ((b = t.closest('[data-cquitar]'))) { caja.fans.splice(+b.getAttribute('data-cquitar'), 1); caja.msg = ''; pintarCaja(true); return; }
-  if ((b = t.closest('[data-cequipo]'))) { var x3 = b.getAttribute('data-cequipo'), k3 = x3.indexOf(':'); caja.fans[+x3.slice(0, k3)].equipo = x3.slice(k3 + 1); caja.msg = ''; pintarCaja(); return; }
-  if ((b = t.closest('[data-ccant]'))) { var x4 = b.getAttribute('data-ccant').split(':'); caja.fans[+x4[0]].cant = +x4[1]; caja.msg = ''; pintarCaja(); return; }
-  if ((b = t.closest('[data-cmedio]'))) { caja.medio = b.getAttribute('data-cmedio'); caja.msg = ''; pintarCaja(); return; }
-  if ((b = t.closest('[data-creimp]'))) { var f5 = caja.fans[+b.getAttribute('data-creimp')]; if (f5 && f5.p) imprimir(f5.p); return; }
-  if ((b = t.closest('[data-hreimp]'))) { if (caja.hecho) imprimir(caja.hecho.fans[+b.getAttribute('data-hreimp')].persona); return; }
-  if ((b = t.closest('[data-hpase]'))) { if (caja.hecho) abrirPase(caja.hecho.fans[+b.getAttribute('data-hpase')].persona); return; }
-  if ((b = t.closest('[data-dia]'))) { con.dia = b.getAttribute('data-dia'); pintarConsumoResumen(); return; }
-  if ((b = t.closest('[data-pase]'))) { abrirPase(ing.rec[+b.getAttribute('data-pase')]); return; }
-  if ((b = t.closest('[data-editar]'))) { abrirEditar(ing.rec[+b.getAttribute('data-editar')]); return; }
-  if ((b = t.closest('[data-eliminar]'))) { abrirEliminar(ing.rec[+b.getAttribute('data-eliminar')]); return; }
+  if ((b = t.closest('[data-rpais]'))) { reg.pais = b.getAttribute('data-rpais'); reg.aviso = false; reg.msg = ''; pintarReg(true); return; }
+  if ((b = t.closest('[data-requipo]'))) { reg.equipo = b.getAttribute('data-requipo'); reg.msg = ''; pintarReg(); var be = $('[data-act=r-entregar]'); if (be) be.focus(); return; }   // con el equipo elegido, Enter registra
+  if ((b = t.closest('[data-dia]'))) { rep.dia = b.getAttribute('data-dia'); pintarReporte(); return; }
+  if ((b = t.closest('[data-editar]'))) { abrirEditar(lst.rec[+b.getAttribute('data-editar')]); return; }
+  if ((b = t.closest('[data-eliminar]'))) { abrirEliminar(lst.rec[+b.getAttribute('data-eliminar')]); return; }
   if ((b = t.closest('[data-ed-pais]'))) { ed.pais = b.getAttribute('data-ed-pais'); pintarEd(); return; }
   if ((b = t.closest('[data-ed-equipo]'))) { ed.equipo = b.getAttribute('data-ed-equipo'); pintarEd(); return; }
-  if ((b = t.closest('[data-reimp]'))) { imprimir(ing.rec[+b.getAttribute('data-reimp')]); return; }
-  if ((b = t.closest('[data-reimp-p]'))) { imprimir(con.ps[+b.getAttribute('data-reimp-p')]); return; }
-  if ((b = t.closest('[data-otra]'))) { canjear(b.getAttribute('data-otra'), true); return; }
-  if ((b = t.closest('[data-deshacer]'))) {
-    clearTimeout(bar.timer); var id = +b.getAttribute('data-deshacer');
-    api.deshacer(id, false).then(function (r) {
-      if (r.estado === 'ok') { bar.hechas = bar.hechas.filter(function (h) { return h.id !== id; }); pintarHechas(); refrescar(); r.estado = 'deshecho'; }
-      else r = { estado: 'error', texto: 'No se pudo deshacer: pasaron más de 2 minutos o ya estaba deshecha.' };
-      resultado(bar.ult, r);
-    }).catch(function (e) { resultado(bar.ult, { estado: 'error', texto: errTxt(e) }); });
-    return;
-  }
-  if ((b = t.closest('[data-det]'))) { var pid = +b.getAttribute('data-det'); con.abierta = con.abierta === pid ? null : pid; cargarPersonas(); return; }
-  if ((b = t.closest('[data-anular]'))) {
-    if (!window.confirm('¿Deshacer esta entrega? La persona recupera una cerveza.')) return;
-    api.deshacer(+b.getAttribute('data-anular'), true).then(function () { toast('Entrega deshecha'); cargarPersonas(); refrescar(); }).catch(function (e) { toast(errTxt(e), true); });
-    return;
-  }
   if (!(b = t.closest('[data-act]'))) { if (t.id === 'ov') $('#ov').classList.remove('open'); if (t.id === 'ov2') cerrarM2(); return; }
   var a = b.getAttribute('data-act');
   if (a === 'ajustes') abrirAjustes(false);
   else if (a === 'config') abrirAjustes(true);
   else if (a === 'cerrar') $('#ov').classList.remove('open');
   else if (a === 'cerrar2') cerrarM2();
-  else if (a === 'guardar-img') guardarImagenPase();
-  else if (a === 'gwallet') { b.disabled = true; api.walletGoogle(pase.cod).then(function (r) { b.disabled = false; if (r.estado === 'ok') location.href = r.url; else toast('No se pudo generar el pase de Google Wallet', true); }).catch(function (e) { b.disabled = false; toast(errTxt(e), true); }); }
-  else if (a === 'cerrar-img') $('#pimg').classList.remove('open');
-  else if (a === 'reimp-ult') { if (ing.ultima) imprimir(ing.ultima); }
-  else if (a === 'sig') cerrarRes();
-  else if (a === 'manual') { var f = $('#f-man'); f.hidden = !f.hidden; if (!f.hidden) $('#man').focus(); }
-  else if (a === 'luz') { var tr = bar.stream && bar.stream.getVideoTracks()[0]; if (tr) { bar.luz = !bar.luz; tr.applyConstraints({ advanced: [{ torch: bar.luz }] }).catch(function () {}); } }
+  else if (a === 'r-buscar') buscarDoc();
+  else if (a === 'r-entregar') entregar();
+  else if (a === 'r-cambiar') { var d0 = reg.doc, p0 = reg.pais; reg = nuevoReg(); reg.doc = d0; reg.pais = p0; pintarReg(true); }
+  else if (a === 'r-nuevo') { var p1 = reg.pais; reg = nuevoReg(); reg.pais = p1; pintarReg(true); }
   else if (a === 'csv') descargarCsv();
-  else if (a === 'csv-ventas') descargarVentas();
-  else if (a === 'otro-fan') { if (caja.fans.length < 10) caja.fans.push(nuevoFan()); caja.msg = ''; pintarCaja(true); }
-  else if (a === 'cobrar') cobrar();
   else if (a === 'conectar') {
     var url = $('#a-url').value.trim(), key = $('#a-key').value.trim(), m = $('#a-msg');
     if (!url) { store.del('amstel-sync'); iniciarApi().then(function () { abrirAjustes(true); refrescar(); ir(actual); }); return; }
     m.textContent = 'Probando…';
-    apiRemota({ url: url, key: key }).estado().then(function () { store.set('amstel-sync', JSON.stringify({ url: url, key: key })); iniciarApi(); m.textContent = ''; abrirAjustes(true); refrescar(); toast('Conectado a la base compartida'); })
-      .catch(function (e) { m.textContent = 'No conecta: ' + e.message; });
+    apiRemota({ url: url, key: key }).estado().then(function (e) {
+      if (!e || !(e.version >= 3)) { m.textContent = 'Esa API es de la versión anterior: hay que actualizarla.'; return; }
+      store.set('amstel-sync', JSON.stringify({ url: url, key: key })); iniciarApi(); m.textContent = ''; abrirAjustes(true); refrescar(); ir(actual); toast('Conectado a la base compartida');
+    }).catch(function (e) { m.textContent = 'No conecta: ' + e.message; });
   }
   else if (a === 'vaciar') {
-    var c = window.prompt('Esto borra TODAS las personas y entregas. Para confirmar escribí BORRAR:');
+    var c = window.prompt('Esto borra TODAS las pulseras registradas. Para confirmar escribí BORRAR:');
     if (c !== 'BORRAR') { if (c !== null) toast('No se borró nada', true); return; }
     var pw = window.prompt('Contraseña para borrar:'); if (pw === null) return;
     api.vaciar(pw).then(function (r) {
       if (r.estado !== 'ok') { toast(r.estado === 'clave_incorrecta' ? 'Contraseña incorrecta. No se borró nada.' : 'No se borró nada', true); return; }
-      ing.ultima = null; caja = { fans: [nuevoFan()], medio: '', ocupado: false, msg: '', hecho: null }; bar.hechas = []; toast('Datos borrados'); refrescar(); ir(actual);
+      ult = null; reg = nuevoReg(); toast('Datos borrados'); refrescar(); ir(actual);
     }).catch(function (e) { toast(errTxt(e), true); });
   }
 });
@@ -1230,37 +716,33 @@ function pintarCabecera() {
   $('#marca').innerHTML = CFG.logo ? '<img src="' + esc(CFG.logo) + '" alt="' + esc(CFG.marca) + '">' : '';
 }
 function ir(v) {
-  if (v === 'caja') v = 'acreditar';
-  if (['acreditar', 'barra', 'consumo'].indexOf(v) < 0) v = 'acreditar';
-  cerrarCamara(); bar.ocupado = false; $('#res').hidden = true;
+  if (v === 'consumo') v = 'reporte';                       // enlaces de la versión anterior
+  if (v !== 'reporte') v = 'pulseras';
   actual = v; store.set('amstel-vista', v); document.body.setAttribute('data-v', v);
   if (location.hash !== '#' + v) history.replaceState(null, '', '#' + v);
   [].forEach.call(document.querySelectorAll('[data-ir]'), function (b) { b.classList.toggle('on', b.getAttribute('data-ir') === v); });
-  if (v === 'acreditar') vAcreditar(); else if (v === 'barra') vBarra(); else vConsumo();
-  if (!R) refrescar();
+  if (v === 'pulseras') vPulseras(); else vReporte();
+  refrescar();
 }
-window.addEventListener('hashchange', function () { var v = location.hash.slice(1); if (/^pase=/.test(v)) vPase(v.slice(5)); else if (v && v !== actual) ir(v); });
+window.addEventListener('hashchange', function () { var v = location.hash.slice(1); if (v && v !== actual) ir(v); });
 
 api = apiLocal(); pintarCabecera();
-[CFG.logoEtiqueta, CFG.local.escudoEtiqueta, CFG.visita.escudoEtiqueta].forEach(function (u) { if (u) { var i = new Image(); i.src = u; } });
-iniciarApi().then(function () {
-  if (/^#pase=/.test(location.hash)) vPase(location.hash.slice(6));
-  else { ir(location.hash.slice(1) || store.get('amstel-vista') || 'acreditar'); refrescar(); }
-});
-// Versión nueva publicada: cada dispositivo se actualiza solo cuando no está en medio de una compra o una lectura.
-var verNueva = '';
+iniciarApi().then(function () { ir(location.hash.slice(1) || store.get('amstel-vista') || 'pulseras'); });
+// Versión nueva publicada: cada dispositivo se actualiza solo cuando no está en medio de un registro.
 function hayVersion() {
   if (!/^https?:$/.test(location.protocol)) return;
   fetch(location.href.split('#')[0].split('?')[0] + '?v=' + Date.now(), { cache: 'no-store' }).then(function (r) { return r.ok ? r.text() : ''; }).then(function (t) {
     var m = /data-ver="([0-9-]+)"/.exec(t); if (!m || 'v' + m[1] === VER) return;
-    verNueva = m[1];
-    var libre = !caja.ocupado && caja.fans.length === 1 && caja.fans[0].est === 'vacio' && !caja.fans[0].doc && $('#res').hidden && !$('#ov').classList.contains('open') && !$('#ov2').classList.contains('open') && !$('#pimg').classList.contains('open');
-    if (libre) location.reload(); else toast('Hay una versión nueva: se actualiza sola al terminar esta operación.');
+    var libre = reg.est === 'vacio' && !reg.doc && !reg.ocupado && !$('#ov').classList.contains('open') && !$('#ov2').classList.contains('open');
+    if (libre) location.reload(); else toast('Hay una versión nueva: se actualiza sola al terminar este registro.');
   }).catch(function () {});
 }
 setInterval(hayVersion, 60000); document.addEventListener('visibilitychange', function () { if (!document.hidden) hayVersion(); });
-setInterval(function () { if (document.hidden || actual === 'pase') return; refrescar(); if (actual === 'consumo' && !con.abierta && document.activeElement !== $('#buscar')) cargarPersonas();
-  if (actual === 'acreditar' && document.activeElement !== $('#q-acr') && !$('#ov2').classList.contains('open')) pintarRec(); }, 8000);
+setInterval(function () {
+  if (document.hidden) return; refrescar();
+  if (actual === 'reporte' && document.activeElement !== $('#buscar')) cargarDetalle();
+  if (actual === 'pulseras' && document.activeElement !== $('#q-rec') && !$('#ov2').classList.contains('open')) pintarRec();
+}, 8000);
 })();
 </script>
 </body>
