@@ -8,18 +8,19 @@ La sesión queda guardada en el dispositivo hasta que se cierre (botón de perso
 Cada pulsera queda registrada a nombre del usuario que la entregó.
 
 CÓMO FUNCIONA
-  El evento dura varios días (24, 25 y 26 de noviembre). Cada persona retira UNA pulsera POR DÍA, que
-  trae 3 tirillas (una por cerveza). En la barra le cortan una tirilla por cada cerveza: eso se hace a
-  mano, fuera del sistema. El sistema registra quién ya retiró su pulsera del día, para que nadie pueda
-  volver a buscar otra el mismo día con el mismo documento. Al día siguiente puede retirar otra.
-  El día cambia solo, a las 06:00 (hora de Uruguay): lo que se entregue de madrugada cuenta para la
-  jornada que empezó la tarde anterior. No hay que tocar nada para pasar de un día al otro.
+  El evento dura tres días: 25, 26 y 27 de noviembre. Cada persona retira UNA pulsera POR DÍA, que trae
+  3 tirillas (una por cerveza). En la barra le cortan una tirilla por cada cerveza: eso se hace a mano,
+  fuera del sistema. El sistema registra quién ya retiró la pulsera de cada día, para que nadie pueda
+  volver a buscar otra del mismo día con el mismo documento.
+  Arriba de "Entregar pulsera" hay un selector con los tres días. Viene marcado el día en curso (cambia
+  solo a las 06:00, hora de Uruguay) y se puede elegir otro a mano; si el elegido no es el de hoy, avisa.
+  Los días se cambian en worker/worker.js y en index.html (DIAS / dias), o con la variable DIAS en Cloudflare.
 
   Pulseras  -> 1) Elegir país (Uruguay, Brasil, Argentina, Otro/pasaporte), escribir el documento y
-                  "Buscar" (o Enter).
-               2) Verde "Puede retirar su pulsera de hoy" (si retiró otros días, lo indica): nombre y apellido (opcionales, en dos campos), elegir equipo
+                  "Buscar" (o Enter). Antes, verificar el día marcado en el selector.
+               2) Verde "Puede retirar su pulsera del 25 nov" (si retiró otros días, lo indica): nombre y apellido (opcionales, en dos campos), elegir equipo
                   (Estudiantes, Palmeiras o Neutral) y "Registrar entrega de pulsera".
-               3) Rojo "Ya retiró su pulsera de hoy": muestra a qué hora y en qué puesto. No se entrega otra.
+               3) Rojo "Ya retiró su pulsera del 25 nov": muestra a qué hora y en qué puesto. No se entrega otra.
                Si el mismo número ya retiró como documento de otro país, avisa para que lo verifiquen.
                Abajo está la lista de pulseras entregadas con buscador (documento o nombre), Editar y
                Eliminar (Eliminar pide contraseña: ese documento podría volver a retirar).

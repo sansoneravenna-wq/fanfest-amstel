@@ -18,8 +18,10 @@
 // tirillas de consumo, que se cortan a mano en la barra). Al día siguiente puede retirar otra.
 // La base lo garantiza con UNIQUE (pais, documento, dia): dos puestos a la vez nunca pueden entregarle
 // dos pulseras el mismo día al mismo documento.
-// "Día" es la jornada en hora de Uruguay, y cambia a las 06:00 (no a medianoche) para que lo que se
-// entregue de madrugada siga contando para la jornada que empezó la tarde anterior.
+// Los días del evento están en DIAS. El puesto elige en el sitio de qué día es la pulsera que entrega;
+// viene marcado el día en curso (hora de Uruguay, con cambio a las 06:00 y no a medianoche, para que la
+// madrugada siga contando para la jornada que empezó la tarde anterior). Solo se aceptan días de DIAS.
+// Opcional: la variable DIAS para cambiarlos, separados por coma: 2026-11-25,2026-11-26,2026-11-27
 // La versión anterior (venta de cervezas, etiqueta con QR, lector de barra y pase del fan) quedó guardada
 // en la rama "version-completa-venta-qr" del repositorio.
 
@@ -88,6 +90,12 @@ async function sesionDe(env, request) {
 //   actualiza en el mismo paso que cada entrega: el reporte y el contador no recorren la tabla de pulseras.
 // jornada (AAAA-MM-DD) a la que pertenece un momento: hora de Uruguay (UTC-3), con corte a las 06:00
 const diaDe = (t) => new Date(t - (3 + 6) * 3600000).toISOString().slice(0, 10);
+const DIAS = ['2026-11-25', '2026-11-26', '2026-11-27'];
+const diasDe = (env) => { const l = String(env.DIAS || '').split(',').map((x) => x.trim()).filter((x) => /^\d{4}-\d\d-\d\d$/.test(x)).sort(); return l.length ? l : DIAS; };
+// día que viene marcado: el de hoy si es del evento; antes del evento el primero, y después el último
+const diaActivo = (dias, t) => { const h = diaDe(t); return dias.includes(h) ? h : (dias.find((d) => d > h) || dias[dias.length - 1]); };
+// día pedido por el puesto, si es uno del evento; si no, el que viene marcado
+const diaPedido = (dias, b) => (dias.includes(b.dia) ? b.dia : diaActivo(dias, Date.now()));
 
 let listo = false;
 async function preparar(db) {
@@ -104,37 +112,37 @@ async function preparar(db) {
 // todas las pulseras de un documento (una por día como mucho), de la más reciente a la más vieja
 const deDoc = async (db, pais, doc) => (await db.prepare('SELECT * FROM pulseras_dia WHERE pais = ? AND documento = ? ORDER BY dia DESC').bind(pais, doc).all()).results;
 // claves de "totales" a las que aporta una pulsera
-const claves = (p) => ['d|' + p.dia, 'h|' + Math.floor(p.creado / 3600000), 'e|' + p.dia + '|' + (p.equipo || 'Sin equipo'),
+const claves = (p) => ['d|' + p.dia, 'h|' + p.dia + '|' + Math.floor(p.creado / 3600000), 'e|' + p.dia + '|' + (p.equipo || 'Sin equipo'),
   'p|' + p.dia + '|' + (p.creado_por || 'Sin nombre'), 'c|' + p.dia + '|' + p.pais];
 const sumar = (db, clave, d) => db.prepare('INSERT INTO totales_dia (clave, n) VALUES (?1, ?2) ON CONFLICT (clave) DO UPDATE SET n = n + ?2').bind(clave, d);
 // Rehace los totales contando la tabla completa (por si alguna vez quedaran desfasados).
 async function recalcular(db) {
   const de = (expr) => db.prepare(`INSERT INTO totales_dia (clave, n) SELECT ${expr}, COUNT(*) FROM pulseras_dia GROUP BY 1`);
-  await db.batch([db.prepare('DELETE FROM totales_dia'), de(`'d|' || dia`), de(`'h|' || (creado / 3600000)`), de(`'e|' || dia || '|' || COALESCE(equipo, 'Sin equipo')`),
+  await db.batch([db.prepare('DELETE FROM totales_dia'), de(`'d|' || dia`), de(`'h|' || dia || '|' || (creado / 3600000)`), de(`'e|' || dia || '|' || COALESCE(equipo, 'Sin equipo')`),
     de(`'p|' || dia || '|' || COALESCE(creado_por, 'Sin nombre')`), de(`'c|' || dia || '|' || pais`)]);
   return { estado: 'ok' };
 }
 
-// Busca un documento sin registrar nada: dice si ya retiró su pulsera de HOY.
-// "anteriores": las que retiró otros días (solo informativo, no impiden retirar hoy).
-// "parecido": el mismo número ya retiró hoy como documento de otro país (para que el puesto lo verifique).
-async function consultar(db, b) {
-  const doc = norm(b.documento), pais = norm(b.pais).slice(0, 3), hoy = diaDe(Date.now());
+// Busca un documento sin registrar nada: dice si ya retiró su pulsera del día elegido.
+// "anteriores": las que retiró otros días (solo informativo, no impiden retirar la de este día).
+// "parecido": el mismo número ya retiró ese día como documento de otro país (para que el puesto lo verifique).
+async function consultar(db, b, dias) {
+  const doc = norm(b.documento), pais = norm(b.pais).slice(0, 3), hoy = diaPedido(dias, b);
   if (!docOk(doc, pais)) return { estado: 'documento_invalido' };
   const todas = await deDoc(db, pais, doc), p = todas.find((x) => x.dia === hoy), anteriores = todas.filter((x) => x.dia !== hoy);
-  if (p) return { estado: 'ok', existe: true, pulsera: p, anteriores, hoy };
+  if (p) return { estado: 'ok', existe: true, pulsera: p, anteriores, dia: hoy };
   const otro = await db.prepare('SELECT * FROM pulseras_dia WHERE documento = ? AND dia = ? AND pais <> ? LIMIT 1').bind(doc, hoy, pais).first();
-  return { estado: 'ok', existe: false, anteriores, parecido: otro || null, hoy };
+  return { estado: 'ok', existe: false, anteriores, parecido: otro || null, dia: hoy };
 }
 
-// Registra la entrega de la pulsera de hoy. Si el documento ya la retiró hoy, no registra nada y devuelve esa.
+// Registra la entrega de la pulsera del día elegido. Si el documento ya retiró la de ese día, no registra nada y devuelve esa.
 // La entrega y sus totales van en un solo paso: los totales solo suman si la pulsera de ESTE pedido quedó guardada
 // (se reconoce por una marca al azar, única de cada pedido).
-async function entregar(db, b) {
+async function entregar(db, b, dias) {
   const doc = norm(b.documento), pais = norm(b.pais).slice(0, 3), equipo = texto(b.equipo);
   if (!docOk(doc, pais)) return { estado: 'documento_invalido' };
   if (!equipo) return { estado: 'falta_equipo' };
-  const ahora = Date.now(), marca = crypto.randomUUID(), nueva = { pais, documento: doc, dia: diaDe(ahora), equipo, creado: ahora, creado_por: texto(b.puesto) };
+  const ahora = Date.now(), marca = crypto.randomUUID(), nueva = { pais, documento: doc, dia: diaPedido(dias, b), equipo, creado: ahora, creado_por: texto(b.puesto) };
   const r = await db.batch([
     db.prepare('INSERT INTO pulseras_dia (pais, documento, dia, nombre, apellido, equipo, creado, creado_por, marca) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT (pais, documento, dia) DO NOTHING RETURNING *')
       .bind(pais, doc, nueva.dia, texto(b.nombre, 60), texto(b.apellido, 60), equipo, nueva.creado, nueva.creado_por, marca),
@@ -173,15 +181,15 @@ async function eliminar(db, b, clave) {
 
 // Totales para el contador (puestos) y el reporte (administrador). Lee solo la tabla de totales.
 // Equipo, puesto y país vienen separados por día, para que el reporte pueda mostrar cada jornada o todas juntas.
-async function resumen(db, admin) {
+async function resumen(db, admin, dias) {
   const filas = (await db.prepare('SELECT clave, n FROM totales_dia WHERE n > 0').all()).results, hoy = diaDe(Date.now());
   const de = (tipo) => filas.filter((f) => f.clave.slice(0, 2) === tipo + '|').map((f) => ({ k: f.clave.slice(2), personas: f.n }));
   const por_dia = de('d').map((f) => ({ dia: f.k, personas: f.personas })).sort((x, y) => (x.dia < y.dia ? -1 : 1));
   const personas = por_dia.reduce((s, d) => s + d.personas, 0);
-  if (!admin) return { personas, hoy, por_dia };      // los puestos solo ven el contador
+  if (!admin) return { personas, hoy, dias, por_dia };      // los puestos solo ven el contador
   const conDia = (tipo, nombre) => de(tipo).map((f) => ({ dia: f.k.slice(0, 10), [nombre]: f.k.slice(11), personas: f.personas }));
-  return { personas, hoy, por_dia, por_equipo: conDia('e', 'equipo'), por_puesto: conDia('p', 'puesto'), por_pais: conDia('c', 'pais'),
-    por_hora: de('h').map((f) => ({ hora: Number(f.k) * 3600000, dia: diaDe(Number(f.k) * 3600000), personas: f.personas })).sort((x, y) => x.hora - y.hora) };
+  return { personas, hoy, dias, por_dia, por_equipo: conDia('e', 'equipo'), por_puesto: conDia('p', 'puesto'), por_pais: conDia('c', 'pais'),
+    por_hora: de('h').map((f) => ({ dia: f.k.slice(0, 10), hora: Number(f.k.slice(11)) * 3600000, personas: f.personas })).sort((x, y) => x.hora - y.hora) };
 }
 
 // Lista de pulseras entregadas, de la más reciente a la más vieja. Busca por documento o por nombre.
@@ -209,7 +217,7 @@ export default {
     try {
       // sin sesión: el estado (qué usuarios hay y si la base está vinculada) y el inicio de sesión
       if (request.method === 'GET' && ruta === '/estado')
-        return json({ ok: true, version: 5, db: !!env.DB, usuarios: (await usuarios(env)).map((u) => u.usuario), now: Date.now() });
+        return json({ ok: true, version: 6, db: !!env.DB, dias: diasDe(env), hoy: diaDe(Date.now()), usuarios: (await usuarios(env)).map((u) => u.usuario), now: Date.now() });
       if (request.method === 'POST' && ruta === '/entrar') return json(await entrar(env, await request.json().catch(() => ({}))));
       const u = await sesionDe(env, request);
       if (!u) return json({ error: 'sesion' }, 401);
@@ -217,14 +225,14 @@ export default {
       if (!env.DB) return json({ ok: false, error: 'falta_db' }, 503);   // falta vincular la base D1 como "DB"
       await preparar(env.DB);
       if (request.method === 'GET') {
-        if (ruta === '/resumen') return json(await resumen(env.DB, admin));
+        if (ruta === '/resumen') return json(await resumen(env.DB, admin, diasDe(env)));
         if (ruta === '/pulseras') return json(await pulseras(env.DB, url, admin));
       }
       if (request.method === 'POST') {
         const b = await request.json().catch(() => ({}));
         b.puesto = quien;                       // cada registro queda a nombre del usuario de la sesión
-        if (ruta === '/consultar') return json(await consultar(env.DB, b));
-        if (ruta === '/entregar') return json(await entregar(env.DB, b));
+        if (ruta === '/consultar') return json(await consultar(env.DB, b, diasDe(env)));
+        if (ruta === '/entregar') return json(await entregar(env.DB, b, diasDe(env)));
         if (!admin && (ruta === '/editar' || ruta === '/eliminar' || ruta === '/vaciar' || ruta === '/recalcular')) return json({ error: 'solo_admin' }, 403);
         if (ruta === '/editar') return json(await editar(env.DB, b));
         if (ruta === '/recalcular') return json(await recalcular(env.DB));
