@@ -1,7 +1,9 @@
 FAN FEST AMSTEL · Final Libertadores 2026 (Estudiantes vs Palmeiras) · registro de pulseras
 ===========================================================================================
 
-Se abre el link en Chrome y se ingresa con usuario y clave. Hay 5 usuarios: Puesto 1 a Puesto 5.
+Se abre el link en Chrome y se ingresa con usuario y clave. Hay 6 usuarios:
+  - Puesto 1 a Puesto 5: buscan documentos, registran la entrega y ven la lista de pulseras entregadas.
+  - Administrador: además ve el Reporte, descarga el Excel, edita o elimina registros y puede borrar todo.
 La sesión queda guardada en el dispositivo hasta que se cierre (botón de persona -> Cerrar sesión).
 Cada pulsera queda registrada a nombre del usuario que la entregó.
 
@@ -28,7 +30,7 @@ ACCESOS
   Las claves no están en este repositorio (es público): en worker/worker.js hay solo una huella de cada
   una, que no permite reconstruirla. Para cambiarlas sin tocar el código: en Cloudflare, Settings ->
   Variables and Secrets del proyecto, crear el secreto USUARIOS con este formato y volver a desplegar:
-    [{"usuario":"Puesto 1","clave":"..."},{"usuario":"Puesto 2","clave":"..."}]
+    [{"usuario":"Administrador","clave":"...","admin":true},{"usuario":"Puesto 1","clave":"..."}]
 Engranaje (barra de abajo) -> Configuración: conexión a la base y "Borrar todo".
 
 ARCHIVOS
@@ -58,6 +60,14 @@ BASE COMPARTIDA (para que todos los puestos vean los mismos datos)
     CLAVE_ELIMINAR (contraseña para eliminar registros y borrar todo; por defecto amstel2026).
   Para cambiar la API: editar worker/worker.js y correr armar-api.sh antes de subir.
   (worker/worker.js también sirve como Worker independiente, con el secreto API_KEY; no hace falta.)
+
+CAPACIDAD (plan gratuito de Cloudflare)
+  Topes por día (se reinician a las 21:00 de Uruguay): 100.000 pedidos a la API, 5 millones de filas
+  leídas y 100.000 filas escritas en la base. Si se supera un tope, la base deja de responder hasta el
+  reinicio. Cada pulsera escribe unas 7 filas y hace 4 pedidos: con 6.000 personas por día se usa cerca
+  del 40% de cada tope. Para tener margen (más de 12.000 por día, o muchos dispositivos abiertos),
+  conviene pasar la cuenta al plan Workers Paid (USD 5 por mes) durante el mes del evento.
+  No hace falta comprar un dominio: la dirección .pages.dev ya funciona con conexión segura.
 
 ANTES DEL EVENTO
   Configuración (engranaje) -> "Borrar todo" para limpiar las pruebas (pide la contraseña de eliminar).

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-ver="20261124-1">
+<html lang="es" data-ver="20261124-2">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -173,6 +173,8 @@
   .estado.si{background:#e4f4ea;color:#0d6b31}
   .estado.no{background:var(--rojo);color:#fff}
   .ficha{display:grid;grid-template-columns:1fr 1fr;gap:12px 16px;background:var(--fondo);border-radius:20px;padding:16px}
+  /* los puestos no ven el reporte ni la zona de borrado: eso es del administrador */
+  body:not([data-admin]) [data-ir=reporte],body:not([data-admin]) .soloadmin{display:none}
   /* ingreso con usuario y clave */
   #login{position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;overflow:auto;background:radial-gradient(120% 90% at 50% 0%,#de2743,var(--rojo) 55%)}
   #login[hidden]{display:none}
@@ -227,16 +229,17 @@
   <div class="modal">
     <div id="a-user">
       <h2 id="s-nombre">Sesión</h2>
-      <p>Las pulseras que se registren en este dispositivo quedan a nombre de este usuario.</p>
+      <p id="s-rol"></p>
       <div class="fila" style="justify-content:flex-start;margin:0"><button class="btn rojo" data-act="salir">Cerrar sesión</button><button class="btn" data-act="cerrar">Cerrar</button></div>
     </div>
     <div id="a-conf" hidden>
       <h2>Configuración</h2>
       <h3>Base compartida (Cloudflare)</h3>
       <p id="a-estado"></p>
-      <h3>Zona peligrosa</h3>
+      <div class="soloadmin"><h3>Zona peligrosa</h3>
       <p>Borra todas las pulseras registradas. Sirve para limpiar las pruebas antes del evento. Pide contraseña.</p>
-      <div class="fila" style="justify-content:flex-start;margin:0"><button class="btn" style="color:var(--rojo)" data-act="vaciar">Borrar todo</button><button class="btn" data-act="cerrar">Cerrar</button></div>
+      <div class="fila" style="justify-content:flex-start;margin:0"><button class="btn" style="color:var(--rojo)" data-act="vaciar">Borrar todo</button></div></div>
+      <div class="fila" style="justify-content:flex-start;margin:14px 0 0"><button class="btn" data-act="cerrar">Cerrar</button></div>
     </div>
   </div>
 </div>
@@ -310,6 +313,7 @@ var store = {
 var toastT;
 function toast(t, err) { var el = $('#toast'); el.textContent = t; el.className = 'toast show' + (err ? ' err' : ''); clearTimeout(toastT); toastT = setTimeout(function () { el.className = 'toast'; }, 3200); }
 function puesto() { return ses ? ses.usuario : ''; }
+function esAdmin() { return !conexion.login || !!(ses && ses.admin); }      // al abrir el archivo suelto no hay ingreso: se ve todo
 function nPuls(n) { return miles(n) + (n === 1 ? ' pulsera' : ' pulseras'); }
 function diaKey(t) { var d = new Date(t), z = function (n) { return (n < 10 ? '0' : '') + n; }; return d.getFullYear() + '-' + z(d.getMonth() + 1) + '-' + z(d.getDate()); }
 // "14:32" si fue hoy; "21/11 · 14:32" si fue otro día
@@ -325,6 +329,7 @@ function pedir(method, path, body) {
   var h = { 'Content-Type': 'application/json' };
   if (ses) h['X-Sesion'] = encodeURIComponent(ses.usuario + '|' + ses.sesion);
   return fetch(BASE + path, { method: method, cache: 'no-store', headers: h, body: body ? JSON.stringify(body) : undefined }).then(function (r) {
+    if (r.status === 403) throw new Error('API 403');
     if (r.status === 401) { cerrarSesion('La sesión ya no es válida. Ingresá de nuevo.'); throw new Error('API 401'); }
     if (!r.ok) throw new Error('API ' + r.status);
     return r.json();
@@ -524,7 +529,7 @@ function pintarRec() {
     lst.rec = ps;
     $('#n-rec').textContent = R ? miles(R.personas) + ' en total' : '';
     el.innerHTML = !ps.length ? '<p class="vacio">' + (lst.q ? 'No hay ninguna pulsera que coincida.' : 'Todavía no se entregó ninguna pulsera.') + '</p>' :
-      ps.map(function (p, i) { return filaHtml(p, i, true); }).join('') + (ps.length >= 60 ? '<p class="nota">Se muestran las 60 más recientes. Usá el buscador para encontrar cualquier otra.</p>' : '');
+      ps.map(function (p, i) { return filaHtml(p, i, esAdmin()); }).join('') + (ps.length >= 60 ? '<p class="nota">Se muestran las 60 más recientes. Usá el buscador para encontrar cualquier otra.</p>' : '');
   }).catch(function (e) { var el = $('#rec'); if (el) el.innerHTML = '<p class="msg mal">' + errTxt(e) + '</p>'; });
 }
 document.addEventListener('input', function (ev) {
@@ -674,6 +679,7 @@ function abrirEliminar(p) {
 function abrirAjustes(conf) {
   $('#a-user').hidden = !!conf; $('#a-conf').hidden = !conf;
   $('#s-nombre').textContent = puesto() ? 'Sesión: ' + puesto() : 'Sin sesión';
+  $('#s-rol').textContent = ses && ses.admin ? 'Administrador: ve el reporte completo, descarga el Excel y puede editar o eliminar registros.' : 'Puede buscar documentos y registrar la entrega de pulseras. Cada registro queda a nombre de este usuario.';
   $('#a-estado').textContent = conexion.modo === 'sitio' && !conexion.falta ? 'Conectado a la base compartida: todos los puestos ven los mismos datos y quedan guardados.' : conexion.falta === 'falta_db' ? 'Falta un paso en Cloudflare: vincular la base de datos D1 con el nombre DB en el proyecto de Pages. Hasta entonces los datos se guardan solo en este dispositivo.' : conexion.falta === 'sin_conexion' ? 'No se pudo conectar con el servidor. Revisá internet y recargá la página.' : 'Sin base compartida: los datos se guardan solo en este dispositivo.';
   $('#ov').classList.add('open');
 }
@@ -701,7 +707,7 @@ $('#f-login').onsubmit = function (ev) {
   pedir('POST', '/entrar', { usuario: lg.usuario, clave: pw }).then(function (r) {
     lg.ocupado = false;
     if (r.estado !== 'ok') { pintarLogin('Clave incorrecta.'); $('#lg-pw').select(); return; }
-    ses = { usuario: r.usuario, sesion: r.sesion }; store.set('amstel-sesion', JSON.stringify(ses)); store.set('amstel-usuario', r.usuario);
+    ses = { usuario: r.usuario, sesion: r.sesion, admin: !!r.admin }; store.set('amstel-sesion', JSON.stringify(ses)); store.set('amstel-usuario', r.usuario);
     $('#login').hidden = true; $('#lg-pw').value = ''; pintarCabecera(); arrancar();
   }).catch(function () { lg.ocupado = false; pintarLogin('No se pudo conectar. Revisá internet y probá de nuevo.'); });
 };
@@ -753,6 +759,7 @@ document.addEventListener('mousemove', tipEn); document.addEventListener('touchs
 // ============================================================ navegación
 var actual = '';
 function pintarCabecera() {
+  if (esAdmin()) document.body.setAttribute('data-admin', ''); else document.body.removeAttribute('data-admin');
   $('#tit').textContent = puesto() || (CFG.evento + ' ' + CFG.marca);
   $('#sub').textContent = puesto() ? (CFG.evento + ' ' + CFG.marca + ' · ' + VER) : (CFG.subtitulo + ' · ' + VER);
   $('#partido').innerHTML = '<div><img src="' + esc(CFG.local.escudo) + '" alt="">' + esc(CFG.local.nombre) + ' <small>vs</small> ' + esc(CFG.visita.nombre) + '<img src="' + esc(CFG.visita.escudo) + '" alt=""></div>';
@@ -760,7 +767,7 @@ function pintarCabecera() {
 }
 function ir(v) {
   if (v === 'consumo') v = 'reporte';                       // enlaces de la versión anterior
-  if (v !== 'reporte') v = 'pulseras';
+  if (v !== 'reporte' || !esAdmin()) v = 'pulseras';         // el reporte es solo del administrador
   actual = v; store.set('amstel-vista', v); document.body.setAttribute('data-v', v);
   if (location.hash !== '#' + v) history.replaceState(null, '', '#' + v);
   [].forEach.call(document.querySelectorAll('[data-ir]'), function (b) { b.classList.toggle('on', b.getAttribute('data-ir') === v); });
@@ -783,10 +790,11 @@ function hayVersion() {
 }
 setInterval(hayVersion, 60000); document.addEventListener('visibilitychange', function () { if (!document.hidden) hayVersion(); });
 setInterval(function () {
+  // Pocas consultas a propósito (el plan de Cloudflare tiene tope diario): el contador y el reporte se
+  // actualizan cada 30 s; las listas, solo al registrar, al buscar o al entrar a la pestaña.
   if (document.hidden || (conexion.login && !ses) || !actual) return; refrescar();
-  if (actual === 'reporte' && document.activeElement !== $('#buscar')) cargarDetalle();
-  if (actual === 'pulseras' && document.activeElement !== $('#q-rec') && !$('#ov2').classList.contains('open')) pintarRec();
-}, 8000);
+  if (actual === 'reporte' && !rep.q) cargarDetalle();
+}, 30000);
 })();
 </script>
 </body>
