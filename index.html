@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-ver="20261123-1">
+<html lang="es" data-ver="20261124-1">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -173,6 +173,17 @@
   .estado.si{background:#e4f4ea;color:#0d6b31}
   .estado.no{background:var(--rojo);color:#fff}
   .ficha{display:grid;grid-template-columns:1fr 1fr;gap:12px 16px;background:var(--fondo);border-radius:20px;padding:16px}
+  /* ingreso con usuario y clave */
+  #login{position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;overflow:auto;background:radial-gradient(120% 90% at 50% 0%,#de2743,var(--rojo) 55%)}
+  #login[hidden]{display:none}
+  .lg{background:#fff;border-radius:30px;padding:30px 26px 24px;width:100%;max-width:420px;text-align:center;box-shadow:0 24px 60px rgba(0,0,0,.25)}
+  .lg>img{height:76px}
+  .lg h1{font-size:23px;font-weight:800;margin:10px 0 2px}
+  .lg p{margin:0 0 18px;color:var(--gris);font-size:14.5px}
+  .lg .chips{justify-content:center}
+  .lg label{text-align:left}
+  .lg .por{margin-top:18px;font-size:12px;color:var(--gris)}
+  .lg .por img{height:15px;filter:brightness(0);opacity:.6;vertical-align:-3px;margin-left:4px}
   .dosf{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}
   .ficha small{display:block;font-size:12px}
   .ficha b{display:block;font-size:15.5px;font-weight:700;overflow-wrap:anywhere}
@@ -189,7 +200,7 @@
       <div class="marca" id="marca"></div>
       <div class="saludo"><b id="tit">Fan Fest Amstel</b><span id="sub">Final Libertadores 2026 · Montevideo</span></div>
       <img class="rt" src="assets/redtickets-blanco.png" alt="RedTickets">
-      <button class="rond" data-act="ajustes" title="Tu nombre"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></button>
+      <button class="rond" data-act="ajustes" title="Tu sesión"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></button>
     </div>
     <div class="partido" id="partido"></div>
     <div class="total">
@@ -215,20 +226,14 @@
 <div class="ov" id="ov">
   <div class="modal">
     <div id="a-user">
-      <h2>¿Quién sos?</h2>
-      <p>Tu nombre queda guardado en este dispositivo y aparece en cada pulsera que entregues.</p>
-      <form id="f-nombre" autocomplete="off">
-        <label class="f">Nombre<input id="a-puesto" maxlength="40" placeholder="Ej.: Ana · Puesto 1"></label>
-        <div class="fila" style="justify-content:flex-start;margin:0"><button class="btn rojo">Guardar</button><button type="button" class="btn" data-act="cerrar">Cerrar</button></div>
-      </form>
+      <h2 id="s-nombre">Sesión</h2>
+      <p>Las pulseras que se registren en este dispositivo quedan a nombre de este usuario.</p>
+      <div class="fila" style="justify-content:flex-start;margin:0"><button class="btn rojo" data-act="salir">Cerrar sesión</button><button class="btn" data-act="cerrar">Cerrar</button></div>
     </div>
     <div id="a-conf" hidden>
       <h2>Configuración</h2>
       <h3>Base compartida (Cloudflare)</h3>
       <p id="a-estado"></p>
-      <label class="f">URL de la API (Worker)<input id="a-url" placeholder="https://fanfest-amstel.xxxx.workers.dev"></label>
-      <label class="f">Clave (X-Key)<input id="a-key" placeholder="clave"></label>
-      <button class="btn" data-act="conectar">Guardar y conectar</button> <span class="msg" id="a-msg"></span>
       <h3>Zona peligrosa</h3>
       <p>Borra todas las pulseras registradas. Sirve para limpiar las pruebas antes del evento. Pide contraseña.</p>
       <div class="fila" style="justify-content:flex-start;margin:0"><button class="btn" style="color:var(--rojo)" data-act="vaciar">Borrar todo</button><button class="btn" data-act="cerrar">Cerrar</button></div>
@@ -237,6 +242,19 @@
 </div>
 
 <div class="ov" id="ov2"><div class="modal" id="m2"></div></div>
+
+<div id="login" hidden>
+  <form class="lg" id="f-login" autocomplete="off">
+    <img src="assets/amstel.png" alt="Amstel">
+    <h1>Fan Fest Amstel</h1>
+    <p>Elegí tu usuario e ingresá la clave.</p>
+    <div class="chips" id="lg-us"></div>
+    <label class="f">Clave<input type="password" id="lg-pw" autocomplete="off" autocapitalize="none" spellcheck="false"></label>
+    <div class="msg mal" id="lg-msg"></div>
+    <button class="btn rojo grande" id="lg-btn">Entrar</button>
+    <div class="por">Una plataforma de <img src="assets/redtickets-blanco.png" alt="RedTickets"></div>
+  </form>
+</div>
 
 <div class="toast" id="toast"></div>
 <div class="tip" id="tip"></div>
@@ -257,8 +275,6 @@ var CFG = {
   tirillas: 3,              // consumos que trae cada pulsera (se cortan a mano en la barra)
   clave: 'amstel2026'       // contraseña para eliminar registros (modo sin conexión; con la base compartida la decide la API)
 };
-// Base compartida aparte (opcional): la API ya se publica junto con el sitio.
-var SYNC_DEFAULT = { url: '', key: '' };
 
 var VER = 'v' + document.documentElement.getAttribute('data-ver');
 var $ = function (s) { return document.querySelector(s); };
@@ -293,7 +309,7 @@ var store = {
 };
 var toastT;
 function toast(t, err) { var el = $('#toast'); el.textContent = t; el.className = 'toast show' + (err ? ' err' : ''); clearTimeout(toastT); toastT = setTimeout(function () { el.className = 'toast'; }, 3200); }
-function puesto() { return store.get('amstel-puesto') || ''; }
+function puesto() { return ses ? ses.usuario : ''; }
 function nPuls(n) { return miles(n) + (n === 1 ? ' pulsera' : ' pulseras'); }
 function diaKey(t) { var d = new Date(t), z = function (n) { return (n < 10 ? '0' : '') + n; }; return d.getFullYear() + '-' + z(d.getMonth() + 1) + '-' + z(d.getDate()); }
 // "14:32" si fue hoy; "21/11 · 14:32" si fue otro día
@@ -302,20 +318,20 @@ function nomDe(p) { return [p.nombre, p.apellido].filter(Boolean).join(' '); }
 function escudoDe(n) { var e = CFG.equipos.filter(function (x) { return x.n === n; })[0]; return e && e.escudo ? '<img class="esc" src="' + esc(e.escudo) + '" alt="">' : ''; }
 
 // ============================================================ API compartida (Cloudflare Pages + D1)
-function syncCfg() {
-  try { var o = JSON.parse(store.get('amstel-sync')); if (o && o.url) return o; } catch (e) {}
-  return SYNC_DEFAULT.url ? SYNC_DEFAULT : null;
+var BASE = location.href.split('#')[0].split('?')[0].replace(/[^/]*$/, '') + 'api';
+var ses = null;                       // sesión iniciada en este dispositivo: { usuario, sesion }
+try { ses = JSON.parse(store.get('amstel-sesion')); if (!ses || !ses.usuario || !ses.sesion) ses = null; } catch (e) { ses = null; }
+function pedir(method, path, body) {
+  var h = { 'Content-Type': 'application/json' };
+  if (ses) h['X-Sesion'] = encodeURIComponent(ses.usuario + '|' + ses.sesion);
+  return fetch(BASE + path, { method: method, cache: 'no-store', headers: h, body: body ? JSON.stringify(body) : undefined }).then(function (r) {
+    if (r.status === 401) { cerrarSesion('La sesión ya no es válida. Ingresá de nuevo.'); throw new Error('API 401'); }
+    if (!r.ok) throw new Error('API ' + r.status);
+    return r.json();
+  });
 }
-function apiRemota(sync) {
-  function call(method, path, body) {
-    return fetch(sync.url.replace(/\/$/, '') + path, {
-      method: method, cache: 'no-store', headers: sync.key ? { 'Content-Type': 'application/json', 'X-Key': sync.key } : { 'Content-Type': 'application/json' },
-      body: body ? JSON.stringify(body) : undefined
-    }).then(function (r) {
-      if (!r.ok) throw new Error('API ' + r.status + (r.status === 401 ? ' (clave incorrecta)' : ''));
-      return r.json();
-    });
-  }
+function apiRemota() {
+  var call = pedir;
   return {
     local: false,
     consultar: function (pais, doc) { return call('POST', '/consultar', { pais: pais, documento: doc }); },
@@ -385,22 +401,26 @@ function apiLocal() {
   };
 }
 var api;
-var conexion = { modo: 'local', falta: '' };
-// Orden: 1) un Worker cargado a mano en Configuración; 2) la base publicada junto al sitio (/api); 3) solo este dispositivo.
+var conexion = { modo: 'local', falta: '', usuarios: [], login: false };
+// Con el sitio publicado, los datos van siempre a la base compartida (/api) y hay que iniciar sesión.
+// Solo se guarda en este dispositivo si la base todavía no está vinculada en Cloudflare, o si se abre el archivo suelto.
 function iniciarApi() {
-  var s = syncCfg(), fin = function () { $('#aviso-local').hidden = !api.local; };
-  conexion = { modo: 'local', falta: '' };
-  if (s) { api = apiRemota(s); conexion.modo = 'worker'; fin(); return Promise.resolve(); }
+  var fin = function () { $('#aviso-local').hidden = !api.local; };
+  conexion = { modo: 'local', falta: '', usuarios: [], login: false };
   api = apiLocal();
   if (!/^https?:$/.test(location.protocol)) { fin(); return Promise.resolve(); }
-  var base = location.href.split('#')[0].split('?')[0].replace(/[^/]*$/, '') + 'api';
-  var prueba = fetch(base + '/estado', { cache: 'no-store' })
-    .then(function (r) { return r.json().catch(function () { return {}; }); })
-    .then(function (e) { if (e && e.ok && e.version >= 3) { api = apiRemota({ url: base, key: '' }); conexion.modo = 'sitio'; } else if (e && e.error) conexion.falta = e.error; })
-    .catch(function () {});
-  return Promise.race([prueba, new Promise(function (ok) { setTimeout(ok, 4000); })]).then(fin);
+  conexion.login = true; conexion.modo = 'sitio'; api = apiRemota();
+  var prueba = fetch(BASE + '/estado', { cache: 'no-store' })
+    .then(function (r) { return r.json(); })
+    .then(function (e) {
+      if (!e || !e.ok || !(e.version >= 4)) throw new Error('estado');
+      conexion.usuarios = e.usuarios || [];
+      if (!e.db) { api = apiLocal(); conexion.modo = 'local'; conexion.falta = 'falta_db'; }
+    })
+    .catch(function () { conexion.falta = 'sin_conexion'; });
+  return Promise.race([prueba, new Promise(function (ok) { setTimeout(ok, 6000); })]).then(fin);
 }
-function errTxt(e) { return 'No se pudo conectar con la base. Revisá internet y probá de nuevo.' + (e && /401/.test(e.message) ? ' (clave incorrecta)' : ''); }
+function errTxt(e) { return e && /401/.test(e.message) ? 'La sesión ya no es válida. Ingresá de nuevo.' : 'No se pudo conectar con la base. Revisá internet y probá de nuevo.'; }
 
 // ============================================================ total de arriba
 var R = null;
@@ -653,18 +673,43 @@ function abrirEliminar(p) {
 // ============================================================ ajustes
 function abrirAjustes(conf) {
   $('#a-user').hidden = !!conf; $('#a-conf').hidden = !conf;
-  $('#a-puesto').value = puesto();
-  var s = syncCfg(); $('#a-url').value = s ? s.url : ''; $('#a-key').value = s ? s.key : '';
-  $('#a-estado').textContent = conexion.modo === 'sitio' ? 'Conectado a la base del sitio: todos los dispositivos ven los mismos datos. No hace falta cargar nada acá.' : conexion.modo === 'worker' ? 'Conectado al Worker cargado abajo: todos los puestos ven los mismos datos.' : conexion.falta === 'falta_db' ? 'Falta un paso en Cloudflare: vincular la base de datos D1 con el nombre DB en el proyecto de Pages. Hasta entonces los datos se guardan solo en este dispositivo.' : 'Sin base compartida: los datos se guardan solo en este dispositivo.';
-  $('#ov').classList.add('open'); if (!conf) $('#a-puesto').focus();
+  $('#s-nombre').textContent = puesto() ? 'Sesión: ' + puesto() : 'Sin sesión';
+  $('#a-estado').textContent = conexion.modo === 'sitio' && !conexion.falta ? 'Conectado a la base compartida: todos los puestos ven los mismos datos y quedan guardados.' : conexion.falta === 'falta_db' ? 'Falta un paso en Cloudflare: vincular la base de datos D1 con el nombre DB en el proyecto de Pages. Hasta entonces los datos se guardan solo en este dispositivo.' : conexion.falta === 'sin_conexion' ? 'No se pudo conectar con el servidor. Revisá internet y recargá la página.' : 'Sin base compartida: los datos se guardan solo en este dispositivo.';
+  $('#ov').classList.add('open');
 }
-$('#f-nombre').onsubmit = function (ev) {
-  ev.preventDefault(); store.set('amstel-puesto', $('#a-puesto').value.trim()); pintarCabecera(); $('#ov').classList.remove('open'); toast('Nombre guardado');
+
+// ============================================================ ingreso con usuario y clave
+var lg = { usuario: store.get('amstel-usuario') || '', ocupado: false };
+function pintarLogin(msg) {
+  var us = conexion.usuarios;
+  if (us.indexOf(lg.usuario) < 0) lg.usuario = us[0] || '';
+  $('#lg-us').innerHTML = us.map(function (u) { return '<button type="button" class="chip' + (u === lg.usuario ? ' on' : '') + '" data-lg="' + esc(u) + '">' + esc(u) + '</button>'; }).join('');
+  $('#lg-msg').textContent = msg || (us.length ? '' : 'No se pudo conectar con el servidor. Revisá internet y recargá la página.');
+  $('#lg-btn').textContent = lg.ocupado ? 'Entrando…' : 'Entrar';
+}
+function mostrarLogin(msg) { $('#ov').classList.remove('open'); $('#ov2').classList.remove('open'); $('#login').hidden = false; $('#lg-pw').value = ''; pintarLogin(msg); $('#lg-pw').focus(); }
+function cerrarSesion(msg) {
+  if (!conexion.login) return;
+  ses = null; store.del('amstel-sesion'); R = null; ult = null; reg = nuevoReg(); pintarCabecera(); mostrarLogin(msg || '');
+}
+$('#f-login').onsubmit = function (ev) {
+  ev.preventDefault(); if (lg.ocupado) return;
+  var pw = $('#lg-pw').value.trim();
+  if (!lg.usuario) return pintarLogin();
+  if (!pw) return pintarLogin('Ingresá la clave.');
+  lg.ocupado = true; pintarLogin();
+  pedir('POST', '/entrar', { usuario: lg.usuario, clave: pw }).then(function (r) {
+    lg.ocupado = false;
+    if (r.estado !== 'ok') { pintarLogin('Clave incorrecta.'); $('#lg-pw').select(); return; }
+    ses = { usuario: r.usuario, sesion: r.sesion }; store.set('amstel-sesion', JSON.stringify(ses)); store.set('amstel-usuario', r.usuario);
+    $('#login').hidden = true; $('#lg-pw').value = ''; pintarCabecera(); arrancar();
+  }).catch(function () { lg.ocupado = false; pintarLogin('No se pudo conectar. Revisá internet y probá de nuevo.'); });
 };
 
 // ============================================================ acciones
 document.addEventListener('click', function (ev) {
   var t = ev.target, b;
+  if ((b = t.closest('[data-lg]'))) { lg.usuario = b.getAttribute('data-lg'); pintarLogin(); $('#lg-pw').focus(); return; }
   if ((b = t.closest('[data-ir]'))) { ir(b.getAttribute('data-ir')); return; }
   if ((b = t.closest('[data-rpais]'))) { reg.pais = b.getAttribute('data-rpais'); reg.aviso = false; reg.msg = ''; pintarReg(true); return; }
   if ((b = t.closest('[data-requipo]'))) { reg.equipo = b.getAttribute('data-requipo'); reg.msg = ''; pintarReg(); var be = $('[data-act=r-entregar]'); if (be) be.focus(); return; }   // con el equipo elegido, Enter registra
@@ -684,15 +729,7 @@ document.addEventListener('click', function (ev) {
   else if (a === 'r-cambiar') { var d0 = reg.doc, p0 = reg.pais; reg = nuevoReg(); reg.doc = d0; reg.pais = p0; pintarReg(true); }
   else if (a === 'r-nuevo') { var p1 = reg.pais; reg = nuevoReg(); reg.pais = p1; pintarReg(true); }
   else if (a === 'csv') descargarCsv();
-  else if (a === 'conectar') {
-    var url = $('#a-url').value.trim(), key = $('#a-key').value.trim(), m = $('#a-msg');
-    if (!url) { store.del('amstel-sync'); iniciarApi().then(function () { abrirAjustes(true); refrescar(); ir(actual); }); return; }
-    m.textContent = 'Probando…';
-    apiRemota({ url: url, key: key }).estado().then(function (e) {
-      if (!e || !(e.version >= 3)) { m.textContent = 'Esa API es de la versión anterior: hay que actualizarla.'; return; }
-      store.set('amstel-sync', JSON.stringify({ url: url, key: key })); iniciarApi(); m.textContent = ''; abrirAjustes(true); refrescar(); ir(actual); toast('Conectado a la base compartida');
-    }).catch(function (e) { m.textContent = 'No conecta: ' + e.message; });
-  }
+  else if (a === 'salir') cerrarSesion();
   else if (a === 'vaciar') {
     var c = window.prompt('Esto borra TODAS las pulseras registradas. Para confirmar escribí BORRAR:');
     if (c !== 'BORRAR') { if (c !== null) toast('No se borró nada', true); return; }
@@ -730,22 +767,23 @@ function ir(v) {
   if (v === 'pulseras') vPulseras(); else vReporte();
   refrescar();
 }
-window.addEventListener('hashchange', function () { var v = location.hash.slice(1); if (v && v !== actual) ir(v); });
+window.addEventListener('hashchange', function () { var v = location.hash.slice(1); if (v && v !== actual && !(conexion.login && !ses)) ir(v); });
 
 api = apiLocal(); pintarCabecera();
-iniciarApi().then(function () { ir(location.hash.slice(1) || store.get('amstel-vista') || 'pulseras'); });
+function arrancar() { ir(location.hash.slice(1) || store.get('amstel-vista') || 'pulseras'); }
+iniciarApi().then(function () { if (conexion.login && !ses) mostrarLogin(); else arrancar(); });
 // Versión nueva publicada: cada dispositivo se actualiza solo cuando no está en medio de un registro.
 function hayVersion() {
   if (!/^https?:$/.test(location.protocol)) return;
   fetch(location.href.split('#')[0].split('?')[0] + '?v=' + Date.now(), { cache: 'no-store' }).then(function (r) { return r.ok ? r.text() : ''; }).then(function (t) {
     var m = /data-ver="([0-9-]+)"/.exec(t); if (!m || 'v' + m[1] === VER) return;
-    var libre = reg.est === 'vacio' && !reg.doc && !reg.ocupado && !$('#ov').classList.contains('open') && !$('#ov2').classList.contains('open');
+    var libre = !lg.ocupado && !$('#lg-pw').value && reg.est === 'vacio' && !reg.doc && !reg.ocupado && !$('#ov').classList.contains('open') && !$('#ov2').classList.contains('open');
     if (libre) location.reload(); else toast('Hay una versión nueva: se actualiza sola al terminar este registro.');
   }).catch(function () {});
 }
 setInterval(hayVersion, 60000); document.addEventListener('visibilitychange', function () { if (!document.hidden) hayVersion(); });
 setInterval(function () {
-  if (document.hidden) return; refrescar();
+  if (document.hidden || (conexion.login && !ses) || !actual) return; refrescar();
   if (actual === 'reporte' && document.activeElement !== $('#buscar')) cargarDetalle();
   if (actual === 'pulseras' && document.activeElement !== $('#q-rec') && !$('#ov2').classList.contains('open')) pintarRec();
 }, 8000);

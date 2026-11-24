@@ -1,7 +1,9 @@
 FAN FEST AMSTEL · Final Libertadores 2026 (Estudiantes vs Palmeiras) · registro de pulseras
 ===========================================================================================
 
-Se abre el link en Chrome y se usa directo, sin usuario ni clave (igual que la de Ceibal).
+Se abre el link en Chrome y se ingresa con usuario y clave. Hay 5 usuarios: Puesto 1 a Puesto 5.
+La sesión queda guardada en el dispositivo hasta que se cierre (botón de persona -> Cerrar sesión).
+Cada pulsera queda registrada a nombre del usuario que la entregó.
 
 CÓMO FUNCIONA
   Cada persona retira UNA pulsera, que trae 3 tirillas (una por cerveza). En la barra le cortan una
@@ -20,7 +22,13 @@ CÓMO FUNCIONA
                buscador y descarga a Excel (país, documento, nombre, apellido, equipo, fecha, hora y puesto).
 
 Links directos: .../#pulseras   .../#reporte
-En cada dispositivo: botón de persona (arriba a la derecha) -> tu nombre (ej. "Ana · Puesto 1"). Sin contraseña.
+Botón de persona (arriba a la derecha) -> muestra el usuario y permite cerrar sesión.
+
+ACCESOS
+  Las claves no están en este repositorio (es público): en worker/worker.js hay solo una huella de cada
+  una, que no permite reconstruirla. Para cambiarlas sin tocar el código: en Cloudflare, Settings ->
+  Variables and Secrets del proyecto, crear el secreto USUARIOS con este formato y volver a desplegar:
+    [{"usuario":"Puesto 1","clave":"..."},{"usuario":"Puesto 2","clave":"..."}]
 Engranaje (barra de abajo) -> Configuración: conexión a la base y "Borrar todo".
 
 ARCHIVOS
