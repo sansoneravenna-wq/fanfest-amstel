@@ -10,14 +10,14 @@ CÓMO FUNCIONA
 
   Pulseras  -> 1) Elegir país (Uruguay, Brasil, Argentina, Otro/pasaporte), escribir el documento y
                   "Buscar" (o Enter).
-               2) Verde "Puede retirar su pulsera": nombre y apellido (opcional), elegir equipo
+               2) Verde "Puede retirar su pulsera": nombre y apellido (opcionales, en dos campos), elegir equipo
                   (Estudiantes, Palmeiras o Neutral) y "Registrar entrega de pulsera".
                3) Rojo "Ya retiró su pulsera": muestra a qué hora y en qué puesto. No se entrega otra.
                Si el mismo número ya retiró como documento de otro país, avisa para que lo verifiquen.
                Abajo está la lista de pulseras entregadas con buscador (documento o nombre), Editar y
                Eliminar (Eliminar pide contraseña: ese documento podría volver a retirar).
   Reporte   -> pulseras entregadas por día y hora, por equipo, por puesto y por país; detalle con
-               buscador y descarga a Excel (país, documento, nombre, equipo, fecha, hora y puesto).
+               buscador y descarga a Excel (país, documento, nombre, apellido, equipo, fecha, hora y puesto).
 
 Links directos: .../#pulseras   .../#reporte
 En cada dispositivo: botón de persona (arriba a la derecha) -> tu nombre (ej. "Ana · Puesto 1"). Sin contraseña.

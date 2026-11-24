@@ -29,8 +29,10 @@ let listo = false;
 async function preparar(db) {
   if (listo) return;
   await db.prepare(`CREATE TABLE IF NOT EXISTS pulseras (
-    id INTEGER PRIMARY KEY AUTOINCREMENT, pais TEXT NOT NULL, documento TEXT NOT NULL, nombre TEXT, equipo TEXT,
+    id INTEGER PRIMARY KEY AUTOINCREMENT, pais TEXT NOT NULL, documento TEXT NOT NULL, nombre TEXT, apellido TEXT, equipo TEXT,
     creado INTEGER NOT NULL, creado_por TEXT, UNIQUE (pais, documento))`).run();
+  // bases creadas antes de que existiera el apellido: se agrega la columna (si ya está, el error se ignora)
+  try { await db.prepare('ALTER TABLE pulseras ADD COLUMN apellido TEXT').run(); } catch (e) {}
   listo = true;
 }
 const buscar = (db, pais, doc) => db.prepare('SELECT * FROM pulseras WHERE pais = ? AND documento = ?').bind(pais, doc).first();
@@ -52,8 +54,8 @@ async function entregar(db, b) {
   if (!docOk(doc, pais)) return { estado: 'documento_invalido' };
   if (!equipo) return { estado: 'falta_equipo' };
   const p = await db.prepare(
-    'INSERT INTO pulseras (pais, documento, nombre, equipo, creado, creado_por) VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT (pais, documento) DO NOTHING RETURNING *')
-    .bind(pais, doc, texto(b.nombre, 80), equipo, Date.now(), texto(b.puesto)).first();
+    'INSERT INTO pulseras (pais, documento, nombre, apellido, equipo, creado, creado_por) VALUES (?, ?, ?, ?, ?, ?, ?) ON CONFLICT (pais, documento) DO NOTHING RETURNING *')
+    .bind(pais, doc, texto(b.nombre, 60), texto(b.apellido, 60), equipo, Date.now(), texto(b.puesto)).first();
   if (p) return { estado: 'ok', pulsera: p };
   return { estado: 'ya_entregada', pulsera: await buscar(db, pais, doc) };
 }
@@ -64,8 +66,8 @@ async function editar(db, b) {
   if (!equipo) return { estado: 'falta_equipo' };
   const otro = await db.prepare('SELECT id FROM pulseras WHERE pais = ? AND documento = ? AND id <> ?').bind(pais, doc, id).first();
   if (otro) return { estado: 'duplicado' };
-  const p = await db.prepare('UPDATE pulseras SET pais = ?, documento = ?, nombre = ?, equipo = ? WHERE id = ? RETURNING *')
-    .bind(pais, doc, texto(b.nombre, 80), equipo, id).first();
+  const p = await db.prepare('UPDATE pulseras SET pais = ?, documento = ?, nombre = ?, apellido = ?, equipo = ? WHERE id = ? RETURNING *')
+    .bind(pais, doc, texto(b.nombre, 60), texto(b.apellido, 60), equipo, id).first();
   return p ? { estado: 'ok', pulsera: p } : { estado: 'inexistente' };
 }
 
@@ -94,7 +96,7 @@ async function pulseras(db, url) {
   const limite = Math.min(Math.max(Number(url.searchParams.get('limite')) || 100, 1), 100000);
   return (await db.prepare(
     `SELECT * FROM pulseras
-     WHERE (?1 = '' AND ?2 = '') OR (?1 <> '' AND documento LIKE '%' || ?1 || '%') OR (?2 <> '' AND nombre LIKE '%' || ?2 || '%')
+     WHERE (?1 = '' AND ?2 = '') OR (?1 <> '' AND documento LIKE '%' || ?1 || '%') OR (?2 <> '' AND (COALESCE(nombre, '') || ' ' || COALESCE(apellido, '')) LIKE '%' || ?2 || '%')
      ORDER BY creado DESC, id DESC LIMIT ?3`).bind(q, crudo, limite).all()).results;
 }
 

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-ver="20261122-1">
+<html lang="es" data-ver="20261123-1">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -173,6 +173,7 @@
   .estado.si{background:#e4f4ea;color:#0d6b31}
   .estado.no{background:var(--rojo);color:#fff}
   .ficha{display:grid;grid-template-columns:1fr 1fr;gap:12px 16px;background:var(--fondo);border-radius:20px;padding:16px}
+  .dosf{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}
   .ficha small{display:block;font-size:12px}
   .ficha b{display:block;font-size:15.5px;font-weight:700;overflow-wrap:anywhere}
   .ficha b.num{font-size:20px;font-weight:800;font-variant-numeric:tabular-nums}
@@ -297,6 +298,7 @@ function nPuls(n) { return miles(n) + (n === 1 ? ' pulsera' : ' pulseras'); }
 function diaKey(t) { var d = new Date(t), z = function (n) { return (n < 10 ? '0' : '') + n; }; return d.getFullYear() + '-' + z(d.getMonth() + 1) + '-' + z(d.getDate()); }
 // "14:32" si fue hoy; "21/11 · 14:32" si fue otro día
 function cuando(t) { if (!t) return ''; var d = new Date(t); return (diaKey(t) === diaKey(Date.now()) ? '' : d.getDate() + '/' + (d.getMonth() + 1) + ' · ') + hora(t); }
+function nomDe(p) { return [p.nombre, p.apellido].filter(Boolean).join(' '); }
 function escudoDe(n) { var e = CFG.equipos.filter(function (x) { return x.n === n; })[0]; return e && e.escudo ? '<img class="esc" src="' + esc(e.escudo) + '" alt="">' : ''; }
 
 // ============================================================ API compartida (Cloudflare Pages + D1)
@@ -317,10 +319,10 @@ function apiRemota(sync) {
   return {
     local: false,
     consultar: function (pais, doc) { return call('POST', '/consultar', { pais: pais, documento: doc }); },
-    entregar: function (pais, doc, nombre, equipo) { return call('POST', '/entregar', { pais: pais, documento: doc, nombre: nombre, equipo: equipo, puesto: puesto() }); },
+    entregar: function (pais, doc, nombre, apellido, equipo) { return call('POST', '/entregar', { pais: pais, documento: doc, nombre: nombre, apellido: apellido, equipo: equipo, puesto: puesto() }); },
     resumen: function () { return call('GET', '/resumen'); },
     pulseras: function (q, lim) { return call('GET', '/pulseras?q=' + encodeURIComponent(q || '') + '&limite=' + (lim || 100)); },
-    editar: function (id, pais, doc, nombre, equipo) { return call('POST', '/editar', { id: id, pais: pais, documento: doc, nombre: nombre, equipo: equipo }); },
+    editar: function (id, pais, doc, nombre, apellido, equipo) { return call('POST', '/editar', { id: id, pais: pais, documento: doc, nombre: nombre, apellido: apellido, equipo: equipo }); },
     eliminar: function (id, clave) { return call('POST', '/eliminar', { id: id, clave: clave }); },
     vaciar: function (clave) { return call('POST', '/vaciar', { confirmacion: 'BORRAR', clave: clave }); },
     estado: function () { return call('GET', '/estado'); }
@@ -344,13 +346,13 @@ function apiLocal() {
       if (p) return { estado: 'ok', existe: true, pulsera: p };
       return { estado: 'ok', existe: false, parecido: db.pulseras.filter(function (x) { return x.documento === d && x.pais !== pa; })[0] || null };
     }),
-    entregar: w(function (pais, doc, nombre, equipo) {
+    entregar: w(function (pais, doc, nombre, apellido, equipo) {
       var d = norm(doc), pa = norm(pais).slice(0, 3), db = load();
       if (!ok(d, pa)) return { estado: 'documento_invalido' };
       if (!limpio(equipo, 40)) return { estado: 'falta_equipo' };
       var p = busca(db, pa, d);
       if (p) return { estado: 'ya_entregada', pulsera: p };
-      p = { id: db.seq++, pais: pa, documento: d, nombre: limpio(nombre) || null, equipo: limpio(equipo, 40), creado: Date.now(), creado_por: puesto() || null };
+      p = { id: db.seq++, pais: pa, documento: d, nombre: limpio(nombre) || null, apellido: limpio(apellido) || null, equipo: limpio(equipo, 40), creado: Date.now(), creado_por: puesto() || null };
       db.pulseras.push(p); save(db); return { estado: 'ok', pulsera: p };
     }),
     resumen: w(function () {
@@ -361,16 +363,16 @@ function apiLocal() {
     }),
     pulseras: w(function (q, lim) {
       var crudo = limpio(q, 60).toLowerCase(), n = norm(q);
-      return load().pulseras.filter(function (p) { return (!n && !crudo) || (n && p.documento.indexOf(n) >= 0) || (crudo && (p.nombre || '').toLowerCase().indexOf(crudo) >= 0); })
+      return load().pulseras.filter(function (p) { return (!n && !crudo) || (n && p.documento.indexOf(n) >= 0) || (crudo && nomDe(p).toLowerCase().indexOf(crudo) >= 0); })
         .sort(function (a, b) { return b.creado - a.creado || b.id - a.id; }).slice(0, lim || 100);
     }),
-    editar: w(function (id, pais, doc, nombre, equipo) {
+    editar: w(function (id, pais, doc, nombre, apellido, equipo) {
       var d = norm(doc), pa = norm(pais).slice(0, 3), db = load();
       if (!ok(d, pa)) return { estado: 'documento_invalido' };
       if (!limpio(equipo, 40)) return { estado: 'falta_equipo' };
       if (db.pulseras.some(function (x) { return x.id !== id && x.pais === pa && x.documento === d; })) return { estado: 'duplicado' };
       var p = db.pulseras.filter(function (x) { return x.id === id; })[0]; if (!p) return { estado: 'inexistente' };
-      p.pais = pa; p.documento = d; p.nombre = limpio(nombre) || null; p.equipo = limpio(equipo, 40); save(db); return { estado: 'ok', pulsera: p };
+      p.pais = pa; p.documento = d; p.nombre = limpio(nombre) || null; p.apellido = limpio(apellido) || null; p.equipo = limpio(equipo, 40); save(db); return { estado: 'ok', pulsera: p };
     }),
     eliminar: w(function (id, clave) {
       if (clave !== CFG.clave) return { estado: 'clave_incorrecta' };
@@ -416,7 +418,7 @@ function refrescar() {
 // ============================================================ PULSERAS (registro de la entrega)
 var ICO_OK = '<svg viewBox="0 0 96 96"><circle cx="48" cy="48" r="42"/><path d="M28 50l14 14 27-30"/></svg>';
 var ICO_NO = '<svg viewBox="0 0 96 96"><circle cx="48" cy="48" r="42"/><path d="M32 32l32 32M64 32L32 64"/></svg>';
-function nuevoReg() { return { pais: 'UY', doc: '', est: 'vacio', aviso: false, msg: '', mc: 'mal', nombre: '', equipo: '', p: null, parecido: null, ocupado: false }; }
+function nuevoReg() { return { pais: 'UY', doc: '', est: 'vacio', aviso: false, msg: '', mc: 'mal', nombre: '', apellido: '', equipo: '', p: null, parecido: null, ocupado: false }; }
 var reg = nuevoReg(), ult = null, lst = { rec: [], q: '' };
 function vPulseras() {
   vista.innerHTML =
@@ -432,7 +434,7 @@ function vPulseras() {
 }
 function fichaHtml(p) {     // datos de una pulsera ya registrada
   return '<div class="ficha"><div><small>' + esc(paisDe(p.pais).d) + ' · ' + esc(paisDe(p.pais).n) + '</small><b class="num">' + esc(fmtDoc(p.pais, p.documento)) + '</b></div>' +
-    (p.nombre ? '<div><small>Nombre y apellido</small><b>' + esc(p.nombre) + '</b></div>' : '') +
+    (nomDe(p) ? '<div><small>Nombre y apellido</small><b>' + esc(nomDe(p)) + '</b></div>' : '') +
     '<div><small>Equipo</small><b>' + escudoDe(p.equipo) + esc(p.equipo || 'Sin equipo') + '</b></div>' +
     '<div><small>Retiró la pulsera</small><b>' + esc(cuando(p.creado)) + (p.creado_por ? ' · ' + esc(p.creado_por) : '') + '</b></div></div>';
 }
@@ -448,7 +450,8 @@ function pintarReg(foco) {
     h = '<div class="fdoc"><b>' + esc(fmtDoc(reg.pais, norm(reg.doc))) + '</b><small>' + esc(pd.n) + '</small><button type="button" class="btn mini" data-act="r-cambiar">Cambiar</button></div>' +
       '<div class="estado si">' + ICO_OK + '<div><b>Puede retirar su pulsera</b><span>Este documento todavía no retiró ninguna.</span></div></div>' +
       (reg.parecido ? '<p class="msg aviso">Atención: el mismo número ya retiró una pulsera como documento de ' + esc(paisDe(reg.parecido.pais).n) + ' (' + esc(cuando(reg.parecido.creado)) + '). Verificá que no sea la misma persona.</p>' : '') +
-      '<label class="f">Nombre y apellido (opcional)<input id="r-nom" maxlength="80" autocomplete="off" autocapitalize="words" value="' + esc(reg.nombre) + '"></label>' +
+      '<div class="dosf"><label class="f">Nombre<input id="r-nom" maxlength="60" autocomplete="off" autocapitalize="words" value="' + esc(reg.nombre) + '"></label>' +
+      '<label class="f">Apellido<input id="r-ape" maxlength="60" autocomplete="off" autocapitalize="words" value="' + esc(reg.apellido) + '"></label></div>' +
       '<label class="f" style="margin-bottom:8px">Equipo</label><div class="chips equipos">' + CFG.equipos.map(function (e) { return '<button type="button" class="chip' + (e.n === reg.equipo ? ' on' : '') + '" data-requipo="' + esc(e.n) + '">' + (e.escudo ? '<img src="' + esc(e.escudo) + '" alt="">' : '') + esc(e.n) + '</button>'; }).join('') + '</div>' +
       '<div class="msg ' + reg.mc + '" id="r-msg">' + esc(reg.msg) + '</div>' +
       '<button class="btn rojo grande" data-act="r-entregar">' + (reg.ocupado ? 'Registrando…' : 'Registrar entrega de pulsera') + '</button>';
@@ -476,7 +479,7 @@ function entregar() {
   if (reg.ocupado || reg.est !== 'libre') return;
   if (!reg.equipo) { reg.mc = 'mal'; reg.msg = 'Elegí el equipo.'; return pintarReg(); }
   var r0 = reg; reg.ocupado = true; reg.msg = ''; pintarReg();
-  api.entregar(reg.pais, norm(reg.doc), limpio(reg.nombre), reg.equipo).then(function (r) {
+  api.entregar(reg.pais, norm(reg.doc), limpio(reg.nombre), limpio(reg.apellido), reg.equipo).then(function (r) {
     if (reg !== r0) return; reg.ocupado = false;
     if (r.estado === 'ok') { ult = r.pulsera; reg = nuevoReg(); reg.pais = r0.pais; pintarReg(true); pintarUlt(); toast('Pulsera registrada'); refrescar().then(pintarRec); return; }
     if (r.estado === 'ya_entregada') { reg.est = 'ya'; reg.p = r.pulsera; return pintarReg(true); }     // otro puesto se la entregó recién
@@ -490,7 +493,7 @@ function pintarUlt() {
 }
 function filaHtml(p, i, acciones) {
   return '<div class="it"><div class="c">' + (escudoDe(p.equipo).replace('class="esc"', 'style="height:28px"') || '–') + '</div>' +
-    '<div class="m"><b>' + esc(fmtDoc(p.pais, p.documento)) + (p.nombre ? ' · ' + esc(p.nombre) : '') + '</b><span>' + esc(p.equipo || 'Sin equipo') + ' · ' + esc(paisDe(p.pais).n) + '</span></div>' +
+    '<div class="m"><b>' + esc(fmtDoc(p.pais, p.documento)) + (nomDe(p) ? ' · ' + esc(nomDe(p)) : '') + '</b><span>' + esc(p.equipo || 'Sin equipo') + ' · ' + esc(paisDe(p.pais).n) + '</span></div>' +
     '<div class="d"><b>' + esc(cuando(p.creado)) + '</b><span>' + esc(p.creado_por || 'Sin nombre') + '</span></div>' +
     (acciones ? '<div class="acc"><button class="btn mini borde" data-editar="' + i + '">Editar</button><button class="btn mini borde rj" data-eliminar="' + i + '">Eliminar</button></div>' : '') + '</div>';
 }
@@ -508,11 +511,13 @@ document.addEventListener('input', function (ev) {
   var t = ev.target;
   if (t.id === 'r-doc') { reg.doc = t.value; reg.aviso = false; reg.msg = ''; var m = $('#r-msg'); if (m) m.textContent = ''; }
   else if (t.id === 'r-nom') reg.nombre = t.value;
+  else if (t.id === 'r-ape') reg.apellido = t.value;
 });
 document.addEventListener('keydown', function (ev) {
   if (ev.key !== 'Enter') return; var t = ev.target;
   if (t.id === 'r-doc') { ev.preventDefault(); buscarDoc(); }
-  else if (t.id === 'r-nom') { ev.preventDefault(); entregar(); }
+  else if (t.id === 'r-nom') { ev.preventDefault(); $('#r-ape').focus(); }     // Enter pasa de nombre a apellido, y de apellido registra
+  else if (t.id === 'r-ape') { ev.preventDefault(); entregar(); }
 });
 
 // ============================================================ REPORTE
@@ -590,9 +595,9 @@ function bajarCsv(nombre, filas) {
 }
 function descargarCsv() {
   api.pulseras('', 100000).then(function (ps) {
-    bajarCsv('pulseras-fan-fest-amstel.csv', [['Pais', 'Tipo de documento', 'Documento', 'Nombre y apellido', 'Equipo', 'Fecha', 'Hora', 'Entregada por']].concat(ps.map(function (p) {
+    bajarCsv('pulseras-fan-fest-amstel.csv', [['Pais', 'Tipo de documento', 'Documento', 'Nombre', 'Apellido', 'Equipo', 'Fecha', 'Hora', 'Entregada por']].concat(ps.map(function (p) {
       var d = new Date(p.creado);
-      return [paisDe(p.pais).n, paisDe(p.pais).d, p.documento, p.nombre || '', p.equipo || '', d.toLocaleDateString('es-UY'), d.toLocaleTimeString('es-UY', { hour12: false }), p.creado_por || '']; })));
+      return [paisDe(p.pais).n, paisDe(p.pais).d, p.documento, p.nombre || '', p.apellido || '', p.equipo || '', d.toLocaleDateString('es-UY'), d.toLocaleTimeString('es-UY', { hour12: false }), p.creado_por || '']; })));
   }).catch(function (e) { toast(errTxt(e), true); });
 }
 
@@ -604,7 +609,8 @@ function abrirEditar(p) {
   $('#m2').innerHTML = '<h2>Editar registro</h2><p>Corrige los datos de esta pulsera. La hora de entrega no cambia.</p>' +
     '<form id="f-ed" autocomplete="off"><div class="chips" id="ed-paises"></div>' +
     '<label class="f">Documento<input id="ed-doc" maxlength="24" autocapitalize="characters" spellcheck="false" value="' + esc(p.documento) + '"></label>' +
-    '<label class="f">Nombre y apellido (opcional)<input id="ed-nom" maxlength="80" autocapitalize="words" value="' + esc(p.nombre || '') + '"></label>' +
+    '<div class="dosf"><label class="f">Nombre<input id="ed-nom" maxlength="60" autocapitalize="words" value="' + esc(p.nombre || '') + '"></label>' +
+    '<label class="f">Apellido<input id="ed-ape" maxlength="60" autocapitalize="words" value="' + esc(p.apellido || '') + '"></label></div>' +
     '<label class="f" style="margin-bottom:8px">Equipo</label><div class="chips equipos" id="ed-equipos"></div>' +
     '<div class="msg" id="ed-msg"></div><div class="fila" style="justify-content:flex-start;margin:0"><button class="btn rojo">Guardar</button><button type="button" class="btn" data-act="cerrar2">Cancelar</button></div></form>';
   pintarEd(); $('#ov2').classList.add('open'); $('#ed-doc').focus();
@@ -613,7 +619,7 @@ function abrirEditar(p) {
     if (d.length < 5) { m.textContent = 'Escribí el número de documento completo.'; m.className = 'msg mal'; return; }
     if (!ed.equipo) { m.textContent = 'Elegí el equipo.'; m.className = 'msg mal'; return; }
     m.textContent = 'Guardando…'; m.className = 'msg';
-    api.editar(p0.id, ed.pais, d, limpio($('#ed-nom').value), ed.equipo).then(function (r) {
+    api.editar(p0.id, ed.pais, d, limpio($('#ed-nom').value), limpio($('#ed-ape').value), ed.equipo).then(function (r) {
       if (r.estado === 'duplicado') { m.textContent = 'Ya hay otra pulsera registrada con ese documento.'; m.className = 'msg mal'; return; }
       if (r.estado !== 'ok') { m.textContent = r.estado === 'inexistente' ? 'Ese registro ya no existe.' : 'Documento no válido.'; m.className = 'msg mal'; return; }
       if (ult && ult.id === p0.id) { ult = r.pulsera; pintarUlt(); }
@@ -628,7 +634,7 @@ function pintarEd() {
 function abrirEliminar(p) {
   ed = { p: p };
   $('#m2').innerHTML = '<h2>¿Seguro que desea eliminar este registro?</h2>' +
-    '<p><b>' + esc(fmtDoc(p.pais, p.documento)) + '</b>' + (p.nombre ? ' · ' + esc(p.nombre) : '') + ' · ' + esc(p.equipo || 'Sin equipo') + ' · retiró su pulsera ' + esc(cuando(p.creado)) + '.</p>' +
+    '<p><b>' + esc(fmtDoc(p.pais, p.documento)) + '</b>' + (nomDe(p) ? ' · ' + esc(nomDe(p)) : '') + ' · ' + esc(p.equipo || 'Sin equipo') + ' · retiró su pulsera ' + esc(cuando(p.creado)) + '.</p>' +
     '<p>Al eliminarlo, ese documento queda como si nunca hubiera retirado: podría pedir otra pulsera. Usalo solo para corregir un error. No se puede deshacer.</p>' +
     '<form id="f-el" autocomplete="off"><label class="f">Contraseña<input type="password" id="el-pw" autocomplete="new-password"></label>' +
     '<div class="msg mal" id="el-msg"></div><div class="fila" style="justify-content:flex-start;margin:0"><button class="btn rojo">Eliminar registro</button><button type="button" class="btn" data-act="cerrar2">Cancelar</button></div></form>';
