@@ -8,19 +8,22 @@ La sesión queda guardada en el dispositivo hasta que se cierre (botón de perso
 Cada pulsera queda registrada a nombre del usuario que la entregó.
 
 CÓMO FUNCIONA
-  Cada persona retira UNA pulsera, que trae 3 tirillas (una por cerveza). En la barra le cortan una
-  tirilla por cada cerveza: eso se hace a mano, fuera del sistema. El sistema solo registra quién ya
-  retiró su pulsera, para que nadie pueda volver a buscar otra con el mismo documento.
+  El evento dura varios días (24, 25 y 26 de noviembre). Cada persona retira UNA pulsera POR DÍA, que
+  trae 3 tirillas (una por cerveza). En la barra le cortan una tirilla por cada cerveza: eso se hace a
+  mano, fuera del sistema. El sistema registra quién ya retiró su pulsera del día, para que nadie pueda
+  volver a buscar otra el mismo día con el mismo documento. Al día siguiente puede retirar otra.
+  El día cambia solo, a las 06:00 (hora de Uruguay): lo que se entregue de madrugada cuenta para la
+  jornada que empezó la tarde anterior. No hay que tocar nada para pasar de un día al otro.
 
   Pulseras  -> 1) Elegir país (Uruguay, Brasil, Argentina, Otro/pasaporte), escribir el documento y
                   "Buscar" (o Enter).
-               2) Verde "Puede retirar su pulsera": nombre y apellido (opcionales, en dos campos), elegir equipo
+               2) Verde "Puede retirar su pulsera de hoy" (si retiró otros días, lo indica): nombre y apellido (opcionales, en dos campos), elegir equipo
                   (Estudiantes, Palmeiras o Neutral) y "Registrar entrega de pulsera".
-               3) Rojo "Ya retiró su pulsera": muestra a qué hora y en qué puesto. No se entrega otra.
+               3) Rojo "Ya retiró su pulsera de hoy": muestra a qué hora y en qué puesto. No se entrega otra.
                Si el mismo número ya retiró como documento de otro país, avisa para que lo verifiquen.
                Abajo está la lista de pulseras entregadas con buscador (documento o nombre), Editar y
                Eliminar (Eliminar pide contraseña: ese documento podría volver a retirar).
-  Reporte   -> pulseras entregadas por día y hora, por equipo, por puesto y por país; detalle con
+  Reporte   -> un botón por cada día y "Todos los días": pulseras por hora, por equipo, por puesto y por país; detalle con
                buscador y descarga a Excel (país, documento, nombre, apellido, equipo, fecha, hora y puesto).
 
 Links directos: .../#pulseras   .../#reporte
@@ -64,7 +67,7 @@ BASE COMPARTIDA (para que todos los puestos vean los mismos datos)
 CAPACIDAD (plan gratuito de Cloudflare)
   Topes por día (se reinician a las 21:00 de Uruguay): 100.000 pedidos a la API, 5 millones de filas
   leídas y 100.000 filas escritas en la base. Si se supera un tope, la base deja de responder hasta el
-  reinicio. Cada pulsera escribe unas 7 filas y hace 4 pedidos: con 6.000 personas por día se usa cerca
+  reinicio. Cada pulsera escribe unas 8 filas y hace 4 pedidos: con 6.000 personas por día se usa cerca
   del 40% de cada tope. Para tener margen (más de 12.000 por día, o muchos dispositivos abiertos),
   conviene pasar la cuenta al plan Workers Paid (USD 5 por mes) durante el mes del evento.
   No hace falta comprar un dominio: la dirección .pages.dev ya funciona con conexión segura.

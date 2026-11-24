@@ -15,9 +15,12 @@
 // que acá NO están las claves: de cada una se guarda solo una huella (PBKDF2 + SHA-256) que no permite
 // reconstruirla. La sesión es la llave derivada de la clave; el servidor la comprueba contra la huella.
 //
-// Regla única, decidida acá: cada documento retira UNA sola pulsera (la pulsera trae las tirillas de
-// consumo, que se cortan a mano en la barra). La base lo garantiza con UNIQUE (pais, documento): dos
-// puestos a la vez nunca pueden entregarle dos pulseras al mismo documento.
+// Regla única, decidida acá: cada documento retira UNA pulsera POR DÍA de evento (la pulsera trae las
+// tirillas de consumo, que se cortan a mano en la barra). Al día siguiente puede retirar otra.
+// La base lo garantiza con UNIQUE (pais, documento, dia): dos puestos a la vez nunca pueden entregarle
+// dos pulseras el mismo día al mismo documento.
+// "Día" es la jornada en hora de Uruguay, y cambia a las 06:00 (no a medianoche) para que lo que se
+// entregue de madrugada siga contando para la jornada que empezó la tarde anterior.
 // La versión anterior (venta de cervezas, etiqueta con QR, lector de barra y pase del fan) quedó guardada
 // en la rama "version-completa-venta-qr" del repositorio.
 
@@ -84,110 +87,115 @@ async function sesionDe(env, request) {
 // - Buscar un documento usa índices (por país + documento, y por documento solo).
 // - Los totales del reporte se llevan en la tabla "totales" (una fila por hora, equipo, puesto y país), que se
 //   actualiza en el mismo paso que cada entrega: el reporte y el contador no recorren la tabla de pulseras.
+// jornada (AAAA-MM-DD) a la que pertenece un momento: hora de Uruguay (UTC-3), con corte a las 06:00
+const diaDe = (t) => new Date(t - (3 + 6) * 3600000).toISOString().slice(0, 10);
+
 let listo = false;
 async function preparar(db) {
   if (listo) return;
   await db.batch([
-    db.prepare(`CREATE TABLE IF NOT EXISTS pulseras (
-      id INTEGER PRIMARY KEY AUTOINCREMENT, pais TEXT NOT NULL, documento TEXT NOT NULL, nombre TEXT, apellido TEXT, equipo TEXT,
-      creado INTEGER NOT NULL, creado_por TEXT, UNIQUE (pais, documento))`),
-    db.prepare('CREATE INDEX IF NOT EXISTS pulseras_documento ON pulseras (documento)'),
-    db.prepare('CREATE TABLE IF NOT EXISTS totales (clave TEXT PRIMARY KEY, n INTEGER NOT NULL) WITHOUT ROWID'),
+    db.prepare(`CREATE TABLE IF NOT EXISTS pulseras_dia (
+      id INTEGER PRIMARY KEY AUTOINCREMENT, pais TEXT NOT NULL, documento TEXT NOT NULL, dia TEXT NOT NULL, nombre TEXT, apellido TEXT, equipo TEXT,
+      creado INTEGER NOT NULL, creado_por TEXT, marca TEXT, UNIQUE (pais, documento, dia))`),
+    db.prepare('CREATE INDEX IF NOT EXISTS pulseras_dia_documento ON pulseras_dia (documento, dia)'),
+    db.prepare('CREATE TABLE IF NOT EXISTS totales_dia (clave TEXT PRIMARY KEY, n INTEGER NOT NULL) WITHOUT ROWID'),
   ]);
-  // bases creadas antes de que existiera el apellido: se agrega la columna (si ya está, el error se ignora)
-  try { await db.prepare('ALTER TABLE pulseras ADD COLUMN apellido TEXT').run(); } catch (e) {}
-  // bases con pulseras cargadas antes de que existieran los totales: se calculan una vez
-  const hay = await db.prepare('SELECT (SELECT COUNT(*) FROM totales) AS t, (SELECT id FROM pulseras LIMIT 1) AS p').first();
-  if (hay && !hay.t && hay.p) await recalcular(db);
   listo = true;
 }
-const buscar = (db, pais, doc) => db.prepare('SELECT * FROM pulseras WHERE pais = ? AND documento = ?').bind(pais, doc).first();
+// todas las pulseras de un documento (una por día como mucho), de la más reciente a la más vieja
+const deDoc = async (db, pais, doc) => (await db.prepare('SELECT * FROM pulseras_dia WHERE pais = ? AND documento = ? ORDER BY dia DESC').bind(pais, doc).all()).results;
 // claves de "totales" a las que aporta una pulsera
-const claves = (p) => ['h|' + Math.floor(p.creado / 3600000), 'e|' + (p.equipo || 'Sin equipo'), 'p|' + (p.creado_por || 'Sin nombre'), 'c|' + p.pais];
-const sumar = (db, clave, d) => db.prepare('INSERT INTO totales (clave, n) VALUES (?1, ?2) ON CONFLICT (clave) DO UPDATE SET n = n + ?2').bind(clave, d);
+const claves = (p) => ['d|' + p.dia, 'h|' + Math.floor(p.creado / 3600000), 'e|' + p.dia + '|' + (p.equipo || 'Sin equipo'),
+  'p|' + p.dia + '|' + (p.creado_por || 'Sin nombre'), 'c|' + p.dia + '|' + p.pais];
+const sumar = (db, clave, d) => db.prepare('INSERT INTO totales_dia (clave, n) VALUES (?1, ?2) ON CONFLICT (clave) DO UPDATE SET n = n + ?2').bind(clave, d);
 // Rehace los totales contando la tabla completa (por si alguna vez quedaran desfasados).
 async function recalcular(db) {
-  const de = (expr) => db.prepare(`INSERT INTO totales (clave, n) SELECT ${expr}, COUNT(*) FROM pulseras GROUP BY 1`);
-  await db.batch([db.prepare('DELETE FROM totales'), de(`'h|' || (creado / 3600000)`), de(`'e|' || COALESCE(equipo, 'Sin equipo')`),
-    de(`'p|' || COALESCE(creado_por, 'Sin nombre')`), de(`'c|' || pais`)]);
+  const de = (expr) => db.prepare(`INSERT INTO totales_dia (clave, n) SELECT ${expr}, COUNT(*) FROM pulseras_dia GROUP BY 1`);
+  await db.batch([db.prepare('DELETE FROM totales_dia'), de(`'d|' || dia`), de(`'h|' || (creado / 3600000)`), de(`'e|' || dia || '|' || COALESCE(equipo, 'Sin equipo')`),
+    de(`'p|' || dia || '|' || COALESCE(creado_por, 'Sin nombre')`), de(`'c|' || dia || '|' || pais`)]);
   return { estado: 'ok' };
 }
 
-// Busca un documento sin registrar nada: dice si ya retiró su pulsera.
-// "parecido": el mismo número ya retiró como documento de otro país (para que el puesto lo verifique).
+// Busca un documento sin registrar nada: dice si ya retiró su pulsera de HOY.
+// "anteriores": las que retiró otros días (solo informativo, no impiden retirar hoy).
+// "parecido": el mismo número ya retiró hoy como documento de otro país (para que el puesto lo verifique).
 async function consultar(db, b) {
-  const doc = norm(b.documento), pais = norm(b.pais).slice(0, 3);
+  const doc = norm(b.documento), pais = norm(b.pais).slice(0, 3), hoy = diaDe(Date.now());
   if (!docOk(doc, pais)) return { estado: 'documento_invalido' };
-  const p = await buscar(db, pais, doc);
-  if (p) return { estado: 'ok', existe: true, pulsera: p };
-  const otro = await db.prepare('SELECT * FROM pulseras WHERE documento = ? AND pais <> ? LIMIT 1').bind(doc, pais).first();
-  return { estado: 'ok', existe: false, parecido: otro || null };
+  const todas = await deDoc(db, pais, doc), p = todas.find((x) => x.dia === hoy), anteriores = todas.filter((x) => x.dia !== hoy);
+  if (p) return { estado: 'ok', existe: true, pulsera: p, anteriores, hoy };
+  const otro = await db.prepare('SELECT * FROM pulseras_dia WHERE documento = ? AND dia = ? AND pais <> ? LIMIT 1').bind(doc, hoy, pais).first();
+  return { estado: 'ok', existe: false, anteriores, parecido: otro || null, hoy };
 }
 
-// Registra la entrega de la pulsera. Si el documento ya la retiró, no registra nada y devuelve la anterior.
-// La entrega y sus totales van en un solo paso: los totales solo suman si la pulsera de este pedido quedó guardada.
+// Registra la entrega de la pulsera de hoy. Si el documento ya la retiró hoy, no registra nada y devuelve esa.
+// La entrega y sus totales van en un solo paso: los totales solo suman si la pulsera de ESTE pedido quedó guardada
+// (se reconoce por una marca al azar, única de cada pedido).
 async function entregar(db, b) {
   const doc = norm(b.documento), pais = norm(b.pais).slice(0, 3), equipo = texto(b.equipo);
   if (!docOk(doc, pais)) return { estado: 'documento_invalido' };
   if (!equipo) return { estado: 'falta_equipo' };
-  const nueva = { pais, documento: doc, equipo, creado: Date.now(), creado_por: texto(b.puesto) };
+  const ahora = Date.now(), marca = crypto.randomUUID(), nueva = { pais, documento: doc, dia: diaDe(ahora), equipo, creado: ahora, creado_por: texto(b.puesto) };
   const r = await db.batch([
-    db.prepare('INSERT INTO pulseras (pais, documento, nombre, apellido, equipo, creado, creado_por) VALUES (?, ?, ?, ?, ?, ?, ?) ON CONFLICT (pais, documento) DO NOTHING RETURNING *')
-      .bind(pais, doc, texto(b.nombre, 60), texto(b.apellido, 60), equipo, nueva.creado, nueva.creado_por),
+    db.prepare('INSERT INTO pulseras_dia (pais, documento, dia, nombre, apellido, equipo, creado, creado_por, marca) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT (pais, documento, dia) DO NOTHING RETURNING *')
+      .bind(pais, doc, nueva.dia, texto(b.nombre, 60), texto(b.apellido, 60), equipo, nueva.creado, nueva.creado_por, marca),
     ...claves(nueva).map((c) => db.prepare(
-      `INSERT INTO totales (clave, n) SELECT ?1, 1 WHERE EXISTS (SELECT 1 FROM pulseras WHERE pais = ?2 AND documento = ?3 AND creado = ?4 AND creado_por IS ?5)
-       ON CONFLICT (clave) DO UPDATE SET n = n + 1`).bind(c, pais, doc, nueva.creado, nueva.creado_por)),
+      `INSERT INTO totales_dia (clave, n) SELECT ?1, 1 WHERE EXISTS (SELECT 1 FROM pulseras_dia WHERE pais = ?2 AND documento = ?3 AND dia = ?4 AND marca = ?5)
+       ON CONFLICT (clave) DO UPDATE SET n = n + 1`).bind(c, pais, doc, nueva.dia, marca)),
   ]);
   const p = r[0].results && r[0].results[0];
   if (p) return { estado: 'ok', pulsera: p };
-  return { estado: 'ya_entregada', pulsera: await buscar(db, pais, doc) };
+  return { estado: 'ya_entregada', pulsera: (await deDoc(db, pais, doc)).find((x) => x.dia === nueva.dia) };
 }
 
 async function editar(db, b) {
   const id = Number(b.id) || 0, doc = norm(b.documento), pais = norm(b.pais).slice(0, 3), equipo = texto(b.equipo);
   if (!docOk(doc, pais)) return { estado: 'documento_invalido' };
   if (!equipo) return { estado: 'falta_equipo' };
-  const otro = await db.prepare('SELECT id FROM pulseras WHERE pais = ? AND documento = ? AND id <> ?').bind(pais, doc, id).first();
-  if (otro) return { estado: 'duplicado' };
-  const antes = await db.prepare('SELECT * FROM pulseras WHERE id = ?').bind(id).first();
+  const antes = await db.prepare('SELECT * FROM pulseras_dia WHERE id = ?').bind(id).first();
   if (!antes) return { estado: 'inexistente' };
+  const otro = await db.prepare('SELECT id FROM pulseras_dia WHERE pais = ? AND documento = ? AND dia = ? AND id <> ?').bind(pais, doc, antes.dia, id).first();
+  if (otro) return { estado: 'duplicado' };
   const a = claves(antes), n = claves({ ...antes, pais, equipo }), ajustes = [];
   a.forEach((c, i) => { if (c !== n[i]) ajustes.push(sumar(db, c, -1), sumar(db, n[i], 1)); });
-  const r = await db.batch([db.prepare('UPDATE pulseras SET pais = ?, documento = ?, nombre = ?, apellido = ?, equipo = ? WHERE id = ? RETURNING *')
+  const r = await db.batch([db.prepare('UPDATE pulseras_dia SET pais = ?, documento = ?, nombre = ?, apellido = ?, equipo = ? WHERE id = ? RETURNING *')
     .bind(pais, doc, texto(b.nombre, 60), texto(b.apellido, 60), equipo, id), ...ajustes]);
   return { estado: 'ok', pulsera: r[0].results[0] };
 }
 
-// Elimina el registro (corrige un error del puesto): ese documento puede volver a retirar. Pide la contraseña.
+// Elimina el registro (corrige un error del puesto): ese documento puede volver a retirar ese día. Pide la contraseña.
 async function eliminar(db, b, clave) {
   if (String(b.clave || '') !== clave) return { estado: 'clave_incorrecta' };
-  const p = await db.prepare('SELECT * FROM pulseras WHERE id = ?').bind(Number(b.id) || 0).first();
+  const p = await db.prepare('SELECT * FROM pulseras_dia WHERE id = ?').bind(Number(b.id) || 0).first();
   if (!p) return { estado: 'inexistente' };
-  await db.batch([db.prepare('DELETE FROM pulseras WHERE id = ?').bind(p.id), ...claves(p).map((c) => sumar(db, c, -1))]);
+  await db.batch([db.prepare('DELETE FROM pulseras_dia WHERE id = ?').bind(p.id), ...claves(p).map((c) => sumar(db, c, -1))]);
   return { estado: 'ok' };
 }
 
-// Totales para el contador (puestos) y el reporte (administrador). Lee solo la tabla "totales".
+// Totales para el contador (puestos) y el reporte (administrador). Lee solo la tabla de totales.
+// Equipo, puesto y país vienen separados por día, para que el reporte pueda mostrar cada jornada o todas juntas.
 async function resumen(db, admin) {
-  const filas = (await db.prepare('SELECT clave, n FROM totales WHERE n > 0').all()).results;
-  const de = (tipo, nombre, fn) => filas.filter((f) => f.clave.slice(0, 2) === tipo + '|')
-    .map((f) => ({ [nombre]: fn ? fn(f.clave.slice(2)) : f.clave.slice(2), personas: f.n }));
-  const por_hora = de('h', 'hora', (h) => Number(h) * 3600000).sort((x, y) => x.hora - y.hora);
-  const personas = por_hora.reduce((s, h) => s + h.personas, 0);
-  if (!admin) return { personas, por_hora };      // los puestos solo ven el contador
-  const orden = (l) => l.sort((x, y) => y.personas - x.personas);
-  return { personas, por_equipo: orden(de('e', 'equipo')), por_puesto: orden(de('p', 'puesto')), por_pais: orden(de('c', 'pais')), por_hora };
+  const filas = (await db.prepare('SELECT clave, n FROM totales_dia WHERE n > 0').all()).results, hoy = diaDe(Date.now());
+  const de = (tipo) => filas.filter((f) => f.clave.slice(0, 2) === tipo + '|').map((f) => ({ k: f.clave.slice(2), personas: f.n }));
+  const por_dia = de('d').map((f) => ({ dia: f.k, personas: f.personas })).sort((x, y) => (x.dia < y.dia ? -1 : 1));
+  const personas = por_dia.reduce((s, d) => s + d.personas, 0);
+  if (!admin) return { personas, hoy, por_dia };      // los puestos solo ven el contador
+  const conDia = (tipo, nombre) => de(tipo).map((f) => ({ dia: f.k.slice(0, 10), [nombre]: f.k.slice(11), personas: f.personas }));
+  return { personas, hoy, por_dia, por_equipo: conDia('e', 'equipo'), por_puesto: conDia('p', 'puesto'), por_pais: conDia('c', 'pais'),
+    por_hora: de('h').map((f) => ({ hora: Number(f.k) * 3600000, dia: diaDe(Number(f.k) * 3600000), personas: f.personas })).sort((x, y) => x.hora - y.hora) };
 }
 
 // Lista de pulseras entregadas, de la más reciente a la más vieja. Busca por documento o por nombre.
 // Sin búsqueda lee solo las últimas (por id); con búsqueda recorre la tabla, por eso el sitio no la repite sola.
 async function pulseras(db, url, admin) {
   const crudo = texto(url.searchParams.get('q'), 60) || '', q = norm(crudo);
+  const dia = /^\d{4}-\d\d-\d\d$/.test(url.searchParams.get('dia') || '') ? url.searchParams.get('dia') : '';     // opcional: solo una jornada
   const limite = Math.min(Math.max(Number(url.searchParams.get('limite')) || 100, 1), admin ? 100000 : 100);   // la descarga completa es del administrador
   return (await db.prepare(
-    `SELECT * FROM pulseras
-     WHERE (?1 = '' AND ?2 = '') OR (?1 <> '' AND documento LIKE '%' || ?1 || '%') OR (?2 <> '' AND (COALESCE(nombre, '') || ' ' || COALESCE(apellido, '')) LIKE '%' || ?2 || '%')
-     ORDER BY id DESC LIMIT ?3`).bind(q, crudo, limite).all()).results;
+    `SELECT * FROM pulseras_dia
+     WHERE (?4 = '' OR dia = ?4)
+       AND ((?1 = '' AND ?2 = '') OR (?1 <> '' AND documento LIKE '%' || ?1 || '%') OR (?2 <> '' AND (COALESCE(nombre, '') || ' ' || COALESCE(apellido, '')) LIKE '%' || ?2 || '%'))
+     ORDER BY id DESC LIMIT ?3`).bind(q, crudo, limite, dia).all()).results;
 }
 
 const api = {
@@ -202,7 +210,7 @@ const api = {
     try {
       // sin sesión: el estado (qué usuarios hay y si la base está vinculada) y el inicio de sesión
       if (request.method === 'GET' && ruta === '/estado')
-        return json({ ok: true, version: 4, db: !!env.DB, usuarios: (await usuarios(env)).map((u) => u.usuario), now: Date.now() });
+        return json({ ok: true, version: 5, db: !!env.DB, usuarios: (await usuarios(env)).map((u) => u.usuario), now: Date.now() });
       if (request.method === 'POST' && ruta === '/entrar') return json(await entrar(env, await request.json().catch(() => ({}))));
       const u = await sesionDe(env, request);
       if (!u) return json({ error: 'sesion' }, 401);
@@ -225,7 +233,7 @@ const api = {
         if (ruta === '/vaciar') {
           if (String(b.clave || '') !== claveEliminar) return json({ estado: 'clave_incorrecta' });
           if (b.confirmacion !== 'BORRAR') return json({ estado: 'sin_confirmar' });
-          await env.DB.batch([env.DB.prepare('DELETE FROM pulseras'), env.DB.prepare('DELETE FROM totales')]);
+          await env.DB.batch([env.DB.prepare('DELETE FROM pulseras_dia'), env.DB.prepare('DELETE FROM totales_dia')]);
           return json({ estado: 'ok' });
         }
       }

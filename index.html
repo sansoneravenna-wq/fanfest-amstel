@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-ver="20261124-2">
+<html lang="es" data-ver="20261124-3">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -206,9 +206,9 @@
     </div>
     <div class="partido" id="partido"></div>
     <div class="total">
-      <div class="et">Pulseras entregadas</div>
+      <div class="et">Pulseras entregadas hoy</div>
       <div class="num" id="k-total">–</div>
-      <div class="sub" id="k-sub">Una pulsera por persona</div>
+      <div class="sub" id="k-sub">Una pulsera por persona por día</div>
     </div>
     <div class="acts">
       <button class="act" data-ir="pulseras"><i><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></i>Pulseras</button>
@@ -318,6 +318,8 @@ function nPuls(n) { return miles(n) + (n === 1 ? ' pulsera' : ' pulseras'); }
 function diaKey(t) { var d = new Date(t), z = function (n) { return (n < 10 ? '0' : '') + n; }; return d.getFullYear() + '-' + z(d.getMonth() + 1) + '-' + z(d.getDate()); }
 // "14:32" si fue hoy; "21/11 · 14:32" si fue otro día
 function cuando(t) { if (!t) return ''; var d = new Date(t); return (diaKey(t) === diaKey(Date.now()) ? '' : d.getDate() + '/' + (d.getMonth() + 1) + ' · ') + hora(t); }
+// Jornada (AAAA-MM-DD) de un momento: hora de Uruguay, con corte a las 06:00. Es la misma cuenta que hace la API.
+function diaDe(t) { return new Date(t - 9 * 3600000).toISOString().slice(0, 10); }
 function nomDe(p) { return [p.nombre, p.apellido].filter(Boolean).join(' '); }
 function escudoDe(n) { var e = CFG.equipos.filter(function (x) { return x.n === n; })[0]; return e && e.escudo ? '<img class="esc" src="' + esc(e.escudo) + '" alt="">' : ''; }
 
@@ -342,7 +344,7 @@ function apiRemota() {
     consultar: function (pais, doc) { return call('POST', '/consultar', { pais: pais, documento: doc }); },
     entregar: function (pais, doc, nombre, apellido, equipo) { return call('POST', '/entregar', { pais: pais, documento: doc, nombre: nombre, apellido: apellido, equipo: equipo, puesto: puesto() }); },
     resumen: function () { return call('GET', '/resumen'); },
-    pulseras: function (q, lim) { return call('GET', '/pulseras?q=' + encodeURIComponent(q || '') + '&limite=' + (lim || 100)); },
+    pulseras: function (q, lim, dia) { return call('GET', '/pulseras?q=' + encodeURIComponent(q || '') + '&limite=' + (lim || 100) + '&dia=' + (dia || '')); },
     editar: function (id, pais, doc, nombre, apellido, equipo) { return call('POST', '/editar', { id: id, pais: pais, documento: doc, nombre: nombre, apellido: apellido, equipo: equipo }); },
     eliminar: function (id, clave) { return call('POST', '/eliminar', { id: id, clave: clave }); },
     vaciar: function (clave) { return call('POST', '/vaciar', { confirmacion: 'BORRAR', clave: clave }); },
@@ -351,48 +353,52 @@ function apiRemota() {
 }
 // Misma lógica guardada en este dispositivo: para probar o seguir trabajando sin la base compartida.
 function apiLocal() {
-  var KEY = 'amstel-pulseras-db';
+  var KEY = 'amstel-pulseras-dia-db';
   function load() { var db; try { db = JSON.parse(store.get(KEY)); } catch (e) {} db = db || {}; db.pulseras = db.pulseras || []; db.seq = db.seq || 1; return db; }
   function save(db) { store.set(KEY, JSON.stringify(db)); }
   function w(fn) { return function () { var a = arguments; return new Promise(function (ok, no) { setTimeout(function () { try { ok(fn.apply(null, a)); } catch (e) { no(e); } }, 80); }); }; }
-  function busca(db, pais, doc) { return db.pulseras.filter(function (x) { return x.pais === pais && x.documento === doc; })[0]; }
+  function deDoc(db, pais, doc) { return db.pulseras.filter(function (x) { return x.pais === pais && x.documento === doc; }).sort(function (a, b) { return a.dia < b.dia ? 1 : -1; }); }
   function ok(d, pa) { return d.length >= 5 && d.length <= 20 && !!pa; }
-  function cuenta(lista, clave, nombre, vacio) { var o = {}; lista.forEach(function (p) { var k = p[clave] || vacio; o[k] = (o[k] || 0) + 1; }); return Object.keys(o).map(function (k) { var r = { personas: o[k] }; r[nombre] = k; return r; }).sort(function (a, b) { return b.personas - a.personas; }); }
+  function cuenta(lista, clave, nombre, vacio) {     // totales por día y por valor
+    var o = {}; lista.forEach(function (p) { var k = p.dia + '|' + (p[clave] || vacio); o[k] = (o[k] || 0) + 1; });
+    return Object.keys(o).map(function (k) { var r = { dia: k.slice(0, 10), personas: o[k] }; r[nombre] = k.slice(11); return r; });
+  }
   return {
     local: true,
     consultar: w(function (pais, doc) {
-      var d = norm(doc), pa = norm(pais).slice(0, 3), db = load();
+      var d = norm(doc), pa = norm(pais).slice(0, 3), db = load(), hoy = diaDe(Date.now());
       if (!ok(d, pa)) return { estado: 'documento_invalido' };
-      var p = busca(db, pa, d);
-      if (p) return { estado: 'ok', existe: true, pulsera: p };
-      return { estado: 'ok', existe: false, parecido: db.pulseras.filter(function (x) { return x.documento === d && x.pais !== pa; })[0] || null };
+      var todas = deDoc(db, pa, d), p = todas.filter(function (x) { return x.dia === hoy; })[0], ant = todas.filter(function (x) { return x.dia !== hoy; });
+      if (p) return { estado: 'ok', existe: true, pulsera: p, anteriores: ant, hoy: hoy };
+      return { estado: 'ok', existe: false, anteriores: ant, hoy: hoy, parecido: db.pulseras.filter(function (x) { return x.documento === d && x.dia === hoy && x.pais !== pa; })[0] || null };
     }),
     entregar: w(function (pais, doc, nombre, apellido, equipo) {
-      var d = norm(doc), pa = norm(pais).slice(0, 3), db = load();
+      var d = norm(doc), pa = norm(pais).slice(0, 3), db = load(), ahora = Date.now(), hoy = diaDe(ahora);
       if (!ok(d, pa)) return { estado: 'documento_invalido' };
       if (!limpio(equipo, 40)) return { estado: 'falta_equipo' };
-      var p = busca(db, pa, d);
+      var p = deDoc(db, pa, d).filter(function (x) { return x.dia === hoy; })[0];
       if (p) return { estado: 'ya_entregada', pulsera: p };
-      p = { id: db.seq++, pais: pa, documento: d, nombre: limpio(nombre) || null, apellido: limpio(apellido) || null, equipo: limpio(equipo, 40), creado: Date.now(), creado_por: puesto() || null };
+      p = { id: db.seq++, pais: pa, documento: d, dia: hoy, nombre: limpio(nombre) || null, apellido: limpio(apellido) || null, equipo: limpio(equipo, 40), creado: ahora, creado_por: puesto() || null };
       db.pulseras.push(p); save(db); return { estado: 'ok', pulsera: p };
     }),
     resumen: w(function () {
-      var ps = load().pulseras, ph = {};
-      ps.forEach(function (p) { var h = Math.floor(p.creado / 3600000) * 3600000; ph[h] = (ph[h] || 0) + 1; });
-      return { personas: ps.length, por_equipo: cuenta(ps, 'equipo', 'equipo', 'Sin equipo'), por_puesto: cuenta(ps, 'creado_por', 'puesto', 'Sin nombre'), por_pais: cuenta(ps, 'pais', 'pais', ''),
-        por_hora: Object.keys(ph).sort().map(function (k) { return { hora: +k, personas: ph[k] }; }) };
+      var ps = load().pulseras, ph = {}, pd = {};
+      ps.forEach(function (p) { var h = Math.floor(p.creado / 3600000) * 3600000; ph[h] = (ph[h] || 0) + 1; pd[p.dia] = (pd[p.dia] || 0) + 1; });
+      return { personas: ps.length, hoy: diaDe(Date.now()), por_dia: Object.keys(pd).sort().map(function (k) { return { dia: k, personas: pd[k] }; }),
+        por_equipo: cuenta(ps, 'equipo', 'equipo', 'Sin equipo'), por_puesto: cuenta(ps, 'creado_por', 'puesto', 'Sin nombre'), por_pais: cuenta(ps, 'pais', 'pais', ''),
+        por_hora: Object.keys(ph).sort().map(function (k) { return { hora: +k, dia: diaDe(+k), personas: ph[k] }; }) };
     }),
-    pulseras: w(function (q, lim) {
+    pulseras: w(function (q, lim, dia) {
       var crudo = limpio(q, 60).toLowerCase(), n = norm(q);
-      return load().pulseras.filter(function (p) { return (!n && !crudo) || (n && p.documento.indexOf(n) >= 0) || (crudo && nomDe(p).toLowerCase().indexOf(crudo) >= 0); })
-        .sort(function (a, b) { return b.creado - a.creado || b.id - a.id; }).slice(0, lim || 100);
+      return load().pulseras.filter(function (p) { return !dia || p.dia === dia; }).filter(function (p) { return (!n && !crudo) || (n && p.documento.indexOf(n) >= 0) || (crudo && nomDe(p).toLowerCase().indexOf(crudo) >= 0); })
+        .sort(function (a, b) { return b.id - a.id; }).slice(0, lim || 100);
     }),
     editar: w(function (id, pais, doc, nombre, apellido, equipo) {
       var d = norm(doc), pa = norm(pais).slice(0, 3), db = load();
       if (!ok(d, pa)) return { estado: 'documento_invalido' };
       if (!limpio(equipo, 40)) return { estado: 'falta_equipo' };
-      if (db.pulseras.some(function (x) { return x.id !== id && x.pais === pa && x.documento === d; })) return { estado: 'duplicado' };
       var p = db.pulseras.filter(function (x) { return x.id === id; })[0]; if (!p) return { estado: 'inexistente' };
+      if (db.pulseras.some(function (x) { return x.id !== id && x.pais === pa && x.documento === d && x.dia === p.dia; })) return { estado: 'duplicado' };
       p.pais = pa; p.documento = d; p.nombre = limpio(nombre) || null; p.apellido = limpio(apellido) || null; p.equipo = limpio(equipo, 40); save(db); return { estado: 'ok', pulsera: p };
     }),
     eliminar: w(function (id, clave) {
@@ -402,7 +408,7 @@ function apiLocal() {
       save(db); return { estado: 'ok' };
     }),
     vaciar: w(function (clave) { if (clave !== CFG.clave) return { estado: 'clave_incorrecta' }; save({ pulseras: [], seq: 1 }); return { estado: 'ok' }; }),
-    estado: w(function () { return { ok: true, version: 3 }; })
+    estado: w(function () { return { ok: true, version: 5 }; })
   };
 }
 var api;
@@ -418,7 +424,7 @@ function iniciarApi() {
   var prueba = fetch(BASE + '/estado', { cache: 'no-store' })
     .then(function (r) { return r.json(); })
     .then(function (e) {
-      if (!e || !e.ok || !(e.version >= 4)) throw new Error('estado');
+      if (!e || !e.ok || !(e.version >= 5)) throw new Error('estado');
       conexion.usuarios = e.usuarios || [];
       if (!e.db) { api = apiLocal(); conexion.modo = 'local'; conexion.falta = 'falta_db'; }
     })
@@ -429,12 +435,11 @@ function errTxt(e) { return e && /401/.test(e.message) ? 'La sesión ya no es v�
 
 // ============================================================ total de arriba
 var R = null;
+function hoyN() { var n = 0; ((R && R.por_dia) || []).forEach(function (d) { if (d.dia === R.hoy) n = d.personas; }); return n; }
 function pintarTotal() {
   if (!R) return;
-  var hoy = diaKey(Date.now()), n = 0;
-  (R.por_hora || []).forEach(function (h) { if (diaKey(h.hora) === hoy) n += h.personas; });
-  $('#k-total').textContent = miles(R.personas);
-  $('#k-sub').textContent = 'Una pulsera por persona · ' + miles(n) + ' hoy';
+  $('#k-total').textContent = miles(hoyN());
+  $('#k-sub').textContent = diaTxt(R.hoy) + ' · una por persona por día · ' + miles(R.personas) + ' en total';
 }
 function refrescar() {
   return api.resumen().then(function (r) { var igual = JSON.stringify(r) === JSON.stringify(R); R = r; pintarTotal(); if (actual === 'reporte' && !igual) pintarReporte(); return r; }).catch(function () {});
@@ -443,15 +448,15 @@ function refrescar() {
 // ============================================================ PULSERAS (registro de la entrega)
 var ICO_OK = '<svg viewBox="0 0 96 96"><circle cx="48" cy="48" r="42"/><path d="M28 50l14 14 27-30"/></svg>';
 var ICO_NO = '<svg viewBox="0 0 96 96"><circle cx="48" cy="48" r="42"/><path d="M32 32l32 32M64 32L32 64"/></svg>';
-function nuevoReg() { return { pais: 'UY', doc: '', est: 'vacio', aviso: false, msg: '', mc: 'mal', nombre: '', apellido: '', equipo: '', p: null, parecido: null, ocupado: false }; }
+function nuevoReg() { return { pais: 'UY', doc: '', est: 'vacio', aviso: false, msg: '', mc: 'mal', nombre: '', apellido: '', equipo: '', p: null, parecido: null, anteriores: [], ocupado: false }; }
 var reg = nuevoReg(), ult = null, lst = { rec: [], q: '' };
 function vPulseras() {
   vista.innerHTML =
     '<div class="pill"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="26" height="26"><rect x="3" y="9" width="18" height="6" rx="3"/><path d="M9 9v6M13 9v6M17 9v6"/></svg></div>' +
-    '<div class="tx"><b>Una pulsera por persona · ' + CFG.tirillas + ' tirillas, una por cerveza</b><span>Se registra el documento al entregar la pulsera. Si vuelve con el mismo documento, el sistema avisa que ya la retiró.</span></div></div>' +
+    '<div class="tx"><b>Una pulsera por persona por día · ' + CFG.tirillas + ' tirillas, una por cerveza</b><span>Se registra el documento al entregar la pulsera. Si vuelve el mismo día con ese documento, el sistema avisa que ya la retiró. Al día siguiente puede retirar otra.</span></div></div>' +
     '<div class="grid"><section class="card"><h2>Entregar pulsera</h2><div id="reg"></div></section>' +
     '<section class="card"><h2>Última pulsera entregada</h2><div id="ult"></div></section></div>' +
-    '<div class="sec"><span>Pulseras entregadas</span><span style="color:var(--gris);font-weight:600" id="n-rec"></span></div>' +
+    '<div class="sec"><span>Pulseras entregadas hoy</span><span style="color:var(--gris);font-weight:600" id="n-rec"></span></div>' +
     '<div class="buscar"><input id="q-rec" type="search" placeholder="Buscar documento o nombre" value="' + esc(lst.q) + '" autocomplete="off"></div>' +
     '<div class="lista" id="rec"><p class="vacio">Cargando…</p></div>';
   var tq; $('#q-rec').oninput = function () { lst.q = this.value; clearTimeout(tq); tq = setTimeout(pintarRec, 250); };
@@ -473,15 +478,15 @@ function pintarReg(foco) {
       '<p class="nota" style="margin-top:0">Ingresá el documento y tocá Buscar (o Enter). El sistema dice si puede retirar su pulsera.</p>';
   } else if (reg.est === 'libre') {
     h = '<div class="fdoc"><b>' + esc(fmtDoc(reg.pais, norm(reg.doc))) + '</b><small>' + esc(pd.n) + '</small><button type="button" class="btn mini" data-act="r-cambiar">Cambiar</button></div>' +
-      '<div class="estado si">' + ICO_OK + '<div><b>Puede retirar su pulsera</b><span>Este documento todavía no retiró ninguna.</span></div></div>' +
-      (reg.parecido ? '<p class="msg aviso">Atención: el mismo número ya retiró una pulsera como documento de ' + esc(paisDe(reg.parecido.pais).n) + ' (' + esc(cuando(reg.parecido.creado)) + '). Verificá que no sea la misma persona.</p>' : '') +
+      '<div class="estado si">' + ICO_OK + '<div><b>Puede retirar su pulsera de hoy</b><span>' + (reg.anteriores.length ? 'Hoy todavía no retiró. Ya retiró otros días: ' + reg.anteriores.map(function (x) { return esc(diaTxt(x.dia)); }).join(', ') + '.' : 'Este documento todavía no retiró ninguna.') + '</span></div></div>' +
+      (reg.parecido ? '<p class="msg aviso">Atención: el mismo número ya retiró hoy una pulsera como documento de ' + esc(paisDe(reg.parecido.pais).n) + ' (' + esc(cuando(reg.parecido.creado)) + '). Verificá que no sea la misma persona.</p>' : '') +
       '<div class="dosf"><label class="f">Nombre<input id="r-nom" maxlength="60" autocomplete="off" autocapitalize="words" value="' + esc(reg.nombre) + '"></label>' +
       '<label class="f">Apellido<input id="r-ape" maxlength="60" autocomplete="off" autocapitalize="words" value="' + esc(reg.apellido) + '"></label></div>' +
       '<label class="f" style="margin-bottom:8px">Equipo</label><div class="chips equipos">' + CFG.equipos.map(function (e) { return '<button type="button" class="chip' + (e.n === reg.equipo ? ' on' : '') + '" data-requipo="' + esc(e.n) + '">' + (e.escudo ? '<img src="' + esc(e.escudo) + '" alt="">' : '') + esc(e.n) + '</button>'; }).join('') + '</div>' +
       '<div class="msg ' + reg.mc + '" id="r-msg">' + esc(reg.msg) + '</div>' +
       '<button class="btn rojo grande" data-act="r-entregar">' + (reg.ocupado ? 'Registrando…' : 'Registrar entrega de pulsera') + '</button>';
   } else {
-    h = '<div class="estado no">' + ICO_NO + '<div><b>Ya retiró su pulsera</b><span>No se le entrega otra.</span></div></div>' + fichaHtml(reg.p) +
+    h = '<div class="estado no">' + ICO_NO + '<div><b>Ya retiró su pulsera de hoy</b><span>No se le entrega otra hasta mañana.</span></div></div>' + fichaHtml(reg.p) +
       '<button class="btn grande" data-act="r-nuevo" id="r-sig" style="margin-top:14px">Siguiente documento</button>';
   }
   el.innerHTML = h;
@@ -496,7 +501,7 @@ function buscarDoc() {
     if (reg !== r0) return;
     if (r.estado !== 'ok') { reg.mc = 'mal'; reg.msg = 'Documento no válido.'; return pintarReg(true); }
     reg.msg = ''; reg.mc = 'mal';
-    if (r.existe) { reg.est = 'ya'; reg.p = r.pulsera; } else { reg.est = 'libre'; reg.parecido = r.parecido || null; }
+    if (r.existe) { reg.est = 'ya'; reg.p = r.pulsera; } else { reg.est = 'libre'; reg.parecido = r.parecido || null; reg.anteriores = r.anteriores || []; }
     pintarReg(true);
   }).catch(function (e) { reg.mc = 'mal'; reg.msg = errTxt(e); pintarReg(true); });
 }
@@ -524,12 +529,12 @@ function filaHtml(p, i, acciones) {
 }
 function pintarRec() {
   if (!$('#rec')) return;
-  api.pulseras(lst.q, 60).then(function (ps) {
+  api.pulseras(lst.q, 60, R ? R.hoy : diaDe(Date.now())).then(function (ps) {
     var el = $('#rec'); if (!el) return;
     lst.rec = ps;
-    $('#n-rec').textContent = R ? miles(R.personas) + ' en total' : '';
-    el.innerHTML = !ps.length ? '<p class="vacio">' + (lst.q ? 'No hay ninguna pulsera que coincida.' : 'Todavía no se entregó ninguna pulsera.') + '</p>' :
-      ps.map(function (p, i) { return filaHtml(p, i, esAdmin()); }).join('') + (ps.length >= 60 ? '<p class="nota">Se muestran las 60 más recientes. Usá el buscador para encontrar cualquier otra.</p>' : '');
+    $('#n-rec').textContent = R ? miles(hoyN()) + ' hoy' : '';
+    el.innerHTML = !ps.length ? '<p class="vacio">' + (lst.q ? 'Hoy no hay ninguna pulsera que coincida.' : 'Hoy todavía no se entregó ninguna pulsera.') + '</p>' :
+      ps.map(function (p, i) { return filaHtml(p, i, esAdmin()); }).join('') + (ps.length >= 60 ? '<p class="nota">Se muestran las 60 más recientes de hoy. Usá el buscador para encontrar cualquier otra.</p>' : '');
   }).catch(function (e) { var el = $('#rec'); if (el) el.innerHTML = '<p class="msg mal">' + errTxt(e) + '</p>'; });
 }
 document.addEventListener('input', function (ev) {
@@ -546,14 +551,14 @@ document.addEventListener('keydown', function (ev) {
 });
 
 // ============================================================ REPORTE
-var rep = { q: '', dia: '' };
+var rep = { q: '', dia: null };       // dia: una jornada (AAAA-MM-DD) o '' para todos los días
 function vReporte() {
   vista.innerHTML = '<div id="c-res"></div>' +
-    '<div class="sec"><span>Detalle de pulseras entregadas</span><span><button data-act="csv">Descargar Excel</button></span></div>' +
+    '<div class="sec"><span>Detalle de pulseras entregadas</span><span><button data-act="csv">Descargar Excel (todos los días)</button></span></div>' +
     '<div class="buscar"><input id="buscar" type="search" placeholder="Buscar documento o nombre" value="' + esc(rep.q) + '"></div>' +
     '<div class="lista" id="c-lista"><p class="vacio">Cargando…</p></div>';
   var t; $('#buscar').oninput = function () { rep.q = this.value; clearTimeout(t); t = setTimeout(cargarDetalle, 250); };
-  pintarReporte(); cargarDetalle();
+  pintarReporte(); if (rep.dia !== null) cargarDetalle(); else refrescar().then(cargarDetalle);
 }
 function barras(filas, total) {
   var mx = Math.max.apply(null, filas.map(function (f) { return f.n; }).concat([1]));
@@ -582,34 +587,43 @@ function columnas(filas, unidad) {
   return '<svg class="graf" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + esc(unidad) + ' por hora">' + g + '</svg>';
 }
 function pintarReporte() {
-  var el = $('#c-res'); if (!el || !R) return;
-  // días con datos (hora local) y serie por hora del día elegido
-  var dias = {}, hoy = diaKey(Date.now());
-  (R.por_hora || []).forEach(function (h) { var k = diaKey(h.hora); dias[k] = (dias[k] || 0) + h.personas; });
-  var ks = Object.keys(dias).sort();
-  if (!rep.dia || !dias[rep.dia]) rep.dia = dias[hoy] ? hoy : (ks[ks.length - 1] || hoy);
-  var hc = {}, hmin = 24, hmax = -1;
-  (R.por_hora || []).forEach(function (h) { if (diaKey(h.hora) !== rep.dia) return; var x = new Date(h.hora).getHours(); hc[x] = (hc[x] || 0) + h.personas; hmin = Math.min(hmin, x); hmax = Math.max(hmax, x); });
-  var fc = [];
-  if (hmax >= 0) { hmin = Math.max(0, Math.min(hmin, hmax - 5)); hmax = Math.min(23, Math.max(hmax, hmin + 5)); }
-  for (var x = hmin; x <= hmax; x++) fc.push({ l: (x < 10 ? '0' : '') + x + ':00 a ' + (x < 10 ? '0' : '') + x + ':59', c: x + ' h', n: hc[x] || 0 });
-  var tarjeta = function (titulo, filas, vacio) { return '<section class="card"><h2>' + titulo + '</h2>' + (filas.length ? barras(filas, R.personas) : '<p class="vacio" style="padding:0">' + vacio + '</p>') + '</section>'; };
+  var el = $('#c-res'); if (!el || !R || !R.por_equipo) return;
+  var dias = R.por_dia.map(function (d) { return d.dia; }), nDia = {}; R.por_dia.forEach(function (d) { nDia[d.dia] = d.personas; });
+  if (rep.dia === null || (rep.dia && !nDia[rep.dia] && rep.dia !== R.hoy)) rep.dia = nDia[R.hoy] || !dias.length ? R.hoy : dias[dias.length - 1];
+  var total = rep.dia ? (nDia[rep.dia] || 0) : R.personas;
+  // suma por equipo, puesto o país de la jornada elegida (o de todas)
+  var agrupa = function (lista, clave) {
+    var o = {}; lista.forEach(function (x) { if (!rep.dia || x.dia === rep.dia) o[x[clave]] = (o[x[clave]] || 0) + x.personas; });
+    return Object.keys(o).map(function (k) { return { k: k, n: o[k] }; }).sort(function (a, b) { return b.n - a.n; });
+  };
+  // gráfico: por hora en una jornada; por día cuando se miran todos
+  var fc = [], dos = function (x) { return (x < 10 ? '0' : '') + x; };
+  if (rep.dia) {
+    var hs = R.por_hora.filter(function (h) { return h.dia === rep.dia; }), porH = {}; hs.forEach(function (h) { porH[h.hora] = h.personas; });
+    if (hs.length) {
+      var h0 = hs[0].hora, h1 = hs[hs.length - 1].hora; if (h1 - h0 < 5 * 3600000) h1 = h0 + 5 * 3600000;
+      for (var t = h0; t <= h1; t += 3600000) { var x = new Date(t).getHours(); fc.push({ l: dos(x) + ':00 a ' + dos(x) + ':59', c: x + ' h', n: porH[t] || 0 }); }
+    }
+  } else fc = R.por_dia.map(function (d) { return { l: diaTxt(d.dia), c: diaTxt(d.dia), n: d.personas }; });
+  var tarjeta = function (titulo, filas) { return '<section class="card"><h2>' + titulo + '</h2>' + (filas.length ? barras(filas, total) : '<p class="vacio" style="padding:0">Sin pulseras.</p>') + '</section>'; };
+  var chips = dias.slice(); if (chips.indexOf(R.hoy) < 0) chips.push(R.hoy);
+  var eq = agrupa(R.por_equipo, 'equipo');
   el.innerHTML =
+    '<div class="chips dias">' + chips.map(function (k) { return '<button class="chip' + (k === rep.dia ? ' on' : '') + '" data-dia="' + k + '">' + diaTxt(k) + (k === R.hoy ? ' (hoy)' : '') + ' · ' + miles(nDia[k] || 0) + '</button>'; }).join('') +
+    '<button class="chip' + (rep.dia === '' ? ' on' : '') + '" data-dia="">Todos los días · ' + miles(R.personas) + '</button></div>' +
     '<div class="pill"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="26" height="26"><rect x="3" y="9" width="18" height="6" rx="3"/><path d="M9 9v6M13 9v6M17 9v6"/></svg></div>' +
-    '<div class="tx"><b>' + nPuls(R.personas) + (R.personas === 1 ? ' entregada' : ' entregadas') + '</b><span>Una por documento · equivalen a ' + miles(R.personas * CFG.tirillas) + ' cervezas como máximo (' + CFG.tirillas + ' tirillas por pulsera)</span></div></div>' +
-    (ks.length ? '<div class="chips dias">' + ks.map(function (k) { return '<button class="chip' + (k === rep.dia ? ' on' : '') + '" data-dia="' + k + '">' + diaTxt(k) + (k === hoy ? ' (hoy)' : '') + '</button>'; }).join('') + '</div>' : '') +
-    '<div class="grid dos"><section class="card"><h2>Pulseras entregadas por hora</h2><p class="kp"><b>' + miles(dias[rep.dia] || 0) + '</b> en el día</p>' + columnas(fc, 'pulseras') + '</section>' +
-    '<section class="card"><h2>Por equipo</h2>' + (R.por_equipo.length ? R.por_equipo.map(function (e) {
-      return '<div class="it" style="padding:8px 0"><div class="c" style="background:var(--fondo);box-shadow:none">' + (escudoDe(e.equipo).replace('class="esc"', 'style="height:28px"') || '–') + '</div><div class="m"><b>' + esc(e.equipo) + '</b><span>' + (R.personas ? Math.round(e.personas / R.personas * 100) : 0) + '% del total</span></div><div class="d"><b>' + miles(e.personas) + '</b><span>' + (e.personas === 1 ? 'pulsera' : 'pulseras') + '</span></div></div>';
-    }).join('') : '<p class="vacio" style="padding:0">Sin pulseras todavía.</p>') + '</section></div>' +
-    '<div class="sec"><span>Totales del evento</span></div>' +
-    '<div class="grid dos">' + tarjeta('Por puesto de entrega', R.por_puesto.map(function (p) { return { l: esc(p.puesto), n: p.personas }; }), 'Sin pulseras todavía.') +
-    tarjeta('Por país del documento', R.por_pais.map(function (p) { return { l: esc(paisDe(p.pais).n), n: p.personas }; }), 'Sin pulseras todavía.') + '</div>';
+    '<div class="tx"><b>' + nPuls(total) + (total === 1 ? ' entregada' : ' entregadas') + (rep.dia ? ' el ' + diaTxt(rep.dia).toLowerCase() : ' en todo el evento') + '</b><span>Una por documento por día · equivalen a ' + miles(total * CFG.tirillas) + ' cervezas como máximo (' + CFG.tirillas + ' tirillas por pulsera)</span></div></div>' +
+    '<div class="grid dos"><section class="card"><h2>' + (rep.dia ? 'Pulseras entregadas por hora' : 'Pulseras entregadas por día') + '</h2><p class="kp"><b>' + miles(total) + '</b> ' + (rep.dia ? 'en el día' : 'en total') + '</p>' + columnas(fc, 'pulseras') + '</section>' +
+    '<section class="card"><h2>Por equipo</h2>' + (eq.length ? eq.map(function (e) {
+      return '<div class="it" style="padding:8px 0"><div class="c" style="background:var(--fondo);box-shadow:none">' + (escudoDe(e.k).replace('class="esc"', 'style="height:28px"') || '–') + '</div><div class="m"><b>' + esc(e.k) + '</b><span>' + (total ? Math.round(e.n / total * 100) : 0) + '% del total</span></div><div class="d"><b>' + miles(e.n) + '</b><span>' + (e.n === 1 ? 'pulsera' : 'pulseras') + '</span></div></div>';
+    }).join('') : '<p class="vacio" style="padding:0">Sin pulseras.</p>') + '</section></div>' +
+    '<div class="grid dos" style="margin-top:14px">' + tarjeta('Por puesto de entrega', agrupa(R.por_puesto, 'puesto').map(function (p) { return { l: esc(p.k), n: p.n }; })) +
+    tarjeta('Por país del documento', agrupa(R.por_pais, 'pais').map(function (p) { return { l: esc(paisDe(p.k).n), n: p.n }; })) + '</div>';
 }
 function cargarDetalle() {
-  api.pulseras(rep.q, 200).then(function (ps) {
+  api.pulseras(rep.q, 200, rep.dia || '').then(function (ps) {
     var el = $('#c-lista'); if (!el) return;
-    el.innerHTML = !ps.length ? '<p class="vacio">' + (rep.q ? 'Sin resultados.' : 'Todavía no se entregó ninguna pulsera.') + '</p>' :
+    el.innerHTML = !ps.length ? '<p class="vacio">' + (rep.q ? 'Sin resultados.' : 'Sin pulseras entregadas.') + '</p>' :
       ps.map(function (p, i) { return filaHtml(p, i, false); }).join('') + (ps.length >= 200 ? '<p class="nota">Se muestran las 200 más recientes. Usá el buscador o descargá el Excel para ver todas.</p>' : '');
   }).catch(function (e) { var el = $('#c-lista'); if (el) el.innerHTML = '<p class="msg mal">' + errTxt(e) + '</p>'; });
 }
@@ -620,9 +634,9 @@ function bajarCsv(nombre, filas) {
 }
 function descargarCsv() {
   api.pulseras('', 100000).then(function (ps) {
-    bajarCsv('pulseras-fan-fest-amstel.csv', [['Pais', 'Tipo de documento', 'Documento', 'Nombre', 'Apellido', 'Equipo', 'Fecha', 'Hora', 'Entregada por']].concat(ps.map(function (p) {
+    bajarCsv('pulseras-fan-fest-amstel.csv', [['Jornada', 'Pais', 'Tipo de documento', 'Documento', 'Nombre', 'Apellido', 'Equipo', 'Fecha', 'Hora', 'Entregada por']].concat(ps.map(function (p) {
       var d = new Date(p.creado);
-      return [paisDe(p.pais).n, paisDe(p.pais).d, p.documento, p.nombre || '', p.apellido || '', p.equipo || '', d.toLocaleDateString('es-UY'), d.toLocaleTimeString('es-UY', { hour12: false }), p.creado_por || '']; })));
+      return [p.dia.split('-').reverse().join('/'), paisDe(p.pais).n, paisDe(p.pais).d, p.documento, p.nombre || '', p.apellido || '', p.equipo || '', d.toLocaleDateString('es-UY'), d.toLocaleTimeString('es-UY', { hour12: false }), p.creado_por || '']; })));
   }).catch(function (e) { toast(errTxt(e), true); });
 }
 
@@ -645,7 +659,7 @@ function abrirEditar(p) {
     if (!ed.equipo) { m.textContent = 'Elegí el equipo.'; m.className = 'msg mal'; return; }
     m.textContent = 'Guardando…'; m.className = 'msg';
     api.editar(p0.id, ed.pais, d, limpio($('#ed-nom').value), limpio($('#ed-ape').value), ed.equipo).then(function (r) {
-      if (r.estado === 'duplicado') { m.textContent = 'Ya hay otra pulsera registrada con ese documento.'; m.className = 'msg mal'; return; }
+      if (r.estado === 'duplicado') { m.textContent = 'Ya hay otra pulsera de ese mismo día con ese documento.'; m.className = 'msg mal'; return; }
       if (r.estado !== 'ok') { m.textContent = r.estado === 'inexistente' ? 'Ese registro ya no existe.' : 'Documento no válido.'; m.className = 'msg mal'; return; }
       if (ult && ult.id === p0.id) { ult = r.pulsera; pintarUlt(); }
       cerrarM2(); pintarRec(); refrescar(); toast('Registro actualizado');
@@ -660,7 +674,7 @@ function abrirEliminar(p) {
   ed = { p: p };
   $('#m2').innerHTML = '<h2>¿Seguro que desea eliminar este registro?</h2>' +
     '<p><b>' + esc(fmtDoc(p.pais, p.documento)) + '</b>' + (nomDe(p) ? ' · ' + esc(nomDe(p)) : '') + ' · ' + esc(p.equipo || 'Sin equipo') + ' · retiró su pulsera ' + esc(cuando(p.creado)) + '.</p>' +
-    '<p>Al eliminarlo, ese documento queda como si nunca hubiera retirado: podría pedir otra pulsera. Usalo solo para corregir un error. No se puede deshacer.</p>' +
+    '<p>Al eliminarlo, ese documento queda como si no hubiera retirado ese día: podría pedir otra pulsera. Usalo solo para corregir un error. No se puede deshacer.</p>' +
     '<form id="f-el" autocomplete="off"><label class="f">Contraseña<input type="password" id="el-pw" autocomplete="new-password"></label>' +
     '<div class="msg mal" id="el-msg"></div><div class="fila" style="justify-content:flex-start;margin:0"><button class="btn rojo">Eliminar registro</button><button type="button" class="btn" data-act="cerrar2">Cancelar</button></div></form>';
   $('#ov2').classList.add('open'); $('#el-pw').focus();
@@ -719,7 +733,7 @@ document.addEventListener('click', function (ev) {
   if ((b = t.closest('[data-ir]'))) { ir(b.getAttribute('data-ir')); return; }
   if ((b = t.closest('[data-rpais]'))) { reg.pais = b.getAttribute('data-rpais'); reg.aviso = false; reg.msg = ''; pintarReg(true); return; }
   if ((b = t.closest('[data-requipo]'))) { reg.equipo = b.getAttribute('data-requipo'); reg.msg = ''; pintarReg(); var be = $('[data-act=r-entregar]'); if (be) be.focus(); return; }   // con el equipo elegido, Enter registra
-  if ((b = t.closest('[data-dia]'))) { rep.dia = b.getAttribute('data-dia'); pintarReporte(); return; }
+  if ((b = t.closest('[data-dia]'))) { rep.dia = b.getAttribute('data-dia'); pintarReporte(); cargarDetalle(); return; }
   if ((b = t.closest('[data-editar]'))) { abrirEditar(lst.rec[+b.getAttribute('data-editar')]); return; }
   if ((b = t.closest('[data-eliminar]'))) { abrirEliminar(lst.rec[+b.getAttribute('data-eliminar')]); return; }
   if ((b = t.closest('[data-ed-pais]'))) { ed.pais = b.getAttribute('data-ed-pais'); pintarEd(); return; }
@@ -737,7 +751,7 @@ document.addEventListener('click', function (ev) {
   else if (a === 'csv') descargarCsv();
   else if (a === 'salir') cerrarSesion();
   else if (a === 'vaciar') {
-    var c = window.prompt('Esto borra TODAS las pulseras registradas. Para confirmar escribí BORRAR:');
+    var c = window.prompt('Esto borra TODAS las pulseras registradas, de todos los días. Para confirmar escribí BORRAR:');
     if (c !== 'BORRAR') { if (c !== null) toast('No se borró nada', true); return; }
     var pw = window.prompt('Contraseña para borrar:'); if (pw === null) return;
     api.vaciar(pw).then(function (r) {
