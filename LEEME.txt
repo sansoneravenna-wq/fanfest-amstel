@@ -18,8 +18,8 @@ CÓMO FUNCIONA
 
   Pulseras  -> 1) Elegir país (Uruguay, Brasil, Argentina, Otro/pasaporte), escribir el documento y
                   "Buscar" (o Enter). Antes, verificar el día marcado en el selector.
-               2) Verde "Puede retirar su pulsera del 25 nov" (si retiró otros días, lo indica): nombre y apellido (opcionales, en dos campos), elegir equipo
-                  (Estudiantes, Palmeiras o Neutral) y "Registrar entrega de pulsera".
+               2) Verde "Puede retirar su pulsera del 25 nov" (si retiró otros días, lo indica): elegir equipo si se quiere (opcional:
+                  Estudiantes, Palmeiras o Neutral) y "Registrar entrega de pulsera" (o Enter).
                3) Rojo "Ya retiró su pulsera del 25 nov": muestra a qué hora y en qué puesto. No se entrega otra.
                Si el mismo número ya retiró como documento de otro país, avisa para que lo verifiquen.
                Abajo está la lista de pulseras entregadas con buscador (documento o nombre), Editar y

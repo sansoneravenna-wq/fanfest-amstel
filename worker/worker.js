@@ -141,7 +141,6 @@ async function consultar(db, b, dias) {
 async function entregar(db, b, dias) {
   const doc = norm(b.documento), pais = norm(b.pais).slice(0, 3), equipo = texto(b.equipo);
   if (!docOk(doc, pais)) return { estado: 'documento_invalido' };
-  if (!equipo) return { estado: 'falta_equipo' };
   const ahora = Date.now(), marca = crypto.randomUUID(), nueva = { pais, documento: doc, dia: diaPedido(dias, b), equipo, creado: ahora, creado_por: texto(b.puesto) };
   const r = await db.batch([
     db.prepare('INSERT INTO pulseras_dia (pais, documento, dia, nombre, apellido, equipo, creado, creado_por, marca) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT (pais, documento, dia) DO NOTHING RETURNING *')
@@ -158,7 +157,6 @@ async function entregar(db, b, dias) {
 async function editar(db, b) {
   const id = Number(b.id) || 0, doc = norm(b.documento), pais = norm(b.pais).slice(0, 3), equipo = texto(b.equipo);
   if (!docOk(doc, pais)) return { estado: 'documento_invalido' };
-  if (!equipo) return { estado: 'falta_equipo' };
   const antes = await db.prepare('SELECT * FROM pulseras_dia WHERE id = ?').bind(id).first();
   if (!antes) return { estado: 'inexistente' };
   const otro = await db.prepare('SELECT id FROM pulseras_dia WHERE pais = ? AND documento = ? AND dia = ? AND id <> ?').bind(pais, doc, antes.dia, id).first();

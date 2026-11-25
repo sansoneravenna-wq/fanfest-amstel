@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-ver="20261124-4">
+<html lang="es" data-ver="20261125-1">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -388,10 +388,9 @@ function apiLocal() {
     entregar: w(function (pais, doc, nombre, apellido, equipo, dia) {
       var d = norm(doc), pa = norm(pais).slice(0, 3), db = load(), ahora = Date.now(), hoy = CFG.dias.indexOf(dia) >= 0 ? dia : diaMarcado();
       if (!ok(d, pa)) return { estado: 'documento_invalido' };
-      if (!limpio(equipo, 40)) return { estado: 'falta_equipo' };
       var p = deDoc(db, pa, d).filter(function (x) { return x.dia === hoy; })[0];
       if (p) return { estado: 'ya_entregada', pulsera: p };
-      p = { id: db.seq++, pais: pa, documento: d, dia: hoy, nombre: limpio(nombre) || null, apellido: limpio(apellido) || null, equipo: limpio(equipo, 40), creado: ahora, creado_por: puesto() || null };
+      p = { id: db.seq++, pais: pa, documento: d, dia: hoy, nombre: limpio(nombre) || null, apellido: limpio(apellido) || null, equipo: limpio(equipo, 40) || null, creado: ahora, creado_por: puesto() || null };
       db.pulseras.push(p); save(db); return { estado: 'ok', pulsera: p };
     }),
     resumen: w(function () {
@@ -409,10 +408,9 @@ function apiLocal() {
     editar: w(function (id, pais, doc, nombre, apellido, equipo) {
       var d = norm(doc), pa = norm(pais).slice(0, 3), db = load();
       if (!ok(d, pa)) return { estado: 'documento_invalido' };
-      if (!limpio(equipo, 40)) return { estado: 'falta_equipo' };
       var p = db.pulseras.filter(function (x) { return x.id === id; })[0]; if (!p) return { estado: 'inexistente' };
       if (db.pulseras.some(function (x) { return x.id !== id && x.pais === pa && x.documento === d && x.dia === p.dia; })) return { estado: 'duplicado' };
-      p.pais = pa; p.documento = d; p.nombre = limpio(nombre) || null; p.apellido = limpio(apellido) || null; p.equipo = limpio(equipo, 40); save(db); return { estado: 'ok', pulsera: p };
+      p.pais = pa; p.documento = d; p.nombre = limpio(nombre) || null; p.apellido = limpio(apellido) || null; p.equipo = limpio(equipo, 40) || null; save(db); return { estado: 'ok', pulsera: p };
     }),
     eliminar: w(function (id, clave) {
       if (clave !== CFG.clave) return { estado: 'clave_incorrecta' };
@@ -477,7 +475,7 @@ function vPulseras() {
     '<div class="grid"><section class="card"><h2>Entregar pulsera</h2><div id="reg"></div></section>' +
     '<section class="card"><h2>Última pulsera entregada</h2><div id="ult"></div></section></div>' +
     '<div class="sec"><span id="t-rec">Pulseras entregadas</span><span style="color:var(--gris);font-weight:600" id="n-rec"></span></div>' +
-    '<div class="buscar"><input id="q-rec" type="search" placeholder="Buscar documento o nombre" value="' + esc(lst.q) + '" autocomplete="off"></div>' +
+    '<div class="buscar"><input id="q-rec" type="search" placeholder="Buscar documento" value="' + esc(lst.q) + '" autocomplete="off"></div>' +
     '<div class="lista" id="rec"><p class="vacio">Cargando…</p></div>';
   var tq; $('#q-rec').oninput = function () { lst.q = this.value; clearTimeout(tq); tq = setTimeout(pintarRec, 250); };
   pintarDias(); pintarReg(true); pintarUlt(); pintarRec();
@@ -507,9 +505,7 @@ function pintarReg(foco) {
     h = '<div class="fdoc"><b>' + esc(fmtDoc(reg.pais, norm(reg.doc))) + '</b><small>' + esc(pd.n) + '</small><button type="button" class="btn mini" data-act="r-cambiar">Cambiar</button></div>' +
       '<div class="estado si">' + ICO_OK + '<div><b>Puede retirar su pulsera del ' + diaCorto(diaActual()) + '</b><span>' + (reg.anteriores.length ? 'La de este día todavía no la retiró. Ya retiró otros días: ' + reg.anteriores.map(function (x) { return esc(diaCorto(x.dia)); }).join(', ') + '.' : 'Este documento todavía no retiró ninguna.') + '</span></div></div>' +
       (reg.parecido ? '<p class="msg aviso">Atención: el mismo número ya retiró la pulsera de este día como documento de ' + esc(paisDe(reg.parecido.pais).n) + ' (' + esc(cuando(reg.parecido.creado)) + '). Verificá que no sea la misma persona.</p>' : '') +
-      '<div class="dosf"><label class="f">Nombre<input id="r-nom" maxlength="60" autocomplete="off" autocapitalize="words" value="' + esc(reg.nombre) + '"></label>' +
-      '<label class="f">Apellido<input id="r-ape" maxlength="60" autocomplete="off" autocapitalize="words" value="' + esc(reg.apellido) + '"></label></div>' +
-      '<label class="f" style="margin-bottom:8px">Equipo</label><div class="chips equipos">' + CFG.equipos.map(function (e) { return '<button type="button" class="chip' + (e.n === reg.equipo ? ' on' : '') + '" data-requipo="' + esc(e.n) + '">' + (e.escudo ? '<img src="' + esc(e.escudo) + '" alt="">' : '') + esc(e.n) + '</button>'; }).join('') + '</div>' +
+      '<label class="f" style="margin-bottom:8px">Equipo (opcional)</label><div class="chips equipos">' + CFG.equipos.map(function (e) { return '<button type="button" class="chip' + (e.n === reg.equipo ? ' on' : '') + '" data-requipo="' + esc(e.n) + '">' + (e.escudo ? '<img src="' + esc(e.escudo) + '" alt="">' : '') + esc(e.n) + '</button>'; }).join('') + '</div>' +
       '<div class="msg ' + reg.mc + '" id="r-msg">' + esc(reg.msg) + '</div>' +
       '<button class="btn rojo grande" data-act="r-entregar">' + (reg.ocupado ? 'Registrando…' : 'Registrar entrega de pulsera') + '</button>';
   } else {
@@ -517,7 +513,7 @@ function pintarReg(foco) {
       '<button class="btn grande" data-act="r-nuevo" id="r-sig" style="margin-top:14px">Siguiente documento</button>';
   }
   el.innerHTML = h;
-  if (foco) { var f = $(reg.est === 'vacio' ? '#r-doc' : reg.est === 'libre' ? '#r-nom' : '#r-sig'); if (f) { f.focus(); if (f.setSelectionRange) f.setSelectionRange(f.value.length, f.value.length); } }
+  if (foco) { var f = $(reg.est === 'vacio' ? '#r-doc' : reg.est === 'libre' ? '[data-act=r-entregar]' : '#r-sig'); if (f) { f.focus(); if (f.setSelectionRange) f.setSelectionRange(f.value.length, f.value.length); } }
 }
 function buscarDoc() {
   var d = norm(reg.doc), r0 = reg; reg.mc = 'mal';
@@ -534,13 +530,12 @@ function buscarDoc() {
 }
 function entregar() {
   if (reg.ocupado || reg.est !== 'libre') return;
-  if (!reg.equipo) { reg.mc = 'mal'; reg.msg = 'Elegí el equipo.'; return pintarReg(); }
   var r0 = reg; reg.ocupado = true; reg.msg = ''; pintarReg();
   api.entregar(reg.pais, norm(reg.doc), limpio(reg.nombre), limpio(reg.apellido), reg.equipo, diaActual()).then(function (r) {
     if (reg !== r0) return; reg.ocupado = false;
     if (r.estado === 'ok') { ult = r.pulsera; reg = nuevoReg(); reg.pais = r0.pais; pintarReg(true); pintarUlt(); toast('Pulsera registrada'); refrescar().then(pintarRec); return; }
     if (r.estado === 'ya_entregada') { reg.est = 'ya'; reg.p = r.pulsera; return pintarReg(true); }     // otro puesto se la entregó recién
-    reg.mc = 'mal'; reg.msg = r.estado === 'falta_equipo' ? 'Elegí el equipo.' : 'No se pudo registrar (' + r.estado + ').'; pintarReg();
+    reg.mc = 'mal'; reg.msg = 'No se pudo registrar (' + r.estado + ').'; pintarReg();
   }).catch(function (e) { reg.ocupado = false; reg.mc = 'mal'; reg.msg = errTxt(e); pintarReg(); });
 }
 function pintarUlt() {
@@ -569,14 +564,11 @@ function pintarRec() {
 document.addEventListener('input', function (ev) {
   var t = ev.target;
   if (t.id === 'r-doc') { reg.doc = t.value; reg.aviso = false; reg.msg = ''; var m = $('#r-msg'); if (m) m.textContent = ''; }
-  else if (t.id === 'r-nom') reg.nombre = t.value;
-  else if (t.id === 'r-ape') reg.apellido = t.value;
+
 });
 document.addEventListener('keydown', function (ev) {
   if (ev.key !== 'Enter') return; var t = ev.target;
   if (t.id === 'r-doc') { ev.preventDefault(); buscarDoc(); }
-  else if (t.id === 'r-nom') { ev.preventDefault(); $('#r-ape').focus(); }     // Enter pasa de nombre a apellido, y de apellido registra
-  else if (t.id === 'r-ape') { ev.preventDefault(); entregar(); }
 });
 
 // ============================================================ REPORTE
@@ -584,7 +576,7 @@ var rep = { q: '', dia: null };       // dia: una jornada (AAAA-MM-DD) o '' para
 function vReporte() {
   vista.innerHTML = '<div id="c-res"></div>' +
     '<div class="sec"><span>Detalle de pulseras entregadas</span><span><button data-act="csv">Descargar Excel (todos los días)</button></span></div>' +
-    '<div class="buscar"><input id="buscar" type="search" placeholder="Buscar documento o nombre" value="' + esc(rep.q) + '"></div>' +
+    '<div class="buscar"><input id="buscar" type="search" placeholder="Buscar documento" value="' + esc(rep.q) + '"></div>' +
     '<div class="lista" id="c-lista"><p class="vacio">Cargando…</p></div>';
   var t; $('#buscar').oninput = function () { rep.q = this.value; clearTimeout(t); t = setTimeout(cargarDetalle, 250); };
   pintarReporte(); if (rep.dia !== null) cargarDetalle(); else refrescar().then(cargarDetalle);
@@ -677,17 +669,14 @@ function abrirEditar(p) {
   $('#m2').innerHTML = '<h2>Editar registro</h2><p>Corrige los datos de esta pulsera. La hora de entrega no cambia.</p>' +
     '<form id="f-ed" autocomplete="off"><div class="chips" id="ed-paises"></div>' +
     '<label class="f">Documento<input id="ed-doc" maxlength="24" autocapitalize="characters" spellcheck="false" value="' + esc(p.documento) + '"></label>' +
-    '<div class="dosf"><label class="f">Nombre<input id="ed-nom" maxlength="60" autocapitalize="words" value="' + esc(p.nombre || '') + '"></label>' +
-    '<label class="f">Apellido<input id="ed-ape" maxlength="60" autocapitalize="words" value="' + esc(p.apellido || '') + '"></label></div>' +
-    '<label class="f" style="margin-bottom:8px">Equipo</label><div class="chips equipos" id="ed-equipos"></div>' +
+    '<label class="f" style="margin-bottom:8px">Equipo (opcional)</label><div class="chips equipos" id="ed-equipos"></div>' +
     '<div class="msg" id="ed-msg"></div><div class="fila" style="justify-content:flex-start;margin:0"><button class="btn rojo">Guardar</button><button type="button" class="btn" data-act="cerrar2">Cancelar</button></div></form>';
   pintarEd(); $('#ov2').classList.add('open'); $('#ed-doc').focus();
   $('#f-ed').onsubmit = function (ev) {
     ev.preventDefault(); var m = $('#ed-msg'), d = norm($('#ed-doc').value), p0 = ed.p;
     if (d.length < 5) { m.textContent = 'Escribí el número de documento completo.'; m.className = 'msg mal'; return; }
-    if (!ed.equipo) { m.textContent = 'Elegí el equipo.'; m.className = 'msg mal'; return; }
     m.textContent = 'Guardando…'; m.className = 'msg';
-    api.editar(p0.id, ed.pais, d, limpio($('#ed-nom').value), limpio($('#ed-ape').value), ed.equipo).then(function (r) {
+    api.editar(p0.id, ed.pais, d, p0.nombre || '', p0.apellido || '', ed.equipo).then(function (r) {
       if (r.estado === 'duplicado') { m.textContent = 'Ya hay otra pulsera de ese mismo día con ese documento.'; m.className = 'msg mal'; return; }
       if (r.estado !== 'ok') { m.textContent = r.estado === 'inexistente' ? 'Ese registro ya no existe.' : 'Documento no válido.'; m.className = 'msg mal'; return; }
       if (ult && ult.id === p0.id) { ult = r.pulsera; pintarUlt(); }
@@ -762,12 +751,12 @@ document.addEventListener('click', function (ev) {
   if ((b = t.closest('[data-ir]'))) { ir(b.getAttribute('data-ir')); return; }
   if ((b = t.closest('[data-rdia]'))) { diaSel = b.getAttribute('data-rdia'); var pz = reg.pais; reg = nuevoReg(); reg.pais = pz; pintarDias(); pintarReg(true); pintarRec(); pintarTotal(); return; }
   if ((b = t.closest('[data-rpais]'))) { reg.pais = b.getAttribute('data-rpais'); reg.aviso = false; reg.msg = ''; pintarReg(true); return; }
-  if ((b = t.closest('[data-requipo]'))) { reg.equipo = b.getAttribute('data-requipo'); reg.msg = ''; pintarReg(); var be = $('[data-act=r-entregar]'); if (be) be.focus(); return; }   // con el equipo elegido, Enter registra
+  if ((b = t.closest('[data-requipo]'))) { reg.equipo = reg.equipo === b.getAttribute('data-requipo') ? '' : b.getAttribute('data-requipo'); reg.msg = ''; pintarReg(); var be = $('[data-act=r-entregar]'); if (be) be.focus(); return; }   // con el equipo elegido, Enter registra
   if ((b = t.closest('[data-dia]'))) { rep.dia = b.getAttribute('data-dia'); pintarReporte(); cargarDetalle(); return; }
   if ((b = t.closest('[data-editar]'))) { abrirEditar(lst.rec[+b.getAttribute('data-editar')]); return; }
   if ((b = t.closest('[data-eliminar]'))) { abrirEliminar(lst.rec[+b.getAttribute('data-eliminar')]); return; }
   if ((b = t.closest('[data-ed-pais]'))) { ed.pais = b.getAttribute('data-ed-pais'); pintarEd(); return; }
-  if ((b = t.closest('[data-ed-equipo]'))) { ed.equipo = b.getAttribute('data-ed-equipo'); pintarEd(); return; }
+  if ((b = t.closest('[data-ed-equipo]'))) { ed.equipo = ed.equipo === b.getAttribute('data-ed-equipo') ? '' : b.getAttribute('data-ed-equipo'); pintarEd(); return; }
   if (!(b = t.closest('[data-act]'))) { if (t.id === 'ov') $('#ov').classList.remove('open'); if (t.id === 'ov2') cerrarM2(); return; }
   var a = b.getAttribute('data-act');
   if (a === 'ajustes') abrirAjustes(false);
