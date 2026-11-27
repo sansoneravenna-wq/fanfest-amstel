@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-ver="20261125-1">
+<html lang="es" data-ver="20261127-1">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -175,6 +175,7 @@
   .ficha{display:grid;grid-template-columns:1fr 1fr;gap:12px 16px;background:var(--fondo);border-radius:20px;padding:16px}
   /* los puestos no ven el reporte ni la zona de borrado: eso es del administrador */
   body:not([data-admin]) [data-ir=reporte],body:not([data-admin]) .soloadmin{display:none}
+  select{font:inherit;width:100%;padding:13px 14px;border-radius:16px;border:1.5px solid #e2ddd8;background:#fff;color:inherit;margin-top:6px}
   .seldia{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:0 4px 14px}
   .seldia span{font-size:14px;font-weight:700}
   .seldia .chips{margin:0}
@@ -240,6 +241,11 @@
       <h2>Configuración</h2>
       <h3>Base compartida (Cloudflare)</h3>
       <p id="a-estado"></p>
+      <div class="soloadmin"><h3>Corregir día</h3>
+      <p>Si se cargaron pulseras con el día equivocado marcado, esto las pasa al día en que realmente se registraron. No toca las que se cargaron en su día.</p>
+      <div class="dosf"><label class="f">Figuran en el día<select id="cd-de"></select></label><label class="f">Pasarlas al día<select id="cd-a"></select></label></div>
+      <div class="fila" style="justify-content:flex-start;margin:0"><button class="btn" data-act="cd-revisar">Revisar</button></div>
+      <div id="cd-res" style="margin-top:10px"></div></div>
       <div class="soloadmin"><h3>Zona peligrosa</h3>
       <p>Borra todas las pulseras registradas. Sirve para limpiar las pruebas antes del evento. Pide contraseña.</p>
       <div class="fila" style="justify-content:flex-start;margin:0"><button class="btn" style="color:var(--rojo)" data-act="vaciar">Borrar todo</button></div></div>
@@ -330,7 +336,8 @@ var diaSel = null;
 function diasEvento() { return (R && R.dias) || conexion.dias || CFG.dias; }
 function hoyJ() { return (R && R.hoy) || diaDe(Date.now()); }
 function diaMarcado() { var ds = diasEvento(), h = hoyJ(); if (ds.indexOf(h) >= 0) return h; return ds.filter(function (d) { return d > h; })[0] || ds[ds.length - 1]; }
-function diaActual() { return diaSel && diasEvento().indexOf(diaSel) >= 0 ? diaSel : diaMarcado(); }
+// Los puestos registran siempre en el día en curso; solo el administrador puede elegir otro.
+function diaActual() { return esAdmin() && diaSel && diasEvento().indexOf(diaSel) >= 0 ? diaSel : diaMarcado(); }
 var MESES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
 function diaCorto(k) { var p = k.split('-'); return (+p[2]) + ' ' + MESES[+p[1] - 1]; }      // "25 nov"
 function nomDe(p) { return [p.nombre, p.apellido].filter(Boolean).join(' '); }
@@ -361,6 +368,7 @@ function apiRemota() {
     editar: function (id, pais, doc, nombre, apellido, equipo) { return call('POST', '/editar', { id: id, pais: pais, documento: doc, nombre: nombre, apellido: apellido, equipo: equipo }); },
     eliminar: function (id, clave) { return call('POST', '/eliminar', { id: id, clave: clave }); },
     vaciar: function (clave) { return call('POST', '/vaciar', { confirmacion: 'BORRAR', clave: clave }); },
+    corregirDia: function (de, a, simular) { return call('POST', '/corregir-dia', { de: de, a: a, simular: !!simular }); },
     estado: function () { return call('GET', '/estado'); }
   };
 }
@@ -482,7 +490,8 @@ function vPulseras() {
 }
 function pintarDias() {
   var el = $('#sel-dia'); if (!el) return; var a = diaActual(), h = hoyJ(), ds = diasEvento();
-  el.innerHTML = '<div class="seldia"><span>Día de la pulsera</span><div class="chips">' + ds.map(function (k) {
+  if (!esAdmin()) { el.innerHTML = '<div class="seldia"><span>Día de la pulsera</span><div class="chips"><span class="chip on">' + diaCorto(a) + (a === h ? ' · hoy' : '') + '</span></div></div>'; }
+  else el.innerHTML = '<div class="seldia"><span>Día de la pulsera</span><div class="chips">' + ds.map(function (k) {
     return '<button type="button" class="chip' + (k === a ? ' on' : '') + '" data-rdia="' + k + '">' + diaCorto(k) + (k === h ? ' · hoy' : '') + '</button>'; }).join('') + '</div></div>' +
     (ds.indexOf(h) >= 0 && a !== h ? '<p class="msg aviso" style="margin:-4px 0 14px">Atención: estás registrando pulseras del ' + diaCorto(a) + ', y hoy es ' + diaCorto(h) + '.</p>' : '');
   var t = $('#t-rec'); if (t) t.textContent = 'Pulseras entregadas del ' + diaCorto(a);
@@ -713,7 +722,27 @@ function abrirAjustes(conf) {
   $('#s-nombre').textContent = puesto() ? 'Sesión: ' + puesto() : 'Sin sesión';
   $('#s-rol').textContent = ses && ses.admin ? 'Administrador: ve el reporte completo, descarga el Excel y puede editar o eliminar registros.' : 'Puede buscar documentos y registrar la entrega de pulseras. Cada registro queda a nombre de este usuario.';
   $('#a-estado').textContent = conexion.modo === 'sitio' && !conexion.falta ? 'Conectado a la base compartida: todos los puestos ven los mismos datos y quedan guardados.' : conexion.falta === 'falta_db' ? 'Falta un paso en Cloudflare: vincular la base de datos D1 con el nombre DB en el proyecto de Pages. Hasta entonces los datos se guardan solo en este dispositivo.' : conexion.falta === 'sin_conexion' ? 'No se pudo conectar con el servidor. Revisá internet y recargá la página.' : 'Sin base compartida: los datos se guardan solo en este dispositivo.';
+  // corregir día: por defecto, de hoy al día anterior del evento
+  var ds = diasEvento(), hd = diaMarcado(), ant = ds[Math.max(0, ds.indexOf(hd) - 1)], op = function (sel) { return ds.map(function (k) { return '<option value="' + k + '"' + (k === sel ? ' selected' : '') + '>' + diaCorto(k) + '</option>'; }).join(''); };
+  $('#cd-de').innerHTML = op(hd); $('#cd-a').innerHTML = op(ant); $('#cd-res').innerHTML = '';
   $('#ov').classList.add('open');
+}
+function corregirDia(mover) {
+  var de = $('#cd-de').value, a = $('#cd-a').value, res = $('#cd-res');
+  if (de === a) { res.innerHTML = '<p class="msg mal">Elegí dos días distintos.</p>'; return; }
+  if (!api.corregirDia) { res.innerHTML = '<p class="msg mal">Solo está disponible con la base compartida.</p>'; return; }
+  res.innerHTML = '<p class="msg">' + (mover ? 'Moviendo…' : 'Revisando…') + '</p>';
+  api.corregirDia(de, a, !mover).then(function (r) {
+    if (r.estado !== 'ok') { res.innerHTML = '<p class="msg mal">No se pudo (' + esc(r.estado) + ').</p>'; return; }
+    var conf = r.conflictos ? ' Otras ' + miles(r.conflictos) + ' no se pueden mover porque ese documento ya tiene una pulsera del ' + diaCorto(a) + ': quedan en el ' + diaCorto(de) + '.' : '';
+    if (r.simulado) {
+      res.innerHTML = '<p class="msg' + (r.mover ? ' aviso' : '') + '">' + (r.mover ? 'Hay ' + nPuls(r.mover) + ' que figuran en el ' + diaCorto(de) + ' pero se registraron durante el ' + diaCorto(a) + '.' : 'No hay pulseras del ' + diaCorto(de) + ' registradas durante el ' + diaCorto(a) + ' para mover.') + conf + '</p>' +
+        (r.mover ? '<button class="btn rojo" data-act="cd-mover">Pasar ' + nPuls(r.mover) + ' al ' + diaCorto(a) + '</button>' : '');
+    } else {
+      res.innerHTML = '<p class="msg bien">Listo: ' + nPuls(r.movidas) + (r.movidas === 1 ? ' pasó' : ' pasaron') + ' al ' + diaCorto(a) + '.' + conf + '</p>';
+      refrescar().then(function () { if (actual) ir(actual); });
+    }
+  }).catch(function (e) { res.innerHTML = '<p class="msg mal">' + errTxt(e) + '</p>'; });
 }
 
 // ============================================================ ingreso con usuario y clave
@@ -769,6 +798,8 @@ document.addEventListener('click', function (ev) {
   else if (a === 'r-nuevo') { var p1 = reg.pais; reg = nuevoReg(); reg.pais = p1; pintarReg(true); }
   else if (a === 'csv') descargarCsv();
   else if (a === 'salir') cerrarSesion();
+  else if (a === 'cd-revisar') corregirDia(false);
+  else if (a === 'cd-mover') corregirDia(true);
   else if (a === 'vaciar') {
     var c = window.prompt('Esto borra TODAS las pulseras registradas, de todos los días. Para confirmar escribí BORRAR:');
     if (c !== 'BORRAR') { if (c !== null) toast('No se borró nada', true); return; }

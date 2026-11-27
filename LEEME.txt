@@ -12,8 +12,11 @@ CÓMO FUNCIONA
   3 tirillas (una por cerveza). En la barra le cortan una tirilla por cada cerveza: eso se hace a mano,
   fuera del sistema. El sistema registra quién ya retiró la pulsera de cada día, para que nadie pueda
   volver a buscar otra del mismo día con el mismo documento.
-  Arriba de "Entregar pulsera" hay un selector con los tres días. Viene marcado el día en curso (cambia
-  solo a las 06:00, hora de Uruguay) y se puede elegir otro a mano; si el elegido no es el de hoy, avisa.
+  Arriba de "Entregar pulsera" figura el día de la pulsera. Los puestos registran siempre en el día en
+  curso (cambia solo a las 06:00, hora de Uruguay) y no lo pueden cambiar. El Administrador sí puede
+  elegir otro día del evento a mano; si el elegido no es el de hoy, avisa.
+  Si quedaron pulseras cargadas con el día equivocado: Administrador -> engranaje -> "Corregir día".
+  Pasa al día correcto las que se registraron durante esa jornada y no toca las demás.
   Los días se cambian en worker/worker.js y en index.html (DIAS / dias), o con la variable DIAS en Cloudflare.
 
   Pulseras  -> 1) Elegir país (Uruguay, Brasil, Argentina, Otro/pasaporte), escribir el documento y

@@ -94,8 +94,8 @@ const DIAS = ['2026-11-25', '2026-11-26', '2026-11-27'];
 const diasDe = (env) => { const l = String(env.DIAS || '').split(',').map((x) => x.trim()).filter((x) => /^\d{4}-\d\d-\d\d$/.test(x)).sort(); return l.length ? l : DIAS; };
 // día que viene marcado: el de hoy si es del evento; antes del evento el primero, y después el último
 const diaActivo = (dias, t) => { const h = diaDe(t); return dias.includes(h) ? h : (dias.find((d) => d > h) || dias[dias.length - 1]); };
-// día pedido por el puesto, si es uno del evento; si no, el que viene marcado
-const diaPedido = (dias, b) => (dias.includes(b.dia) ? b.dia : diaActivo(dias, Date.now()));
+// Los puestos registran siempre en el día en curso. Solo el administrador puede elegir otro día del evento.
+const diaPedido = (dias, b) => (b.admin && dias.includes(b.dia) ? b.dia : diaActivo(dias, Date.now()));
 
 let listo = false;
 async function preparar(db) {
@@ -168,6 +168,24 @@ async function editar(db, b) {
   return { estado: 'ok', pulsera: r[0].results[0] };
 }
 
+// Corrige pulseras cargadas con el día equivocado: pasa al día "a" las que figuran en el día "de" pero se
+// registraron durante la jornada "a" (de 06:00 a 06:00, hora de Uruguay). No toca las que se registraron en
+// su día. Las de un documento que ya tiene pulsera en "a" no se pueden mover (serían dos el mismo día) y
+// quedan donde están. Con simular: true solo cuenta, sin cambiar nada.
+async function corregirDia(db, b, dias) {
+  const de = String(b.de || ''), a = String(b.a || '');
+  if (!dias.includes(de) || !dias.includes(a) || de === a) return { estado: 'dias_invalidos' };
+  const ini = Date.parse(a + 'T09:00:00Z'), fin = ini + 86400000;      // 06:00 de Uruguay = 09:00 UTC
+  const cond = 'dia = ?1 AND creado >= ?3 AND creado < ?4';
+  const libre = 'NOT EXISTS (SELECT 1 FROM pulseras_dia x WHERE x.pais = pulseras_dia.pais AND x.documento = pulseras_dia.documento AND x.dia = ?2)';
+  const c = await db.prepare(`SELECT COALESCE(SUM(CASE WHEN ${libre} THEN 1 ELSE 0 END), 0) AS mover, COUNT(*) AS total FROM pulseras_dia WHERE ${cond}`).bind(de, a, ini, fin).first();
+  const mover = c.mover, conflictos = c.total - c.mover;
+  if (b.simular || !mover) return { estado: 'ok', simulado: true, mover, conflictos };
+  await db.prepare(`UPDATE pulseras_dia SET dia = ?2 WHERE ${cond} AND ${libre}`).bind(de, a, ini, fin).run();
+  await recalcular(db);
+  return { estado: 'ok', movidas: mover, conflictos };
+}
+
 // Elimina el registro (corrige un error del puesto): ese documento puede volver a retirar ese día. Pide la contraseña.
 async function eliminar(db, b, clave) {
   if (String(b.clave || '') !== clave) return { estado: 'clave_incorrecta' };
@@ -228,12 +246,13 @@ export default {
       }
       if (request.method === 'POST') {
         const b = await request.json().catch(() => ({}));
-        b.puesto = quien;                       // cada registro queda a nombre del usuario de la sesión
+        b.puesto = quien; b.admin = admin;                       // cada registro queda a nombre del usuario de la sesión
         if (ruta === '/consultar') return json(await consultar(env.DB, b, diasDe(env)));
         if (ruta === '/entregar') return json(await entregar(env.DB, b, diasDe(env)));
-        if (!admin && (ruta === '/editar' || ruta === '/eliminar' || ruta === '/vaciar' || ruta === '/recalcular')) return json({ error: 'solo_admin' }, 403);
+        if (!admin && (ruta === '/editar' || ruta === '/eliminar' || ruta === '/vaciar' || ruta === '/recalcular' || ruta === '/corregir-dia')) return json({ error: 'solo_admin' }, 403);
         if (ruta === '/editar') return json(await editar(env.DB, b));
         if (ruta === '/recalcular') return json(await recalcular(env.DB));
+        if (ruta === '/corregir-dia') return json(await corregirDia(env.DB, b, diasDe(env)));
         if (ruta === '/eliminar') return json(await eliminar(env.DB, b, claveEliminar));
         if (ruta === '/vaciar') {
           if (String(b.clave || '') !== claveEliminar) return json({ estado: 'clave_incorrecta' });
